@@ -666,6 +666,7 @@ export class Game extends Scene
 
         this.battleLayer.removeAll(true);
         this.battleLayer.setVisible(true);
+        this.ensureSelectedLiveTarget();
 
         this.battleLayer.add(this.add.rectangle(512, 384, 1024, 768, this.currentArea.color));
         this.battleLayer.add(this.add.rectangle(512, 444, 860, 360, 0x1c2334, 0.55).setStrokeStyle(3, 0xffffff, 0.4));

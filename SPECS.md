@@ -288,6 +288,13 @@ Knight  HP 150 / 150
 
 During combat, reuse the same party status panel so the player always understands team health.
 
+Enemy targeting uses the keyboard instead of number shortcuts:
+
+* Up / Down moves the selected target between living enemies
+* Enter / Space confirms the attack
+* A pixel-style pointing hand appears beside the selected enemy, in the spirit of Final Fantasy VII target selection
+* Clicking an enemy still selects and attacks it as a convenience
+
 ---
 
 ## Combat System
@@ -344,6 +351,9 @@ Enemies:
 2. Highlight active hero
 
 3. Target selection (enemy highlights)
+
+   * Up / Down changes the selected enemy
+   * A pointing hand appears next to the currently selected enemy
 
 4. Action resolves (damage + small animation)
 
