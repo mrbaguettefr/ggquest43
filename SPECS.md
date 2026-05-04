@@ -6,12 +6,27 @@
 
 ## Opening Sequence (Player Name Gag)
 
-* At the very start, the game asks: "Enter your name"
+* At the very start, the game asks for a password to access the game
+
+* Password behavior:
+
+  * The password is used to decrypt the Steam key from a shared config file
+  * If the password is valid, the decoded Steam key is stored in memory for the rest of the game
+  * The full key is never shown immediately
+  * The decoded key is later revealed in fragments through the Card Reader wall
+
+* After the password is accepted, the game asks: "Enter your name"
 
 * Input field behavior:
 
-  * Whatever the player types, the input auto-corrects in real-time to: "GGLeBoss"
-  * The player cannot change it
+  * The input box starts empty
+  * When the player types any letter, the typed letter is ignored
+  * Instead, the input box receives the next missing letter from "GGLeBoss"
+  * Example: first key press adds "G", second key press adds "G", third key press adds "L", etc.
+  * Once the input box contains "GGLeBoss", any further typing is ignored
+  * Delete/backspace works like a normal input box and removes the previous letter
+  * After deleting, typing again continues by adding the next required letter from "GGLeBoss"
+  * The confirm button confirms the current input as usual
 
 * Purpose:
 
@@ -33,7 +48,8 @@ Tone: playful, slightly absurd, full of references.
 
   * 2–4 short fights
   * 1 boss fight
-  * Return to hub (wall interaction ~20–30s)
+  * Walk back to the hub after the boss
+  * Wall interaction ~20–30s
 
 ---
 
@@ -43,7 +59,7 @@ Tone: playful, slightly absurd, full of references.
 * Fight enemies (turn-based)
 * Defeat area boss
 * Receive a Card
-* Return to the starting area (central wall)
+* Physically walk back to the starting area (central wall)
 * Insert Card into the Card Reader to reveal part of the code
 * Discover new hero near the wall (if applicable)
 * Progress to next area
@@ -83,19 +99,38 @@ The map is divided into 3 areas with increasing difficulty:
 
   * Red Card
 
-###
-
 ---
 
 ## Hidden Objective
 
-At the start of the game, the player sees a mysterious wall with 3 missing Card Reader (in the style of Doom: green, blue and red) slots and incomplete fragments of a code.
+The real Steam key is stored encrypted in a shared config file.
+
+At the start of the game, the player must enter a password. This password is used to decode the Steam key. Once decoded successfully, the game keeps the decoded key in memory for the rest of the session.
+
+The player then sees a mysterious wall with 3 missing Card Reader slots in the style of Doom keycards: green, blue and red. The wall shows incomplete fragments of a code, but not enough to understand the full reward immediately.
 
 Each boss grants a Card
 
-Returning to the starting area and inserting a Card into the Card Reader reveals one part of the Steam key (4 random characters).
+After defeating a boss, the player must physically walk back from the area to the central wall. Returning to the starting area and inserting a Card into the Card Reader reveals one part of the decoded Steam key.
 
 The player gradually understands it's a Steam key through  hints from NPC "baguettefr".
+
+### Steam Key Handling
+
+* Shared config contains the encrypted Steam key
+* Startup password decrypts the Steam key
+* Decrypted value is kept only for the current game session
+* Card Readers reveal fragments from the decrypted key
+* The full Steam key is only visible after all 3 Cards have been inserted
+
+---
+
+## Hub & Respawn
+
+* The central wall is a real location in the map, not a menu or automatic transition
+* After completing an area, the player must walk back to the central wall to use the Card Reader
+* Death is the only exception: when the party loses a fight, the player resurrects at the central wall
+* Resurrection restores all recruited heroes to full HP
 
 ---
 
