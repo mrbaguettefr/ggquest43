@@ -25,7 +25,6 @@
     "vite-plugin-bundle-obfuscator": "^1.11.0"
   },
   "dependencies": {
-    "phaser": "^4.1.0",
-    "playwright": "^1.59.1"
+    "phaser": "^4.1.0"
   }
 }
