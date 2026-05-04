@@ -1,5 +1,4 @@
 export type CardColor = 'green' | 'blue' | 'red';
-export type GamePhase = 'seed' | 'welcome' | 'name' | 'explore' | 'battle' | 'message' | 'complete';
 export type AreaKey = 'plains' | 'mountains' | 'dungeon';
 export type HeroKey = 'cloud' | 'leon' | 'knight';
 
@@ -39,4 +38,26 @@ export type Area = {
     color: number;
     card: CardColor;
     encounters: Encounter[];
+};
+
+export type GameSession = {
+    seedCode: string;
+    playerName: string;
+    welcomeMessage: string;
+    secretGift: string;
+    secretFragments: string[];
+    revealedCards: Set<CardColor>;
+    pendingCards: Set<CardColor>;
+    defeatedEncounters: Set<string>;
+    heroes: Record<HeroKey, Hero>;
+    currentArea?: Area;
+    currentEncounter?: Encounter;
+    currentLocation: string;
+};
+
+export type BattleResult = {
+    won: boolean;
+    area: Area;
+    encounter: Encounter;
+    log: string[];
 };

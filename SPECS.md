@@ -141,7 +141,18 @@ The player gradually understands what the gift is through hints from NPC "baguet
 
 ### Implementation Organization
 
-* `src/game/scenes/Game.ts` owns Phaser scene lifecycle, input handling, exploration, battle flow, and UI updates
+* Phaser scene flow is split by game phase:
+
+  * `src/game/scenes/Boot.ts` loads the early background asset and starts Preloader
+  * `src/game/scenes/Preloader.ts` loads game assets and starts MainMenu
+  * `src/game/scenes/MainMenu.ts` shows the opening menu and starts Seed
+  * `src/game/scenes/Seed.ts` owns seed game code entry, welcome-message decryption, secret gift decryption, and initial session creation
+  * `src/game/scenes/PlayerName.ts` owns the forced "GGLeBoss" name-entry gag
+  * `src/game/scenes/Exploration.ts` owns world rendering, movement, map interactions, Card Reader wall interactions, hero recruitment, battle entry, resurrection handling, and post-battle rewards
+  * `src/game/scenes/Battle.ts` owns fullscreen combat rendering, target selection, turn resolution, victory, defeat, and returning battle results to Exploration
+  * `src/game/scenes/GameOver.ts` remains available as a standalone Game Over scene
+
+* `src/game/gameSession.ts` creates the shared game session object passed between Seed, PlayerName, Exploration, and Battle
 * `src/game/gameTypes.ts` contains shared gameplay types
 * `src/game/gameConstants.ts` contains world, movement, name, and Card Reader constants
 * `src/game/encounters.ts` contains area and enemy encounter data
@@ -393,6 +404,9 @@ Goal:
 
 * Enter battle: quick fade or zoom-in
 * Exit battle: fade back to exploration map
+* Quest completion: after all three Card Reader fragments reveal the full `secret_gift`, closing the final completion message starts a very long `Credits` scene
+* Credits scene: a long upward-scrolling credit roll with many production, art, design, programming, audio, QA, executive, and special thanks roles; every credited role uses the same name, `baguettefr`
+* Credits input: clicking or pressing Enter returns to the Main Menu
 
 Goal:
 
