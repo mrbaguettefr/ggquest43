@@ -6,7 +6,7 @@ import type { Area, BattleResult, Encounter, GameSession, HeroKey } from '../gam
 export class Exploration extends Scene
 {
     private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
-    private player: Phaser.GameObjects.Rectangle;
+    private player: Phaser.GameObjects.Sprite;
     private camera: Phaser.Cameras.Scene2D.Camera;
     private infoText: Phaser.GameObjects.Text;
     private partyText: Phaser.GameObjects.Text;
@@ -79,6 +79,23 @@ export class Exploration extends Scene
 
         this.player.x = PhaserMath.Clamp(this.player.x + velocityX * distance, 80, WORLD_WIDTH - 80);
         this.player.y = PhaserMath.Clamp(this.player.y + velocityY * distance, 120, WORLD_HEIGHT - 80);
+
+        const moving = velocityX !== 0 || velocityY !== 0;
+
+        if (moving)
+        {
+            this.player.play('cloud-walk', true);
+
+            if (velocityX !== 0)
+            {
+                this.player.setFlipX(velocityX < 0);
+            }
+        }
+        else
+        {
+            this.player.play('cloud-idle', true);
+        }
+
         this.updateExploreText();
     }
 
@@ -93,8 +110,28 @@ export class Exploration extends Scene
         this.drawHub();
         AREAS.forEach((area) => this.drawAreaGate(area));
 
-        this.player = this.add.rectangle(470, 610, 34, 42, 0xf5f1d8);
-        this.player.setStrokeStyle(4, 0x102030);
+        if (!this.anims.exists('cloud-idle'))
+        {
+            this.anims.create({
+                key: 'cloud-idle',
+                frames: this.anims.generateFrameNumbers('cloud', { start: 0, end: 5 }),
+                frameRate: 8,
+                repeat: -1
+            });
+        }
+
+        if (!this.anims.exists('cloud-walk'))
+        {
+            this.anims.create({
+                key: 'cloud-walk',
+                frames: this.anims.generateFrameNumbers('cloud-walk', { start: 0, end: 7 }),
+                frameRate: 12,
+                repeat: -1
+            });
+        }
+
+        this.player = this.add.sprite(470, 610, 'cloud').play('cloud-idle');
+        this.player.setScale(2);
         this.worldLayer.add(this.player);
 
         this.camera.startFollow(this.player, true, 0.08, 0.08);
