@@ -1,18 +1,232 @@
 import { Math as PhaserMath, Scene } from 'phaser';
+import { SHARED_CONFIG, decryptConfigValue } from '../sharedConfig.ts';
 
-const TILE_SIZE = 32;
-const MAP_WIDTH = 140;
-const MAP_HEIGHT = 24;
-const WORLD_WIDTH = MAP_WIDTH * TILE_SIZE;
-const WORLD_HEIGHT = MAP_HEIGHT * TILE_SIZE;
-const PLAYER_SPEED = 280;
-const CAMERA_ZOOM = 2;
+type CardColor = 'green' | 'blue' | 'red';
+type GamePhase = 'seed' | 'welcome' | 'name' | 'explore' | 'battle' | 'message' | 'complete';
+type AreaKey = 'plains' | 'mountains' | 'dungeon';
+type HeroKey = 'cloud' | 'leon' | 'knight';
+
+type Hero = {
+    key: HeroKey;
+    name: string;
+    maxHp: number;
+    hp: number;
+    damage: number;
+    range: 'melee' | 'ranged';
+    special: string;
+    recruited: boolean;
+    unlocked: boolean;
+};
+
+type Enemy = {
+    name: string;
+    hp: number;
+    maxHp: number;
+    damage: number;
+    flying?: boolean;
+    boss?: boolean;
+};
+
+type Encounter = {
+    name: string;
+    enemies: Enemy[];
+    card?: CardColor;
+    unlockHero?: HeroKey;
+};
+
+type Area = {
+    key: AreaKey;
+    name: string;
+    gateX: number;
+    gateY: number;
+    color: number;
+    card: CardColor;
+    requiredHero?: HeroKey;
+    encounters: Encounter[];
+};
+
+const WORLD_WIDTH = 2100;
+const WORLD_HEIGHT = 920;
+const PLAYER_SPEED = 260;
+const INTERACT_DISTANCE = 120;
+const FORCED_NAME = 'GGLeBoss';
+const INITIAL_SEED_TEXT = '';
+const CARD_ORDER: CardColor[] = ['green', 'blue', 'red'];
+const CARD_LABELS: Record<CardColor, string> = {
+    green: 'Green Card',
+    blue: 'Blue Card',
+    red: 'Red Card'
+};
+const CARD_COLORS: Record<CardColor, number> = {
+    green: 0x3ab765,
+    blue: 0x3d7df2,
+    red: 0xd94848
+};
+
+const createEnemy = (name: string, hp: number, damage: number, flying = false, boss = false): Enemy => {
+    return {
+        name,
+        hp,
+        maxHp: hp,
+        damage,
+        flying,
+        boss
+    };
+};
+
+const AREAS: Area[] = [
+    {
+        key: 'plains',
+        name: 'The Forgotten Plains',
+        gateX: 860,
+        gateY: 355,
+        color: 0x68b36d,
+        card: 'green',
+        encounters: [
+            {
+                name: 'Confused Slimes',
+                enemies: [
+                    createEnemy('Wobbly Slime', 28, 6),
+                    createEnemy('Suspicious Mushroom', 24, 5)
+                ]
+            },
+            {
+                name: 'Corrupted Slime King',
+                card: 'green',
+                unlockHero: 'leon',
+                enemies: [
+                    createEnemy('Corrupted Slime King', 70, 9, false, true)
+                ]
+            }
+        ]
+    },
+    {
+        key: 'mountains',
+        name: 'Ashen Mountains',
+        gateX: 1360,
+        gateY: 355,
+        color: 0xb86a44,
+        card: 'blue',
+        requiredHero: 'leon',
+        encounters: [
+            {
+                name: 'Flying Ash Imps',
+                enemies: [
+                    createEnemy('Flying Ash Imp', 34, 8, true),
+                    createEnemy('Sulfur Bat', 30, 7, true)
+                ]
+            },
+            {
+                name: 'Fallen Archangel',
+                card: 'blue',
+                unlockHero: 'knight',
+                enemies: [
+                    createEnemy('Fallen Archangel', 96, 12, true, true)
+                ]
+            }
+        ]
+    },
+    {
+        key: 'dungeon',
+        name: 'Dungeon Depths',
+        gateX: 1840,
+        gateY: 355,
+        color: 0x65507a,
+        card: 'red',
+        requiredHero: 'knight',
+        encounters: [
+            {
+                name: 'Creepy Corridor',
+                enemies: [
+                    createEnemy('Fear Acolyte', 48, 10),
+                    createEnemy('Bad Vibes', 44, 9)
+                ]
+            },
+            {
+                name: 'Horned Reaper Lord',
+                card: 'red',
+                enemies: [
+                    createEnemy('Horned Reaper Lord', 130, 15, false, true)
+                ]
+            }
+        ]
+    }
+];
+
+const splitSecret = (secret: string) => {
+    const chunk = Math.ceil(secret.length / 3);
+
+    return [
+        secret.slice(0, chunk),
+        secret.slice(chunk, chunk * 2),
+        secret.slice(chunk * 2)
+    ];
+};
 
 export class Game extends Scene
 {
-    camera: Phaser.Cameras.Scene2D.Camera;
-    cursors: Phaser.Types.Input.Keyboard.CursorKeys;
-    player: Phaser.GameObjects.Image;
+    private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
+    private player: Phaser.GameObjects.Rectangle;
+    private camera: Phaser.Cameras.Scene2D.Camera;
+    private phase: GamePhase = 'seed';
+    private previousPhase: GamePhase = 'seed';
+    private seedInput = INITIAL_SEED_TEXT;
+    private nameInput = '';
+    private welcomeMessage = '';
+    private secretGift = '';
+    private secretFragments: string[] = [];
+    private currentLocation = 'Center of the World';
+    private currentArea: Area | undefined;
+    private currentEncounter: Encounter | undefined;
+    private selectedTargetIndex = 0;
+    private revealedCards = new Set<CardColor>();
+    private pendingCards = new Set<CardColor>();
+    private defeatedEncounters = new Set<string>();
+    private messageAfterClose: (() => void) | undefined;
+    private messageTitle = '';
+    private messageBody = '';
+    private infoText: Phaser.GameObjects.Text;
+    private promptText: Phaser.GameObjects.Text;
+    private partyText: Phaser.GameObjects.Text;
+    private statusText: Phaser.GameObjects.Text;
+    private interactionText: Phaser.GameObjects.Text;
+    private battleLayer: Phaser.GameObjects.Container;
+    private worldLayer: Phaser.GameObjects.Container;
+    private heroes: Record<HeroKey, Hero> = {
+        cloud: {
+            key: 'cloud',
+            name: 'Cloud',
+            maxHp: 120,
+            hp: 120,
+            damage: 22,
+            range: 'melee',
+            special: 'Hangover Slash',
+            recruited: true,
+            unlocked: true
+        },
+        leon: {
+            key: 'leon',
+            name: 'Leon',
+            maxHp: 100,
+            hp: 100,
+            damage: 20,
+            range: 'ranged',
+            special: 'Headshot',
+            recruited: false,
+            unlocked: false
+        },
+        knight: {
+            key: 'knight',
+            name: 'Knight',
+            maxHp: 150,
+            hp: 150,
+            damage: 28,
+            range: 'melee',
+            special: 'Brutal Strike',
+            recruited: false,
+            unlocked: false
+        }
+    };
 
     constructor ()
     {
@@ -21,14 +235,9 @@ export class Game extends Scene
 
     create ()
     {
-        this.createTileTexture();
-        this.createPlayerTexture();
-        this.createWorld();
-
         this.camera = this.cameras.main;
-        this.camera.setBackgroundColor(0x6fb7ff);
+        this.camera.setBackgroundColor(0x1c2740);
         this.camera.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-        this.camera.setZoom(CAMERA_ZOOM);
 
         if (!this.input.keyboard)
         {
@@ -36,25 +245,20 @@ export class Game extends Scene
         }
 
         this.cursors = this.input.keyboard.createCursorKeys();
-
-        this.player = this.add.image(160, WORLD_HEIGHT - 160, 'player-marker');
-        this.player.setAngle(90);
-
-        this.camera.startFollow(this.player, true, 0.08, 0.08);
-
-        const helpText = this.add.text(16, 16, 'Arrow keys to scroll the scene', {
-            fontFamily: 'Arial Black',
-            fontSize: 18,
-            color: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 5,
-            align: 'center'
-        });
-        helpText.setScrollFactor(0);
+        this.createWorld();
+        this.createHud();
+        this.createBattleLayer();
+        this.registerInput();
+        this.enterSeedPrompt();
     }
 
     update (_time: number, delta: number)
     {
+        if (this.phase !== 'explore')
+        {
+            return;
+        }
+
         const distance = PLAYER_SPEED * (delta / 1000);
         let velocityX = 0;
         let velocityY = 0;
@@ -62,149 +266,773 @@ export class Game extends Scene
         if (this.cursors.left.isDown)
         {
             velocityX = -1;
-            this.player.setAngle(-90);
         }
         else if (this.cursors.right.isDown)
         {
             velocityX = 1;
-            this.player.setAngle(90);
         }
 
         if (this.cursors.up.isDown)
         {
             velocityY = -1;
-            this.player.setAngle(0);
         }
         else if (this.cursors.down.isDown)
         {
             velocityY = 1;
-            this.player.setAngle(180);
         }
 
-        this.player.x = PhaserMath.Clamp(this.player.x + velocityX * distance, 0, WORLD_WIDTH);
-        this.player.y = PhaserMath.Clamp(this.player.y + velocityY * distance, 0, WORLD_HEIGHT);
+        if (velocityX !== 0 && velocityY !== 0)
+        {
+            velocityX *= 0.7;
+            velocityY *= 0.7;
+        }
+
+        this.player.x = PhaserMath.Clamp(this.player.x + velocityX * distance, 80, WORLD_WIDTH - 80);
+        this.player.y = PhaserMath.Clamp(this.player.y + velocityY * distance, 120, WORLD_HEIGHT - 80);
+        this.updateExploreText();
     }
 
     private createWorld ()
     {
-        const map = this.make.tilemap({
-            tileWidth: TILE_SIZE,
-            tileHeight: TILE_SIZE,
-            width: MAP_WIDTH,
-            height: MAP_HEIGHT
+        this.worldLayer = this.add.container(0, 0);
+
+        this.add.rectangle(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, WORLD_WIDTH, WORLD_HEIGHT, 0x25364e);
+        this.add.rectangle(WORLD_WIDTH / 2, 725, WORLD_WIDTH, 390, 0x2f6e55);
+
+        this.drawHub();
+        AREAS.forEach((area) => this.drawAreaGate(area));
+
+        this.player = this.add.rectangle(470, 610, 34, 42, 0xf5f1d8);
+        this.player.setStrokeStyle(4, 0x102030);
+        this.worldLayer.add(this.player);
+
+        this.camera.startFollow(this.player, true, 0.08, 0.08);
+    }
+
+    private drawHub ()
+    {
+        const wall = this.add.rectangle(460, 360, 260, 170, 0x394259);
+        wall.setStrokeStyle(5, 0x0f1724);
+        this.worldLayer.add(wall);
+
+        this.worldLayer.add(this.add.text(348, 270, 'CARD READER WALL', {
+            fontFamily: 'Arial Black',
+            fontSize: 18,
+            color: '#f7f2d7'
+        }));
+
+        CARD_ORDER.forEach((card, index) => {
+            const slot = this.add.rectangle(376 + index * 84, 360, 54, 88, CARD_COLORS[card], 0.4);
+            slot.setStrokeStyle(4, CARD_COLORS[card]);
+            this.worldLayer.add(slot);
         });
 
-        const tileset = map.addTilesetImage('scroll-tiles', 'scroll-tiles', TILE_SIZE, TILE_SIZE);
+        this.worldLayer.add(this.add.text(305, 500, 'baguettefr: "Bring cards. Receive suspicious wisdom."', {
+            fontFamily: 'Arial',
+            fontSize: 18,
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 4
+        }));
+    }
 
-        if (!tileset)
-        {
-            throw new Error('Unable to create scroll tilemap tileset.');
-        }
+    private drawAreaGate (area: Area)
+    {
+        const gate = this.add.rectangle(area.gateX, area.gateY, 230, 150, area.color);
+        gate.setStrokeStyle(5, 0x101522);
+        this.worldLayer.add(gate);
 
-        const layer = map.createBlankLayer('World', tileset, 0, 0, MAP_WIDTH, MAP_HEIGHT, TILE_SIZE, TILE_SIZE);
+        this.worldLayer.add(this.add.text(area.gateX, area.gateY - 20, area.name, {
+            fontFamily: 'Arial Black',
+            fontSize: 20,
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 5,
+            align: 'center'
+        }).setOrigin(0.5));
 
-        if (!layer)
-        {
-            throw new Error('Unable to create scroll tilemap layer.');
-        }
+        this.worldLayer.add(this.add.text(area.gateX, area.gateY + 36, `Reward: ${CARD_LABELS[area.card]}`, {
+            fontFamily: 'Arial',
+            fontSize: 16,
+            color: '#fff4b8',
+            stroke: '#000000',
+            strokeThickness: 4,
+            align: 'center'
+        }).setOrigin(0.5));
+    }
 
-        layer.fill(0);
+    private createHud ()
+    {
+        this.infoText = this.add.text(16, 14, '', {
+            fontFamily: 'Arial',
+            fontSize: 18,
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setScrollFactor(0).setDepth(20);
 
-        for (let x = 0; x < MAP_WIDTH; x++)
-        {
-            layer.putTileAt(1, x, MAP_HEIGHT - 3);
-            layer.putTileAt(2, x, MAP_HEIGHT - 2);
-            layer.putTileAt(2, x, MAP_HEIGHT - 1);
-        }
+        this.partyText = this.add.text(16, 84, '', {
+            fontFamily: 'Courier New',
+            fontSize: 16,
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setScrollFactor(0).setDepth(20);
 
-        for (let x = 8; x < MAP_WIDTH; x += 11)
-        {
-            const platformY = MAP_HEIGHT - 7 - (x % 3);
+        this.statusText = this.add.text(512, 712, '', {
+            fontFamily: 'Arial Black',
+            fontSize: 20,
+            color: '#fff6c4',
+            stroke: '#000000',
+            strokeThickness: 5,
+            align: 'center',
+            wordWrap: { width: 900 }
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(20);
 
-            for (let width = 0; width < 5; width++)
+        this.interactionText = this.add.text(512, 650, '', {
+            fontFamily: 'Arial Black',
+            fontSize: 20,
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 6,
+            align: 'center',
+            wordWrap: { width: 880 }
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(20);
+
+        this.promptText = this.add.text(512, 360, '', {
+            fontFamily: 'Arial Black',
+            fontSize: 26,
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 7,
+            align: 'center',
+            wordWrap: { width: 820 }
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(40);
+    }
+
+    private createBattleLayer ()
+    {
+        this.battleLayer = this.add.container(0, 0);
+        this.battleLayer.setScrollFactor(0);
+        this.battleLayer.setDepth(30);
+        this.battleLayer.setVisible(false);
+    }
+
+    private registerInput ()
+    {
+        this.input.keyboard?.on('keydown', (event: KeyboardEvent) => {
+            if (this.phase === 'seed')
             {
-                layer.putTileAt(1, x + width, platformY);
+                this.handleSeedKey(event);
+            }
+            else if (this.phase === 'welcome')
+            {
+                this.enterNamePrompt();
+            }
+            else if (this.phase === 'name')
+            {
+                this.handleNameKey(event);
+            }
+            else if (this.phase === 'explore' && (event.key === 'e' || event.key === 'E' || event.key === ' '))
+            {
+                this.interact();
+            }
+            else if (this.phase === 'battle')
+            {
+                this.handleBattleKey(event);
+            }
+            else if ((this.phase === 'message' || this.phase === 'complete') && (event.key === 'Enter' || event.key === ' '))
+            {
+                this.closeMessage();
+            }
+        });
+
+        this.input.on('pointerdown', () => {
+            if (this.phase === 'welcome')
+            {
+                this.enterNamePrompt();
+            }
+            else if (this.phase === 'explore')
+            {
+                this.interact();
+            }
+            else if (this.phase === 'message' || this.phase === 'complete')
+            {
+                this.closeMessage();
+            }
+            else if (this.phase === 'battle')
+            {
+                this.resolveHeroTurn();
+            }
+        });
+    }
+
+    private enterSeedPrompt ()
+    {
+        this.phase = 'seed';
+        this.seedInput = INITIAL_SEED_TEXT;
+        this.promptText.setVisible(true);
+        this.updateSeedPrompt('');
+        this.updateHud();
+    }
+
+    private handleSeedKey (event: KeyboardEvent)
+    {
+        if (event.key === 'Backspace')
+        {
+            this.seedInput = this.seedInput.slice(0, -1);
+        }
+        else if (event.key === 'Enter')
+        {
+            this.submitSeed();
+            return;
+        }
+        else if (/^[a-zA-Z0-9-]$/.test(event.key))
+        {
+            this.seedInput += event.key.toUpperCase();
+        }
+
+        this.updateSeedPrompt('');
+    }
+
+    private updateSeedPrompt (errorMessage: string)
+    {
+        const input = this.seedInput.length > 0 ? this.seedInput : '_';
+        const error = errorMessage.length > 0 ? `\n\n${errorMessage}` : '';
+
+        this.promptText.setText([
+            'Seed Game Code Required',
+            'The code must be correct or the quest gets weird.',
+            '',
+            `[ ${input} ]`,
+            '',
+            'Type the seed and press Enter.'
+        ].join('\n') + error);
+    }
+
+    private submitSeed ()
+    {
+        const welcomeMessage = decryptConfigValue(SHARED_CONFIG.encrypted_welcome_message, this.seedInput);
+        const secretGift = decryptConfigValue(SHARED_CONFIG.encrypted_secret_gift, this.seedInput);
+
+        this.welcomeMessage = welcomeMessage;
+        this.secretGift = secretGift;
+        this.secretFragments = splitSecret(secretGift);
+        this.phase = 'welcome';
+        this.promptText.setText(`${this.welcomeMessage}\n\nClick or press any key to continue.`);
+    }
+
+    private enterNamePrompt ()
+    {
+        this.phase = 'name';
+        this.nameInput = '';
+        this.updateNamePrompt();
+    }
+
+    private handleNameKey (event: KeyboardEvent)
+    {
+        if (event.key === 'Backspace')
+        {
+            this.nameInput = this.nameInput.slice(0, -1);
+        }
+        else if (event.key === 'Enter')
+        {
+            this.startExploration();
+            return;
+        }
+        else if (event.key.length === 1 && this.nameInput.length < FORCED_NAME.length)
+        {
+            this.nameInput += FORCED_NAME[this.nameInput.length];
+        }
+
+        this.updateNamePrompt();
+    }
+
+    private updateNamePrompt ()
+    {
+        const input = this.nameInput.length > 0 ? this.nameInput : '_';
+
+        this.promptText.setText([
+            'Enter your name',
+            '',
+            `[ ${input} ]`,
+            '',
+            'Type anything. The game has opinions.',
+            'Press Enter to confirm.'
+        ].join('\n'));
+    }
+
+    private startExploration ()
+    {
+        this.phase = 'explore';
+        this.promptText.setVisible(false);
+        this.player.setPosition(470, 610);
+        this.camera.startFollow(this.player, true, 0.08, 0.08);
+        this.statusText.setText('Welcome, GGLeBoss. Arrow keys move. Press E near gates, heroes, and the wall.');
+        this.updateHud();
+    }
+
+    private interact ()
+    {
+        const recruitableHero = this.getNearbyRecruitableHero();
+
+        if (recruitableHero)
+        {
+            this.recruitHero(recruitableHero);
+            return;
+        }
+
+        if (this.isNearHubWall())
+        {
+            this.insertPendingCard();
+            return;
+        }
+
+        const area = this.getNearbyArea();
+
+        if (area)
+        {
+            this.enterArea(area);
+        }
+    }
+
+    private enterArea (area: Area)
+    {
+        if (area.requiredHero && !this.heroes[area.requiredHero].recruited)
+        {
+            if (area.requiredHero === 'leon')
+            {
+                this.showMessage('Ranged Required', 'Flying enemies hover out of Cloud sword range. Recruit Leon near the wall first.');
+            }
+            else
+            {
+                this.showMessage('Fear Required', 'The dungeon whispers "no Knight, no courage." Recruit Knight near the wall first.');
+            }
+
+            return;
+        }
+
+        const encounter = area.encounters.find((candidate) => !this.defeatedEncounters.has(this.getEncounterId(area, candidate)));
+
+        if (!encounter)
+        {
+            this.showMessage(area.name, 'This area is cleared. baguettefr gives it a tiny, approving nod.');
+            return;
+        }
+
+        this.currentArea = area;
+        this.currentEncounter = this.cloneEncounter(encounter);
+        this.currentLocation = area.name;
+        this.startBattle();
+    }
+
+    private startBattle ()
+    {
+        if (!this.currentArea || !this.currentEncounter)
+        {
+            return;
+        }
+
+        this.phase = 'battle';
+        this.selectedTargetIndex = 0;
+        this.statusText.setText('Choose a target with number keys, then click or press Enter to attack.');
+        this.renderBattle();
+    }
+
+    private handleBattleKey (event: KeyboardEvent)
+    {
+        if (!this.currentEncounter)
+        {
+            return;
+        }
+
+        const numberKey = Number(event.key);
+
+        if (numberKey >= 1 && numberKey <= this.currentEncounter.enemies.length)
+        {
+            this.selectedTargetIndex = numberKey - 1;
+            this.renderBattle();
+        }
+        else if (event.key === 'Enter' || event.key === ' ')
+        {
+            this.resolveHeroTurn();
+        }
+    }
+
+    private resolveHeroTurn ()
+    {
+        if (!this.currentArea || !this.currentEncounter)
+        {
+            return;
+        }
+
+        const liveEnemies = this.currentEncounter.enemies.filter((enemy) => enemy.hp > 0);
+
+        if (liveEnemies.length === 0)
+        {
+            return;
+        }
+
+        this.selectedTargetIndex = PhaserMath.Clamp(this.selectedTargetIndex, 0, this.currentEncounter.enemies.length - 1);
+
+        const log: string[] = [];
+
+        for (const hero of this.getParty())
+        {
+            const target = this.getSelectedLiveEnemy();
+
+            if (!target)
+            {
+                break;
+            }
+
+            if (target.flying && hero.range !== 'ranged')
+            {
+                log.push(`${hero.name} swings under ${target.name}.`);
+                continue;
+            }
+
+            const damage = hero.key === 'cloud' && target.boss ? hero.damage + 8 : hero.damage;
+            target.hp = Math.max(0, target.hp - damage);
+            log.push(`${hero.name} uses ${hero.special} for ${damage}.`);
+        }
+
+        if (this.currentEncounter.enemies.every((enemy) => enemy.hp <= 0))
+        {
+            this.winBattle(log);
+            return;
+        }
+
+        if (this.currentArea.key === 'dungeon' && !this.heroes.knight.recruited)
+        {
+            log.push('Fear erupts. The party flees back to the wall.');
+            this.loseBattle(log.join('\n'));
+            return;
+        }
+
+        for (const enemy of this.currentEncounter.enemies.filter((candidate) => candidate.hp > 0))
+        {
+            const target = this.getParty().find((hero) => hero.hp > 0);
+
+            if (!target)
+            {
+                break;
+            }
+
+            target.hp = Math.max(0, target.hp - enemy.damage);
+            log.push(`${enemy.name} hits ${target.name} for ${enemy.damage}.`);
+        }
+
+        if (this.getParty().every((hero) => hero.hp <= 0))
+        {
+            this.loseBattle(log.join('\n'));
+            return;
+        }
+
+        this.statusText.setText(log.join('\n'));
+        this.renderBattle();
+    }
+
+    private winBattle (log: string[])
+    {
+        if (!this.currentArea || !this.currentEncounter)
+        {
+            return;
+        }
+
+        const encounter = this.currentEncounter;
+        const area = this.currentArea;
+        this.defeatedEncounters.add(this.getEncounterId(area, encounter));
+
+        if (encounter.card)
+        {
+            this.pendingCards.add(encounter.card);
+        }
+
+        if (encounter.unlockHero)
+        {
+            this.heroes[encounter.unlockHero].unlocked = true;
+        }
+
+        this.battleLayer.setVisible(false);
+        this.phase = 'explore';
+        this.currentLocation = area.name;
+        this.player.setPosition(area.gateX, 590);
+        this.statusText.setText(log.concat([
+            `${encounter.name} defeated.`,
+            encounter.card ? `${CARD_LABELS[encounter.card]} acquired. Walk back to the wall and press E.` : 'The road ahead opens.'
+        ]).join('\n'));
+        this.currentEncounter = undefined;
+        this.updateHud();
+    }
+
+    private loseBattle (reason: string)
+    {
+        this.restoreParty();
+        this.battleLayer.setVisible(false);
+        this.phase = 'explore';
+        this.currentLocation = 'Center of the World';
+        this.player.setPosition(470, 610);
+        this.statusText.setText(`${reason}\nResurrected at the Card Reader wall with full HP.`);
+        this.currentEncounter = undefined;
+        this.updateHud();
+    }
+
+    private insertPendingCard ()
+    {
+        const card = CARD_ORDER.find((candidate) => this.pendingCards.has(candidate) && !this.revealedCards.has(candidate));
+
+        if (!card)
+        {
+            this.showMessage('Card Reader Wall', this.buildWallMessage());
+            return;
+        }
+
+        const index = CARD_ORDER.indexOf(card);
+        this.revealedCards.add(card);
+        this.pendingCards.delete(card);
+        this.restoreParty();
+
+        const lines = [
+            `${CARD_LABELS[card]} inserted.`,
+            `Fragment ${index + 1}: ${this.secretFragments[index]}`
+        ];
+
+        if (card === 'green')
+        {
+            lines.push('Leon appears near the wall, looking extremely serious about a silly problem.');
+        }
+        else if (card === 'blue')
+        {
+            lines.push('Knight appears near the wall and immediately makes everyone uncomfortable.');
+        }
+        else
+        {
+            lines.push(`Full secret_gift: ${this.secretGift}`);
+        }
+
+        this.showMessage('Card Reader Online', lines.join('\n'), () => {
+            if (this.revealedCards.size === 3)
+            {
+                this.phase = 'complete';
+                this.showMessage('Quest Complete', `The full secret_gift is:\n${this.secretGift}\n\nbaguettefr pretends this was planned all along.`);
+            }
+        });
+    }
+
+    private recruitHero (heroKey: HeroKey)
+    {
+        const hero = this.heroes[heroKey];
+        hero.recruited = true;
+        hero.hp = hero.maxHp;
+        this.showMessage(`${hero.name} Recruited`, `${hero.name} joins the party.\nSpecial: ${hero.special}`);
+        this.updateHud();
+    }
+
+    private showMessage (title: string, body: string, afterClose?: () => void)
+    {
+        this.previousPhase = this.phase;
+        this.phase = 'message';
+        this.messageTitle = title;
+        this.messageBody = body;
+        this.messageAfterClose = afterClose;
+        this.promptText.setVisible(true);
+        this.promptText.setText(`${title}\n\n${body}\n\nClick or press Enter.`);
+    }
+
+    private closeMessage ()
+    {
+        this.promptText.setVisible(false);
+        const afterClose = this.messageAfterClose;
+        this.messageAfterClose = undefined;
+
+        if (this.phase !== 'complete')
+        {
+            this.phase = this.previousPhase === 'battle' ? 'explore' : this.previousPhase;
+        }
+
+        if (afterClose)
+        {
+            afterClose();
+        }
+    }
+
+    private renderBattle ()
+    {
+        if (!this.currentArea || !this.currentEncounter)
+        {
+            return;
+        }
+
+        this.battleLayer.removeAll(true);
+        this.battleLayer.setVisible(true);
+
+        this.battleLayer.add(this.add.rectangle(512, 384, 1024, 768, this.currentArea.color));
+        this.battleLayer.add(this.add.rectangle(512, 444, 860, 360, 0x1c2334, 0.55).setStrokeStyle(3, 0xffffff, 0.4));
+        this.battleLayer.add(this.add.text(512, 70, this.currentEncounter.name, {
+            fontFamily: 'Arial Black',
+            fontSize: 34,
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 7
+        }).setOrigin(0.5));
+
+        this.getParty().forEach((hero, index) => {
+            const y = 250 + index * 100;
+            const unit = this.add.rectangle(250, y, 70, 70, 0xf5f1d8);
+            unit.setStrokeStyle(4, 0x0d1826);
+            this.battleLayer.add(unit);
+            this.battleLayer.add(this.add.text(250, y + 54, `${hero.name}\nHP ${hero.hp}/${hero.maxHp}`, {
+                fontFamily: 'Arial',
+                fontSize: 15,
+                color: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 4,
+                align: 'center'
+            }).setOrigin(0.5));
+        });
+
+        this.currentEncounter.enemies.forEach((enemy, index) => {
+            const y = 230 + index * 120;
+            const isSelected = index === this.selectedTargetIndex;
+            const fill = enemy.boss ? 0x7d2121 : 0x5b2f7f;
+            const unit = this.add.rectangle(750, y, enemy.boss ? 110 : 78, enemy.boss ? 92 : 72, fill);
+            unit.setStrokeStyle(isSelected ? 6 : 3, isSelected ? 0xfff1a0 : 0x12091a);
+            unit.setInteractive({ useHandCursor: true });
+            unit.on('pointerdown', () => {
+                this.selectedTargetIndex = index;
+                this.resolveHeroTurn();
+            });
+            this.battleLayer.add(unit);
+            this.battleLayer.add(this.add.text(750, y + 64, [
+                `${index + 1}. ${enemy.name}`,
+                `HP ${enemy.hp}/${enemy.maxHp}`,
+                enemy.flying ? 'Flying' : ''
+            ].filter(Boolean).join('\n'), {
+                fontFamily: 'Arial',
+                fontSize: 15,
+                color: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 4,
+                align: 'center'
+            }).setOrigin(0.5));
+        });
+
+        this.updateHud();
+    }
+
+    private updateExploreText ()
+    {
+        let interaction = '';
+
+        if (this.isNearHubWall())
+        {
+            interaction = 'Press E: insert Card / inspect Card Reader wall';
+        }
+        else
+        {
+            const recruitable = this.getNearbyRecruitableHero();
+            const area = this.getNearbyArea();
+
+            if (recruitable)
+            {
+                interaction = `Press E: recruit ${this.heroes[recruitable].name}`;
+            }
+            else if (area)
+            {
+                interaction = `Press E: enter ${area.name}`;
             }
         }
 
-        for (let x = 16; x < MAP_WIDTH; x += 23)
-        {
-            layer.putTileAt(3, x, MAP_HEIGHT - 4);
-            layer.putTileAt(3, x, MAP_HEIGHT - 5);
-        }
+        this.interactionText.setText(interaction);
+        this.updateHud();
     }
 
-    private createTileTexture ()
+    private updateHud ()
     {
-        if (this.textures.exists('scroll-tiles'))
-        {
-            return;
-        }
-
-        const texture = this.textures.createCanvas('scroll-tiles', TILE_SIZE * 4, TILE_SIZE);
-
-        if (!texture)
-        {
-            throw new Error('Unable to create scroll tile texture.');
-        }
-
-        const { context } = texture;
-
-        this.drawTile(context, 0, '#7fc8ff', '#bde9ff');
-        this.drawTile(context, 1, '#47a857', '#246d34');
-        this.drawTile(context, 2, '#8d5a36', '#5e341f');
-        this.drawTile(context, 3, '#e0bc5a', '#9b6f26');
-
-        texture.refresh();
+        this.infoText.setText(`Location: ${this.currentLocation}`);
+        this.partyText.setText([
+            'Party:',
+            ...this.getParty().map((hero) => `${hero.name.padEnd(7)} HP ${String(hero.hp).padStart(3)} / ${hero.maxHp}`)
+        ].join('\n'));
     }
 
-    private createPlayerTexture ()
+    private getNearbyArea ()
     {
-        if (this.textures.exists('player-marker'))
-        {
-            return;
-        }
-
-        const texture = this.textures.createCanvas('player-marker', 32, 32);
-
-        if (!texture)
-        {
-            throw new Error('Unable to create player texture.');
-        }
-
-        const { context } = texture;
-
-        context.fillStyle = '#ffffff';
-        context.beginPath();
-        context.moveTo(28, 16);
-        context.lineTo(6, 5);
-        context.lineTo(10, 16);
-        context.lineTo(6, 27);
-        context.closePath();
-        context.fill();
-
-        context.lineWidth = 3;
-        context.strokeStyle = '#10223a';
-        context.stroke();
-
-        texture.refresh();
+        return AREAS.find((area) => PhaserMath.Distance.Between(this.player.x, this.player.y, area.gateX, area.gateY) <= INTERACT_DISTANCE);
     }
 
-    private drawTile (context: CanvasRenderingContext2D, index: number, fill: string, accent: string)
+    private getNearbyRecruitableHero ()
     {
-        const x = index * TILE_SIZE;
+        const leonNear = PhaserMath.Distance.Between(this.player.x, this.player.y, 355, 620) <= INTERACT_DISTANCE;
+        const knightNear = PhaserMath.Distance.Between(this.player.x, this.player.y, 575, 620) <= INTERACT_DISTANCE;
 
-        context.fillStyle = fill;
-        context.fillRect(x, 0, TILE_SIZE, TILE_SIZE);
+        if (leonNear && this.heroes.leon.unlocked && !this.heroes.leon.recruited)
+        {
+            return 'leon';
+        }
 
-        context.strokeStyle = accent;
-        context.lineWidth = 2;
-        context.strokeRect(x + 1, 1, TILE_SIZE - 2, TILE_SIZE - 2);
+        if (knightNear && this.heroes.knight.unlocked && !this.heroes.knight.recruited)
+        {
+            return 'knight';
+        }
 
-        context.fillStyle = accent;
-        context.globalAlpha = 0.35;
-        context.fillRect(x + 6, 8, 20, 4);
-        context.fillRect(x + 12, 20, 14, 4);
-        context.globalAlpha = 1;
+        return undefined;
+    }
+
+    private isNearHubWall ()
+    {
+        return PhaserMath.Distance.Between(this.player.x, this.player.y, 460, 400) <= 185;
+    }
+
+    private buildWallMessage ()
+    {
+        const fragments = CARD_ORDER.map((card, index) => {
+            return this.revealedCards.has(card) ? `${CARD_LABELS[card]}: ${this.secretFragments[index]}` : `${CARD_LABELS[card]}: ?????`;
+        });
+
+        return fragments.join('\n');
+    }
+
+    private getParty ()
+    {
+        return Object.values(this.heroes).filter((hero) => hero.recruited);
+    }
+
+    private restoreParty ()
+    {
+        this.getParty().forEach((hero) => {
+            hero.hp = hero.maxHp;
+        });
+    }
+
+    private getEncounterId (area: Area, encounter: Encounter)
+    {
+        return `${area.key}:${encounter.name}`;
+    }
+
+    private cloneEncounter (encounter: Encounter): Encounter
+    {
+        return {
+            ...encounter,
+            enemies: encounter.enemies.map((enemy) => ({ ...enemy }))
+        };
+    }
+
+    private getSelectedLiveEnemy ()
+    {
+        if (!this.currentEncounter)
+        {
+            return undefined;
+        }
+
+        const selected = this.currentEncounter.enemies[this.selectedTargetIndex];
+
+        if (selected && selected.hp > 0)
+        {
+            return selected;
+        }
+
+        return this.currentEncounter.enemies.find((enemy) => enemy.hp > 0);
     }
 }

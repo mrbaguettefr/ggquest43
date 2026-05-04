@@ -110,7 +110,7 @@ The shared config file contains an encrypted welcome message and the real gift v
 
 Technical constraint: the game will be publicly available, so source code, bundled assets and config files must be treated as visible to players. Security measures are required to avoid exposing the gift value directly, including storing `secret_gift` encrypted and only decrypting it in the browser after the seed game code is accepted.
 
-At the start of the game, the player must enter a seed game code. The UI must warn the player that the seed game code must be correct. This seed game code is first used to decrypt a welcome message from the same shared config file, using simple browser-side decryption. If decryption succeeds, the welcome message is shown so the player knows the seed worked. The same seed game code is then used to decrypt `secret_gift`. Once decoded successfully, the game keeps the decoded gift value in memory for the rest of the session.
+At the start of the game, the player must enter a seed game code. The UI must warn the player that the seed game code must be correct. This seed game code is used to decrypt a welcome message and `secret_gift` from the shared config file, using simple browser-side decryption. The decrypted welcome message is shown to the player for confirmation without additional validation. The game keeps the decoded gift value in memory for the rest of the session.
 
 The player then sees a mysterious wall with 3 missing Card Reader slots in the style of Doom keycards: green, blue and red. The wall shows incomplete fragments of a code, but not enough to understand the full reward immediately.
 
