@@ -132,6 +132,13 @@ The player gradually understands what the gift is through hints from NPC "baguet
 * Card Readers reveal fragments from the decrypted key
 * The full gift code is only visible after all 3 Cards have been inserted
 
+### Production Bundle Protection
+
+* Production builds must use Vite minification and bundle obfuscation
+* Production JavaScript uses Vite's default client build minifier, Oxc
+* Production JavaScript is obfuscated with `vite-plugin-bundle-obfuscator`
+* Obfuscation is a deterrent only; it does not replace encrypting `secret_gift`
+
 ---
 
 ## Hub & Respawn

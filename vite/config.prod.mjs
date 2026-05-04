@@ -1,4 +1,6 @@
 import { defineConfig } from 'vite';
+import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator';
+
 
 const phasermsg = () => {
     return {
@@ -29,21 +31,13 @@ export default defineConfig({
                 }
             }
         },
-        minify: 'terser',
-        terserOptions: {
-            compress: {
-                passes: 2
-            },
-            mangle: true,
-            format: {
-                comments: false
-            }
-        }
+        minify: 'oxc'
     },
     server: {
         port: 8080
     },
     plugins: [
+        vitePluginBundleObfuscator(),
         phasermsg()
     ]
 });
