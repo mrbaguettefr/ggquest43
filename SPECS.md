@@ -241,10 +241,10 @@ Consequence:
 
 ### Progression Flow
 
-* Area 1 → unlock Leon → required for Area 2
-* Area 2 → unlock Knight → required for Area 3
+* Area 1 → unlock Leon → strongly recommended for Area 2
+* Area 2 → unlock Knight → strongly recommended for Area 3
 
-This ensures new heroes feel necessary, not optional.
+Entering a new area is never blocked by hero requirements. Instead of blocking messages, heroes should give short battle-start hints when the team lacks what is needed (for example in Area 2, Cloud says that flying enemies are out of his reach).
 
 ---
 

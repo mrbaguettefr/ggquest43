@@ -1,5 +1,5 @@
 export const SHARED_CONFIG = {
-    encrypted_welcome_message: 'ECJBMjooNnRqc38iBUIiJmlzIEVREzYySCIhZTonDUZWJisD',
+    encrypted_welcome_message: 'ECJBMjooNngNQFsiZ1wkMDYndERHEzUiTD17',
     encrypted_secret_gift: 'AQZmFHgCGhJ5GXAIA2h8ZHdg'
 };
 
