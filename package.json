@@ -20,6 +20,8 @@
     "build-nolog": "vite build --config vite/config.prod.mjs"
   },
   "devDependencies": {
+    "canvas": "^3.2.3",
+    "sharp": "^0.34.5",
     "typescript": "^6.0.3",
     "vite": "^8.0.10",
     "vite-plugin-bundle-obfuscator": "^1.11.0"

@@ -86,8 +86,9 @@ export class Exploration extends Scene
     {
         this.worldLayer = this.add.container(0, 0);
 
-        this.add.rectangle(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, WORLD_WIDTH, WORLD_HEIGHT, 0x25364e);
-        this.add.rectangle(WORLD_WIDTH / 2, 725, WORLD_WIDTH, 390, 0x2f6e55);
+        const map = this.make.tilemap({ key: 'worldmap' });
+        const tileset = map.addTilesetImage('tileset', 'tileset');
+        map.createLayer('Ground', tileset!, 0, 0)?.setDepth(-1);
 
         this.drawHub();
         AREAS.forEach((area) => this.drawAreaGate(area));

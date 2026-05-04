@@ -145,13 +145,14 @@ export class Battle extends Scene
 
         for (const enemy of this.encounter.enemies.filter((candidate) => candidate.hp > 0))
         {
-            const target = this.getParty().find((hero) => hero.hp > 0);
+            const liveHeroes = this.getParty().filter((hero) => hero.hp > 0);
 
-            if (!target)
+            if (liveHeroes.length === 0)
             {
                 break;
             }
 
+            const target = liveHeroes[Math.floor(Math.random() * liveHeroes.length)];
             target.hp = Math.max(0, target.hp - enemy.damage);
             log.push(`${enemy.name} hits ${target.name} for ${enemy.damage}.`);
         }
