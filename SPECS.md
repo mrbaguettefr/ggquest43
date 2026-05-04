@@ -145,7 +145,7 @@ The player gradually understands what the gift is through hints from NPC "baguet
 * Phaser scene flow is split by game phase:
 
   * `src/game/scenes/Boot.ts` loads the early background asset and starts Preloader
-  * `src/game/scenes/Preloader.ts` loads game assets and starts MainMenu
+  * `src/game/scenes/Preloader.ts` loads game assets, checks for a dev-only debug start override, and otherwise starts MainMenu
   * `src/game/scenes/MainMenu.ts` shows the opening menu and starts Seed
   * `src/game/scenes/Seed.ts` owns seed game code entry, welcome-message decryption, secret gift decryption, and initial session creation
   * `src/game/scenes/PlayerName.ts` owns the forced "GGLeBoss" name-entry gag
@@ -154,12 +154,21 @@ The player gradually understands what the gift is through hints from NPC "baguet
   * `src/game/scenes/GameOver.ts` remains available as a standalone Game Over scene
 
 * `src/game/gameSession.ts` creates the shared game session object passed between Seed, PlayerName, Exploration, and Battle
+* `src/game/debugStart.ts` supports dev-only URL scene starts with dummy session data for testing scenes that normally require earlier flow
 * `src/game/gameTypes.ts` contains shared gameplay types
 * `src/game/gameConstants.ts` contains world, movement, name, and Card Reader constants
 * `src/game/encounters.ts` contains area and enemy encounter data
 * `src/game/heroes.ts` creates the initial hero roster
 * `src/game/secret.ts` contains secret gift helpers
 * `src/game/sharedConfig.ts` contains the encrypted welcome message and encrypted `secret_gift`
+
+### Dev Scene Start Overrides
+
+* In Vite dev mode only, adding `?debugScene=<SceneName>` to the URL starts that scene after Preloader finishes loading assets
+* Supported debug scenes are `MainMenu`, `Seed`, `PlayerName`, `Exploration`, `Battle`, `Credits`, and `GameOver`
+* `PlayerName`, `Exploration`, and `Battle` receive a dummy `GameSession` that simulates accepted seed entry, completed player naming, decoded secret fragments, and recruited heroes
+* `Battle` also receives `currentArea` and `currentEncounter`; by default this starts `The Forgotten Plains` encounter `0`
+* Battle debug starts can select another fight with `debugArea` and `debugEncounter`, for example `?debugScene=Battle&debugArea=mountains&debugEncounter=1`
 
 ---
 
