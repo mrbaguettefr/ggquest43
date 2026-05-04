@@ -29,7 +29,8 @@
   * Once the input box contains "GGLeBoss", any further typing is ignored
   * Delete/backspace works like a normal input box and removes the previous letter
   * After deleting, typing again continues by adding the next required letter from "GGLeBoss"
-  * The confirm button confirms the current input as usual
+  * Confirmation is accepted only when the input box contains exactly "GGLeBoss"
+  * Trying to confirm before the input box says "GGLeBoss" keeps the player on the name screen and shows a reminder
 
 * Purpose:
 
@@ -168,6 +169,7 @@ The player gradually understands what the gift is through hints from NPC "baguet
 * After completing an area, the player must walk back to the central wall to use the Card Reader
 * Death is the only exception: when the party loses a fight, the player resurrects at the central wall
 * Resurrection restores all recruited heroes to full HP
+* The starting hub area is visually enclosed by room walls (left, top, bottom, and upper-right side); the right side has a doorway opening at the lower half (y: 450–705) leading toward the area gates
 
 ---
 

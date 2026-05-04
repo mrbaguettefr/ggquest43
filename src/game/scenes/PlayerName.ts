@@ -5,6 +5,7 @@ import type { GameSession } from '../gameTypes.ts';
 export class PlayerName extends Scene
 {
     private nameInput = '';
+    private needsExactName = false;
     private promptText: Phaser.GameObjects.Text;
     private session: GameSession;
 
@@ -18,6 +19,7 @@ export class PlayerName extends Scene
         this.cameras.main.setBackgroundColor(0x1c2740);
         this.session = data.session;
         this.nameInput = '';
+        this.needsExactName = false;
 
         if (!this.input.keyboard)
         {
@@ -46,16 +48,25 @@ export class PlayerName extends Scene
         if (event.key === 'Backspace')
         {
             this.nameInput = this.nameInput.slice(0, -1);
+            this.needsExactName = false;
         }
         else if (event.key === 'Enter')
         {
-            this.session.playerName = this.nameInput || FORCED_NAME;
+            if (this.nameInput !== FORCED_NAME)
+            {
+                this.needsExactName = true;
+                this.updateNamePrompt();
+                return;
+            }
+
+            this.session.playerName = this.nameInput;
             this.scene.start('Exploration', { session: this.session });
             return;
         }
         else if (event.key.length === 1 && this.nameInput.length < FORCED_NAME.length)
         {
             this.nameInput += FORCED_NAME[this.nameInput.length];
+            this.needsExactName = false;
         }
 
         this.updateNamePrompt();
@@ -71,7 +82,8 @@ export class PlayerName extends Scene
             `[ ${input} ]`,
             '',
             'Type anything. The game has opinions.',
-            'Press Enter to confirm.'
+            'Press Enter to confirm.',
+            this.needsExactName ? `The box must say ${FORCED_NAME} first.` : ''
         ].join('\n'));
     }
 }
