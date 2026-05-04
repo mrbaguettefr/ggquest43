@@ -6,16 +6,19 @@
 
 ## Opening Sequence (Player Name Gag)
 
-* At the very start, the game asks for a password to access the game
+* At the very start, the game asks for a seed game code to initialize the game
 
-* Password behavior:
+* Seed game code behavior:
 
-  * The password is used to decrypt the Steam key from a shared config file
-  * If the password is valid, the decoded Steam key is stored in memory for the rest of the game
-  * The full key is never shown immediately
-  * The decoded key is later revealed in fragments through the Card Reader wall
+  * The player is warned that the seed game code must be correct
+  * The seed game code is used to decrypt an encrypted welcome message from the shared config file
+  * welcome message is shown to the player so the player can confirm that the seed worked
+  * The same seed game code is also used to decrypt `secret_gift` from the shared config file
+  * the decoded `secret_gift` value is stored in memory for the rest of the game
+  * The full gift code is never shown immediately
+  * The decoded gift code is later revealed in fragments through the Card Reader wall
 
-* After the password is accepted, the game asks: "Enter your name"
+* After the seed game code is accepted and the welcome message is shown, the game asks: "Enter your name"
 
 * Input field behavior:
 
@@ -35,7 +38,7 @@
 
 ---
 
-A short, funny, geek-themed 2D game where the player explores a scrolling tilemap inspired by Heroes of Might and Magic III. The goal is to defeat bosses to unlock parts of a hidden Steam key.
+A short, funny, geek-themed 2D game where the player explores a scrolling tilemap inspired by Heroes of Might and Magic III. The goal is to defeat bosses to unlock parts of a hidden `secret_gift`.
 
 Tone: playful, slightly absurd, full of references.
 
@@ -103,25 +106,31 @@ The map is divided into 3 areas with increasing difficulty:
 
 ## Hidden Objective
 
-The real Steam key is stored encrypted in a shared config file.
+The shared config file contains an encrypted welcome message and the real gift value encrypted as `secret_gift`.
 
-At the start of the game, the player must enter a password. This password is used to decode the Steam key. Once decoded successfully, the game keeps the decoded key in memory for the rest of the session.
+Technical constraint: the game will be publicly available, so source code, bundled assets and config files must be treated as visible to players. Security measures are required to avoid exposing the gift value directly, including storing `secret_gift` encrypted and only decrypting it in the browser after the seed game code is accepted.
+
+At the start of the game, the player must enter a seed game code. The UI must warn the player that the seed game code must be correct. This seed game code is first used to decrypt a welcome message from the same shared config file, using simple browser-side decryption. If decryption succeeds, the welcome message is shown so the player knows the seed worked. The same seed game code is then used to decrypt `secret_gift`. Once decoded successfully, the game keeps the decoded gift value in memory for the rest of the session.
 
 The player then sees a mysterious wall with 3 missing Card Reader slots in the style of Doom keycards: green, blue and red. The wall shows incomplete fragments of a code, but not enough to understand the full reward immediately.
 
 Each boss grants a Card
 
-After defeating a boss, the player must physically walk back from the area to the central wall. Returning to the starting area and inserting a Card into the Card Reader reveals one part of the decoded Steam key.
+After defeating a boss, the player must physically walk back from the area to the central wall. Returning to the starting area and inserting a Card into the Card Reader reveals one part of the decoded gift value.
 
-The player gradually understands it's a Steam key through  hints from NPC "baguettefr".
+The player gradually understands what the gift is through hints from NPC "baguettefr".
 
-### Steam Key Handling
+### Secret Gift Handling
 
-* Shared config contains the encrypted Steam key
-* Startup password decrypts the Steam key
+* Source code and config names must never mention the real gift type directly; use `secret_gift` everywhere
+* The game is public, so source code, assets and config files must not expose the plain gift value
+* Shared config contains an encrypted welcome message used to confirm that the seed game code works
+* Shared config contains the encrypted `secret_gift`
+* Seed game code decrypts the welcome message and `secret_gift` with simple browser-side decryption
+* The decrypted welcome message is shown immediately after a successful seed entry
 * Decrypted value is kept only for the current game session
 * Card Readers reveal fragments from the decrypted key
-* The full Steam key is only visible after all 3 Cards have been inserted
+* The full gift code is only visible after all 3 Cards have been inserted
 
 ---
 
