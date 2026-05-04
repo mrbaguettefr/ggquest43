@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "phaser": "^4.1.0",
+    "playwright": "^1.59.1",
     "terser": "^5.39.0"
   }
 }
