@@ -44,7 +44,6 @@ export const AREAS: Area[] = [
         gateY: 355,
         color: 0xb86a44,
         card: 'blue',
-        requiredHero: 'leon',
         encounters: [
             {
                 name: 'Flying Ash Imps',
@@ -70,7 +69,6 @@ export const AREAS: Area[] = [
         gateY: 355,
         color: 0x65507a,
         card: 'red',
-        requiredHero: 'knight',
         encounters: [
             {
                 name: 'Creepy Corridor',

@@ -38,6 +38,5 @@ export type Area = {
     gateY: number;
     color: number;
     card: CardColor;
-    requiredHero?: HeroKey;
     encounters: Encounter[];
 };

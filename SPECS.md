@@ -244,7 +244,7 @@ Consequence:
 * Area 1 → unlock Leon → strongly recommended for Area 2
 * Area 2 → unlock Knight → strongly recommended for Area 3
 
-Entering a new area is never blocked by hero requirements. Instead of blocking messages, heroes should give short battle-start hints when the team lacks what is needed (for example in Area 2, Cloud says that flying enemies are out of his reach).
+Entering a new area is never blocked by hero requirements. The area data does not use a `requiredHero` field. Instead of blocking messages, heroes give short battle-start hints when the team lacks what is needed. The hints describe the immediate threat without naming the missing hero, so the solution remains a surprise. For example in Area 2, Cloud comments that flying enemies are out of his reach.
 
 ---
 

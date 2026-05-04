@@ -196,7 +196,7 @@ export class Game extends Scene
             strokeThickness: 5,
             align: 'center',
             wordWrap: { width: 900 }
-        }).setOrigin(0.5).setScrollFactor(0).setDepth(20);
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(40);
 
         this.interactionText = this.add.text(512, 650, '', {
             fontFamily: 'Arial Black',
@@ -407,20 +407,6 @@ export class Game extends Scene
 
     private enterArea (area: Area)
     {
-        if (area.requiredHero && !this.heroes[area.requiredHero].recruited)
-        {
-            if (area.requiredHero === 'leon')
-            {
-                this.showMessage('Ranged Required', 'Flying enemies hover out of Cloud sword range. Recruit Leon near the wall first.');
-            }
-            else
-            {
-                this.showMessage('Fear Required', 'The dungeon whispers "no Knight, no courage." Recruit Knight near the wall first.');
-            }
-
-            return;
-        }
-
         const encounter = area.encounters.find((candidate) => !this.defeatedEncounters.has(this.getEncounterId(area, candidate)));
 
         if (!encounter)
@@ -444,7 +430,11 @@ export class Game extends Scene
 
         this.phase = 'battle';
         this.selectedTargetIndex = 0;
-        this.statusText.setText('Choose a target with number keys, then click or press Enter to attack.');
+        const battleHint = this.getBattleStartHint();
+        this.statusText.setText([
+            battleHint,
+            'Choose a target with Up/Down, then click or press Enter to attack.'
+        ].filter(Boolean).join('\n'));
         this.renderBattle();
     }
 
@@ -455,12 +445,13 @@ export class Game extends Scene
             return;
         }
 
-        const numberKey = Number(event.key);
-
-        if (numberKey >= 1 && numberKey <= this.currentEncounter.enemies.length)
+        if (event.key === 'ArrowUp')
         {
-            this.selectedTargetIndex = numberKey - 1;
-            this.renderBattle();
+            this.moveSelectedTarget(-1);
+        }
+        else if (event.key === 'ArrowDown')
+        {
+            this.moveSelectedTarget(1);
         }
         else if (event.key === 'Enter' || event.key === ' ')
         {
@@ -706,15 +697,19 @@ export class Game extends Scene
             const isSelected = index === this.selectedTargetIndex;
             const fill = enemy.boss ? 0x7d2121 : 0x5b2f7f;
             const unit = this.add.rectangle(750, y, enemy.boss ? 110 : 78, enemy.boss ? 92 : 72, fill);
-            unit.setStrokeStyle(isSelected ? 6 : 3, isSelected ? 0xfff1a0 : 0x12091a);
+            unit.setStrokeStyle(isSelected && enemy.hp > 0 ? 6 : 3, isSelected && enemy.hp > 0 ? 0xfff1a0 : 0x12091a);
             unit.setInteractive({ useHandCursor: true });
             unit.on('pointerdown', () => {
                 this.selectedTargetIndex = index;
                 this.resolveHeroTurn();
             });
             this.battleLayer.add(unit);
+            if (isSelected && enemy.hp > 0)
+            {
+                this.addTargetFinger(enemy.boss ? 664 : 680, y);
+            }
             this.battleLayer.add(this.add.text(750, y + 64, [
-                `${index + 1}. ${enemy.name}`,
+                enemy.name,
                 `HP ${enemy.hp}/${enemy.maxHp}`,
                 enemy.flying ? 'Flying' : ''
             ].filter(Boolean).join('\n'), {
@@ -728,6 +723,28 @@ export class Game extends Scene
         });
 
         this.updateHud();
+    }
+
+    private addTargetFinger (x: number, y: number)
+    {
+        const finger = this.add.container(x, y);
+        const stroke = 0x111111;
+        const fill = 0xfff1d4;
+        const cuff = this.add.rectangle(-24, 14, 18, 18, 0x3d7df2);
+        const palm = this.add.rectangle(-10, 6, 28, 26, fill);
+        const pointer = this.add.rectangle(16, -4, 42, 14, fill);
+        const fingertip = this.add.circle(38, -4, 7, fill);
+        const thumb = this.add.rectangle(3, 18, 24, 12, fill);
+
+        cuff.setStrokeStyle(2, stroke);
+        palm.setStrokeStyle(2, stroke);
+        pointer.setStrokeStyle(2, stroke);
+        fingertip.setStrokeStyle(2, stroke);
+        thumb.setStrokeStyle(2, stroke);
+        thumb.setRotation(PhaserMath.DegToRad(-24));
+
+        finger.add([cuff, palm, pointer, fingertip, thumb]);
+        this.battleLayer.add(finger);
     }
 
     private updateExploreText ()
@@ -835,6 +852,7 @@ export class Game extends Scene
             return undefined;
         }
 
+        this.ensureSelectedLiveTarget();
         const selected = this.currentEncounter.enemies[this.selectedTargetIndex];
 
         if (selected && selected.hp > 0)
@@ -843,5 +861,80 @@ export class Game extends Scene
         }
 
         return this.currentEncounter.enemies.find((enemy) => enemy.hp > 0);
+    }
+
+    private moveSelectedTarget (direction: -1 | 1)
+    {
+        if (!this.currentEncounter)
+        {
+            return;
+        }
+
+        const enemies = this.currentEncounter.enemies;
+        const liveEnemies = enemies.filter((enemy) => enemy.hp > 0);
+
+        if (liveEnemies.length === 0)
+        {
+            return;
+        }
+
+        let nextIndex = this.selectedTargetIndex;
+
+        for (let steps = 0; steps < enemies.length; steps += 1)
+        {
+            nextIndex = PhaserMath.Wrap(nextIndex + direction, 0, enemies.length);
+
+            if (enemies[nextIndex].hp > 0)
+            {
+                this.selectedTargetIndex = nextIndex;
+                this.renderBattle();
+                return;
+            }
+        }
+    }
+
+    private ensureSelectedLiveTarget ()
+    {
+        if (!this.currentEncounter)
+        {
+            return;
+        }
+
+        const selected = this.currentEncounter.enemies[this.selectedTargetIndex];
+
+        if (selected && selected.hp > 0)
+        {
+            return;
+        }
+
+        const nextLiveIndex = this.currentEncounter.enemies.findIndex((enemy) => enemy.hp > 0);
+
+        if (nextLiveIndex >= 0)
+        {
+            this.selectedTargetIndex = nextLiveIndex;
+        }
+    }
+
+    private getBattleStartHint ()
+    {
+        if (!this.currentArea || !this.currentEncounter)
+        {
+            return '';
+        }
+
+        const hasFlyingEnemy = this.currentEncounter.enemies.some((enemy) => enemy.flying);
+        const hasRangedHero = this.getParty().some((hero) => hero.range === 'ranged');
+
+        if (hasFlyingEnemy && !hasRangedHero)
+        {
+            return 'Cloud: They are flying. My mom did not teach me that.';
+        }
+
+        if (this.currentArea.key === 'dungeon' && !this.heroes.knight.recruited)
+        {
+            return 'Cloud: This place is screaming inside my helmet. That feels like a bad sign.';
+        }
+
+        return '';
     }
 }
