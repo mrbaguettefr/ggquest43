@@ -18,7 +18,7 @@
   * The full gift code is never shown immediately
   * The decoded gift code is later revealed in fragments through the Card Reader wall
 
-* After the seed game code is accepted and the welcome message is shown, the game asks: "Enter your name"
+* After the decrypted welcome message is shown and the player confirms it, the game asks: "Enter your name"
 
 * Input field behavior:
 
@@ -138,6 +138,16 @@ The player gradually understands what the gift is through hints from NPC "baguet
 * Production JavaScript uses Vite's default client build minifier, Oxc
 * Production JavaScript is obfuscated with `vite-plugin-bundle-obfuscator`
 * Obfuscation is a deterrent only; it does not replace encrypting `secret_gift`
+
+### Implementation Organization
+
+* `src/game/scenes/Game.ts` owns Phaser scene lifecycle, input handling, exploration, battle flow, and UI updates
+* `src/game/gameTypes.ts` contains shared gameplay types
+* `src/game/gameConstants.ts` contains world, movement, name, and Card Reader constants
+* `src/game/encounters.ts` contains area and enemy encounter data
+* `src/game/heroes.ts` creates the initial hero roster
+* `src/game/secret.ts` contains secret gift helpers
+* `src/game/sharedConfig.ts` contains the encrypted welcome message and encrypted `secret_gift`
 
 ---
 
