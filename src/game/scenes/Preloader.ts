@@ -36,6 +36,7 @@ export class Preloader extends Scene
         this.load.image('logo', 'logo.png');
         this.load.image('tileset-wall', 'tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Tileset Wall.png');
         this.load.image('tileset-stone', 'tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Tileset Stone Ground.png');
+        this.load.image('tileset-props', 'tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Props.png');
         this.load.tilemapTiledJSON('worldmap', 'tileset/map-tiled.json');
         this.load.spritesheet('cloud', 'cloud-idle.png', { frameWidth: 34, frameHeight: 53 });
         this.load.spritesheet('cloud-walk', 'cloud-walk.png', { frameWidth: 44, frameHeight: 53 });

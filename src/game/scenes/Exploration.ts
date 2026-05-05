@@ -1,6 +1,6 @@
 import { Math as PhaserMath, Scene } from 'phaser';
 import { AREAS } from '../encounters.ts';
-import { CARD_COLORS, CARD_LABELS, CARD_ORDER, INTERACT_DISTANCE, PLAYER_SPEED, WORLD_HEIGHT, WORLD_WIDTH } from '../gameConstants.ts';
+import { CARD_LABELS, CARD_ORDER, INTERACT_DISTANCE, PLAYER_SPEED } from '../gameConstants.ts';
 import type { Area, BattleResult, Encounter, GameSession, HeroKey } from '../gameTypes.ts';
 
 export class Exploration extends Scene
@@ -13,10 +13,16 @@ export class Exploration extends Scene
     private statusText: Phaser.GameObjects.Text;
     private interactionText: Phaser.GameObjects.Text;
     private promptText: Phaser.GameObjects.Text;
-    private worldLayer: Phaser.GameObjects.Container;
     private session: GameSession;
     private messageAfterClose: (() => void) | undefined;
     private inputLocked = false;
+
+    private groundLayer: Phaser.Tilemaps.TilemapLayer;
+    private blockingLayer: Phaser.Tilemaps.TilemapLayer;
+    private walkableGid: number;
+    private startPoint: { x: number; y: number };
+    private wallInteractionPoint: { x: number; y: number };
+    private areaPolygons: Array<{ area: Area; vertices: Array<{ x: number; y: number }> }>;
 
     constructor ()
     {
@@ -76,8 +82,25 @@ export class Exploration extends Scene
             velocityY *= 0.7;
         }
 
-        this.player.x = PhaserMath.Clamp(this.player.x + velocityX * distance, 80, WORLD_WIDTH - 80);
-        this.player.y = PhaserMath.Clamp(this.player.y + velocityY * distance, 120, WORLD_HEIGHT - 80);
+        if (velocityX !== 0 || velocityY !== 0)
+        {
+            const newX = this.player.x + velocityX * distance;
+            const newY = this.player.y + velocityY * distance;
+
+            if (this.canMoveTo(newX, newY))
+            {
+                this.player.x = newX;
+                this.player.y = newY;
+            }
+            else if (this.canMoveTo(newX, this.player.y))
+            {
+                this.player.x = newX;
+            }
+            else if (this.canMoveTo(this.player.x, newY))
+            {
+                this.player.y = newY;
+            }
+        }
 
         const moving = velocityX !== 0 || velocityY !== 0;
 
@@ -100,18 +123,21 @@ export class Exploration extends Scene
 
     private createWorld ()
     {
-        this.worldLayer = this.add.container(0, 0);
-
         const map = this.make.tilemap({ key: 'worldmap' });
         const wallsTs = map.addTilesetImage('walls', 'tileset-wall');
         const stoneTs = map.addTilesetImage('stone-ground', 'tileset-stone');
-        const allTilesets = [wallsTs!, stoneTs!];
-        map.createLayer('prototype', allTilesets)?.setDepth(-2);
-        map.createLayer('ground', allTilesets)?.setDepth(-1);
-        this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+        const propsTs = map.addTilesetImage('props', 'tileset-props');
+        const allTilesets = [wallsTs!, stoneTs!, propsTs!];
 
-        this.drawHub();
-        AREAS.forEach((area) => this.drawAreaGate(area));
+        this.walkableGid = stoneTs!.firstgid + 9;
+
+        map.createLayer('prototype', allTilesets)?.setDepth(-2);
+        this.groundLayer = map.createLayer('ground', allTilesets)!.setDepth(-1) as Phaser.Tilemaps.TilemapLayer;
+        map.createLayer('deco-ground', allTilesets)?.setDepth(0);
+        this.blockingLayer = map.createLayer('deco-1-blocking', allTilesets)!.setDepth(1) as Phaser.Tilemaps.TilemapLayer;
+
+        this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+        this.extractMapObjects(map);
 
         if (!this.anims.exists('cloud-idle'))
         {
@@ -133,63 +159,78 @@ export class Exploration extends Scene
             });
         }
 
-        this.player = this.add.sprite(470, 610, 'cloud').play('cloud-idle');
-        this.player.setScale(2);
-        this.worldLayer.add(this.player);
+        this.player = this.add.sprite(this.startPoint.x, this.startPoint.y, 'cloud').play('cloud-idle');
+        this.player.setScale(2).setDepth(2);
+
+        map.createLayer('deco-2', allTilesets)?.setDepth(3);
 
         this.camera.startFollow(this.player, true, 0.08, 0.08);
     }
 
-    private drawHub ()
+    private extractMapObjects (map: Phaser.Tilemaps.Tilemap)
     {
-        const wall = this.add.rectangle(460, 360, 260, 170, 0x394259);
-        wall.setStrokeStyle(5, 0x0f1724);
-        this.worldLayer.add(wall);
+        const layer = map.getObjectLayer('objects');
+        if (!layer)
+        {
+            throw new Error('Map is missing required object layer "objects"');
+        }
 
-        this.worldLayer.add(this.add.text(348, 270, 'CARD READER WALL', {
-            fontFamily: 'Arial Black',
-            fontSize: 18,
-            color: '#f7f2d7'
-        }));
+        const find = (name: string) => layer.objects.find(o => o.name === name);
+        const required = ['start', 'wall-interaction', 'area-1', 'area-2', 'area-3'];
+        const missing = required.filter(n => !find(n));
 
-        CARD_ORDER.forEach((card, index) => {
-            const slot = this.add.rectangle(376 + index * 84, 360, 54, 88, CARD_COLORS[card], 0.4);
-            slot.setStrokeStyle(4, CARD_COLORS[card]);
-            this.worldLayer.add(slot);
+        if (missing.length > 0)
+        {
+            throw new Error(`Map is missing required objects: ${missing.join(', ')}`);
+        }
+
+        const startObj = find('start')!;
+        this.startPoint = { x: startObj.x!, y: startObj.y! };
+
+        const wallObj = find('wall-interaction')!;
+        this.wallInteractionPoint = { x: wallObj.x!, y: wallObj.y! };
+
+        this.areaPolygons = ['area-1', 'area-2', 'area-3'].map((name, i) =>
+        {
+            const obj = find(name)!;
+            const vertices = (obj.polygon ?? []).map(v => ({ x: obj.x! + v.x, y: obj.y! + v.y }));
+            return { area: AREAS[i], vertices };
         });
-
-        this.worldLayer.add(this.add.text(305, 500, 'baguettefr: "Bring cards. Receive suspicious wisdom."', {
-            fontFamily: 'Arial',
-            fontSize: 18,
-            color: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 4
-        }));
     }
 
-    private drawAreaGate (area: Area)
+    private isWalkable (x: number, y: number): boolean
     {
-        const gate = this.add.rectangle(area.gateX, area.gateY, 230, 150, area.color);
-        gate.setStrokeStyle(5, 0x101522);
-        this.worldLayer.add(gate);
+        const ground = this.groundLayer.getTileAtWorldXY(x, y);
+        if (!ground || ground.index !== this.walkableGid) return false;
+        const blocking = this.blockingLayer.getTileAtWorldXY(x, y);
+        return !blocking || blocking.index <= 0;
+    }
 
-        this.worldLayer.add(this.add.text(area.gateX, area.gateY - 20, area.name, {
-            fontFamily: 'Arial Black',
-            fontSize: 20,
-            color: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 5,
-            align: 'center'
-        }).setOrigin(0.5));
+    private canMoveTo (x: number, y: number): boolean
+    {
+        const r = 14;
+        return (
+            this.isWalkable(x - r, y - r) &&
+            this.isWalkable(x + r, y - r) &&
+            this.isWalkable(x - r, y + r) &&
+            this.isWalkable(x + r, y + r)
+        );
+    }
 
-        this.worldLayer.add(this.add.text(area.gateX, area.gateY + 36, `Reward: ${CARD_LABELS[area.card]}`, {
-            fontFamily: 'Arial',
-            fontSize: 16,
-            color: '#fff4b8',
-            stroke: '#000000',
-            strokeThickness: 4,
-            align: 'center'
-        }).setOrigin(0.5));
+    private pointInPolygon (px: number, py: number, vertices: Array<{ x: number; y: number }>): boolean
+    {
+        let inside = false;
+        const n = vertices.length;
+        for (let i = 0, j = n - 1; i < n; j = i++)
+        {
+            const { x: xi, y: yi } = vertices[i];
+            const { x: xj, y: yj } = vertices[j];
+            if ((yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi)
+            {
+                inside = !inside;
+            }
+        }
+        return inside;
     }
 
     private createHud ()
@@ -282,7 +323,6 @@ export class Exploration extends Scene
         if (!battleResult)
         {
             this.session.currentLocation = 'Center of the World';
-            this.player.setPosition(470, 610);
             this.statusText.setText(`Welcome, ${this.session.playerName}. Arrow keys move. Press E near gates, heroes, and the wall.`);
             this.updateHud();
             return;
@@ -356,7 +396,7 @@ export class Exploration extends Scene
         }
 
         this.session.currentLocation = area.name;
-        this.player.setPosition(area.gateX, 590);
+        this.player.setPosition(this.startPoint.x, this.startPoint.y);
         this.statusText.setText(log.concat([
             `${encounter.name} defeated.`,
             encounter.card ? `${CARD_LABELS[encounter.card]} acquired. Walk back to the wall and press E.` : 'The road ahead opens.'
@@ -368,7 +408,7 @@ export class Exploration extends Scene
     {
         this.restoreParty();
         this.session.currentLocation = 'Center of the World';
-        this.player.setPosition(470, 610);
+        this.player.setPosition(this.startPoint.x, this.startPoint.y);
         this.statusText.setText(`${reason}\nResurrected at the Card Reader wall with full HP.`);
         this.updateHud();
     }
@@ -484,7 +524,9 @@ export class Exploration extends Scene
 
     private getNearbyArea ()
     {
-        return AREAS.find((area) => PhaserMath.Distance.Between(this.player.x, this.player.y, area.gateX, area.gateY) <= INTERACT_DISTANCE);
+        return this.areaPolygons.find(({ vertices }) =>
+            this.pointInPolygon(this.player.x, this.player.y, vertices)
+        )?.area;
     }
 
     private getNearbyRecruitableHero ()
@@ -507,7 +549,10 @@ export class Exploration extends Scene
 
     private isNearHubWall ()
     {
-        return PhaserMath.Distance.Between(this.player.x, this.player.y, 460, 400) <= 185;
+        return PhaserMath.Distance.Between(
+            this.player.x, this.player.y,
+            this.wallInteractionPoint.x, this.wallInteractionPoint.y
+        ) <= INTERACT_DISTANCE;
     }
 
     private buildWallMessage ()
