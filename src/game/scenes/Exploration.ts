@@ -160,7 +160,7 @@ export class Exploration extends Scene
         }
 
         this.player = this.add.sprite(this.startPoint.x, this.startPoint.y, 'cloud').play('cloud-idle');
-        this.player.setScale(2).setDepth(2);
+        this.player.setScale(28 / this.player.width).setDepth(2);
 
         map.createLayer('deco-2', allTilesets)?.setDepth(3);
 
