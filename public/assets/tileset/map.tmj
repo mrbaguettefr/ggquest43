@@ -115,22 +115,9 @@
         }, 
         {
          "draworder":"topdown",
-         "id":14,
-         "name":"objects",
+         "id":19,
+         "name":"bg-objects",
          "objects":[
-                {
-                 "height":0,
-                 "id":1,
-                 "name":"start",
-                 "opacity":1,
-                 "point":true,
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":626,
-                 "y":749.333333333333
-                }, 
                 {
                  "height":0,
                  "id":2,
@@ -167,6 +154,30 @@
                  "width":0,
                  "x":475.757575757576,
                  "y":784.848484848485
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":false,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":14,
+         "name":"objects",
+         "objects":[
+                {
+                 "height":0,
+                 "id":1,
+                 "name":"start",
+                 "opacity":1,
+                 "point":true,
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":0,
+                 "x":626,
+                 "y":749.333333333333
                 }, 
                 {
                  "height":0,
@@ -266,6 +277,76 @@
                  "width":0,
                  "x":622.666666666667,
                  "y":625.333333333333
+                }, 
+                {
+                 "height":0,
+                 "id":7,
+                 "name":"",
+                 "opacity":1,
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"skeleton",
+                         "type":"int",
+                         "value":4
+                        }],
+                 "rotation":0,
+                 "type":"enemy",
+                 "visible":true,
+                 "width":0,
+                 "x":352,
+                 "y":768
+                }, 
+                {
+                 "height":0,
+                 "id":8,
+                 "name":"",
+                 "opacity":1,
+                 "point":true,
+                 "rotation":0,
+                 "type":"enemy",
+                 "visible":true,
+                 "width":0,
+                 "x":190.666666666667,
+                 "y":831.333333333333
+                }, 
+                {
+                 "height":0,
+                 "id":9,
+                 "name":"enemy",
+                 "opacity":1,
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"skeleton",
+                         "type":"int",
+                         "value":4
+                        }],
+                 "rotation":0,
+                 "type":"enemy",
+                 "visible":true,
+                 "width":0,
+                 "x":332,
+                 "y":776
+                }, 
+                {
+                 "height":0,
+                 "id":10,
+                 "name":"enemy",
+                 "opacity":1,
+                 "point":true,
+                 "properties":[
+                        {
+                         "name":"skeleton",
+                         "type":"int",
+                         "value":10
+                        }],
+                 "rotation":0,
+                 "type":"enemy",
+                 "visible":true,
+                 "width":0,
+                 "x":227.333333333333,
+                 "y":836
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -717,8 +798,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":19,
- "nextobjectid":7,
+ "nextlayerid":20,
+ "nextobjectid":11,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.1",

@@ -49,7 +49,7 @@ export class Exploration extends Scene {
     this.session = data.session;
     this.camera = this.cameras.main;
     this.camera.setBackgroundColor(0x1c2740);
-    this.camera.setZoom(1);
+    this.camera.setZoom(2);
 
     if (!this.input.keyboard) {
       throw new Error("Keyboard input is unavailable.");
@@ -176,7 +176,7 @@ export class Exploration extends Scene {
     this.mapTileHeight = map.tileHeight;
     this.fogTileRevealRadius = Math.round(
       Math.min(this.scale.width, this.scale.height) /
-        (2 * this.camera.zoom * map.tileWidth),
+        (4 * this.camera.zoom * map.tileWidth),
     );
 
     this.fogGraphics = this.add.graphics();
@@ -199,11 +199,11 @@ export class Exploration extends Scene {
       }
     }
 
-    const cam = this.camera;
-    const startTX = Math.floor(cam.scrollX / tw) - 1;
-    const startTY = Math.floor(cam.scrollY / th) - 1;
-    const endTX = Math.ceil((cam.scrollX + cam.width / cam.zoom) / tw) + 1;
-    const endTY = Math.ceil((cam.scrollY + cam.height / cam.zoom) / th) + 1;
+    const view = this.camera.worldView;
+    const startTX = Math.floor(view.left / tw) - 1;
+    const startTY = Math.floor(view.top / th) - 1;
+    const endTX = Math.ceil(view.right / tw) + 1;
+    const endTY = Math.ceil(view.bottom / th) + 1;
 
     this.fogGraphics.clear();
     this.fogGraphics.fillStyle(0x000000, 1);

@@ -1,0 +1,15 @@
+{ "columns":55,
+ "image":"..\/characters\/skeleton.png",
+ "imageheight":887,
+ "imagewidth":1774,
+ "margin":0,
+ "name":"skeleton",
+ "spacing":0,
+ "tilecount":1485,
+ "tiledversion":"1.12.1",
+ "tileheight":32,
+ "tilewidth":32,
+ "transparentcolor":"#333233",
+ "type":"tileset",
+ "version":"1.10"
+}
