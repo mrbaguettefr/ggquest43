@@ -312,25 +312,6 @@
                 }, 
                 {
                  "height":0,
-                 "id":9,
-                 "name":"enemy",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"skeleton",
-                         "type":"int",
-                         "value":4
-                        }],
-                 "rotation":0,
-                 "type":"enemy",
-                 "visible":true,
-                 "width":0,
-                 "x":332,
-                 "y":776
-                }, 
-                {
-                 "height":0,
                  "id":10,
                  "name":"enemy",
                  "opacity":1,
@@ -347,6 +328,25 @@
                  "width":0,
                  "x":227.333333333333,
                  "y":836
+                }, 
+                {
+                 "gid":577,
+                 "height":36,
+                 "id":11,
+                 "name":"enemy",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"skeleton",
+                         "type":"int",
+                         "value":4
+                        }],
+                 "rotation":0,
+                 "type":"enemy",
+                 "visible":true,
+                 "width":32,
+                 "x":316.75,
+                 "y":795.166666666
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -799,7 +799,7 @@
          "y":0
         }],
  "nextlayerid":20,
- "nextobjectid":11,
+ "nextobjectid":12,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.1",
@@ -816,6 +816,10 @@
         {
          "firstgid":321,
          "source":"props.tsj"
+        }, 
+        {
+         "firstgid":577,
+         "source":"skeleton.tsj"
         }],
  "tilewidth":32,
  "type":"map",

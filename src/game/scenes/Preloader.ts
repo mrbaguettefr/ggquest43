@@ -40,6 +40,7 @@ export class Preloader extends Scene
         this.load.tilemapTiledJSON('worldmap', 'tileset/map-tiled.json');
         this.load.spritesheet('cloud', 'cloud-idle.png', { frameWidth: 34, frameHeight: 53 });
         this.load.spritesheet('cloud-walk', 'cloud-walk.png', { frameWidth: 44, frameHeight: 53 });
+        this.load.spritesheet('skeleton', 'world/characters/skeleton.png', { frameWidth: 211, frameHeight: 225, spacing: 4 });
     }
 
     create ()

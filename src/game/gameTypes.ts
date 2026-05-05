@@ -53,12 +53,13 @@ export type GameSession = {
     heroes: Record<HeroKey, Hero>;
     currentArea?: Area;
     currentEncounter?: Encounter;
+    currentEnemyObjectId?: number;
     currentLocation: string;
 };
 
 export type BattleResult = {
     won: boolean;
-    area: Area;
+    area?: Area;
     encounter: Encounter;
     log: string[];
 };

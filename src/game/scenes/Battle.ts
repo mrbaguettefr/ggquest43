@@ -1,5 +1,7 @@
 import { Math as PhaserMath, Scene } from 'phaser';
-import type { Area, BattleResult, Encounter, GameSession } from '../gameTypes.ts';
+import type { BattleResult, Encounter, GameSession } from '../gameTypes.ts';
+
+const BATTLE_BG_COLOR = 0x2a1a3a;
 
 export class Battle extends Scene
 {
@@ -8,7 +10,6 @@ export class Battle extends Scene
     private statusText: Phaser.GameObjects.Text;
     private partyText: Phaser.GameObjects.Text;
     private session: GameSession;
-    private area: Area;
     private encounter: Encounter;
 
     constructor ()
@@ -20,7 +21,7 @@ export class Battle extends Scene
     {
         this.session = data.session;
 
-        if (!this.session.currentArea || !this.session.currentEncounter)
+        if (!this.session.currentEncounter)
         {
             this.scene.start('Exploration', { session: this.session });
             return;
@@ -31,10 +32,9 @@ export class Battle extends Scene
             throw new Error('Keyboard input is unavailable.');
         }
 
-        this.area = this.session.currentArea;
         this.encounter = this.session.currentEncounter;
         this.selectedTargetIndex = 0;
-        this.cameras.main.setBackgroundColor(this.area.color);
+        this.cameras.main.setBackgroundColor(BATTLE_BG_COLOR);
         this.createHud();
         this.createBattleLayer();
         this.registerInput();
@@ -132,14 +132,7 @@ export class Battle extends Scene
 
         if (this.encounter.enemies.every((enemy) => enemy.hp <= 0))
         {
-            this.finishBattle({ won: true, area: this.area, encounter: this.encounter, log });
-            return;
-        }
-
-        if (this.area.key === 'dungeon' && !this.session.heroes.knight.recruited)
-        {
-            log.push('Fear erupts. The party flees back to the wall.');
-            this.finishBattle({ won: false, area: this.area, encounter: this.encounter, log });
+            this.finishBattle({ won: true, encounter: this.encounter, log });
             return;
         }
 
@@ -159,7 +152,7 @@ export class Battle extends Scene
 
         if (this.getParty().every((hero) => hero.hp <= 0))
         {
-            this.finishBattle({ won: false, area: this.area, encounter: this.encounter, log });
+            this.finishBattle({ won: false, encounter: this.encounter, log });
             return;
         }
 
@@ -177,7 +170,7 @@ export class Battle extends Scene
         this.battleLayer.removeAll(true);
         this.ensureSelectedLiveTarget();
 
-        this.battleLayer.add(this.add.rectangle(512, 384, 1024, 768, this.area.color));
+        this.battleLayer.add(this.add.rectangle(512, 384, 1024, 768, BATTLE_BG_COLOR));
         this.battleLayer.add(this.add.rectangle(512, 444, 860, 360, 0x1c2334, 0.55).setStrokeStyle(3, 0xffffff, 0.4));
         this.battleLayer.add(this.add.text(512, 70, this.encounter.name, {
             fontFamily: 'Arial Black',
@@ -335,11 +328,6 @@ export class Battle extends Scene
         if (hasFlyingEnemy && !hasRangedHero)
         {
             return 'Cloud: They are flying. My mom did not teach me that.';
-        }
-
-        if (this.area.key === 'dungeon' && !this.session.heroes.knight.recruited)
-        {
-            return 'Cloud: This place is screaming inside my helmet. That feels like a bad sign.';
         }
 
         return '';

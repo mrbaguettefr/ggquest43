@@ -1,4 +1,4 @@
-import type { Area, Enemy } from './gameTypes.ts';
+import type { Area, Enemy, Encounter } from './gameTypes.ts';
 
 const createEnemy = (name: string, hp: number, damage: number, flying = false, boss = false): Enemy => {
     return {
@@ -87,3 +87,7 @@ export const AREAS: Area[] = [
         ]
     }
 ];
+
+export const ENCOUNTER_BY_NAME = new Map<string, Encounter>(
+    AREAS.flatMap(a => a.encounters.map(e => [e.name, e] as [string, Encounter]))
+);

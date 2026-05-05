@@ -1,14 +1,20 @@
-{ "columns":55,
- "image":"..\/characters\/skeleton.png",
- "imageheight":887,
- "imagewidth":1774,
+{ "columns":8,
+ "grid":
+    {
+     "height":32,
+     "orientation":"orthogonal",
+     "width":32
+    },
+ "image":"..\/world\/characters\/skeleton.png",
+ "imageheight":225,
+ "imagewidth":1716,
  "margin":0,
  "name":"skeleton",
- "spacing":0,
+ "spacing":16,
  "tilecount":1485,
  "tiledversion":"1.12.1",
- "tileheight":32,
- "tilewidth":32,
+ "tileheight":225,
+ "tilewidth":200,
  "transparentcolor":"#333233",
  "type":"tileset",
  "version":"1.10"

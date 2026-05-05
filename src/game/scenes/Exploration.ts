@@ -1,5 +1,5 @@
 import { Math as PhaserMath, Scene } from "phaser";
-import { AREAS } from "../encounters.ts";
+import { ENCOUNTER_BY_NAME } from "../encounters.ts";
 import {
   CARD_LABELS,
   CARD_ORDER,
@@ -7,12 +7,17 @@ import {
   PLAYER_SPEED,
 } from "../gameConstants.ts";
 import type {
-  Area,
   BattleResult,
   Encounter,
   GameSession,
   HeroKey,
 } from "../gameTypes.ts";
+
+type MapEnemy = {
+  objectId: number;
+  encounter: Encounter;
+  sprite: Phaser.GameObjects.Sprite;
+};
 
 export class Exploration extends Scene {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -32,10 +37,7 @@ export class Exploration extends Scene {
   private walkableGid: number;
   private startPoint: { x: number; y: number };
   private wallInteractionPoint: { x: number; y: number };
-  private areaPolygons: Array<{
-    area: Area;
-    vertices: Array<{ x: number; y: number }>;
-  }>;
+  private mapEnemies: MapEnemy[];
   private fogGraphics: Phaser.GameObjects.Graphics;
   private fogTileRevealRadius: number;
   private mapTileWidth: number;
@@ -224,15 +226,7 @@ export class Exploration extends Scene {
     }
 
     const find = (name: string) => layer.objects.find((o) => o.name === name);
-    const required = [
-      "start",
-      "wall-interaction",
-      "area-1",
-      "area-2",
-      "area-3",
-    ];
-    const missing = required.filter((n) => !find(n));
-
+    const missing = ["start", "wall-interaction"].filter((n) => !find(n));
     if (missing.length > 0) {
       throw new Error(`Map is missing required objects: ${missing.join(", ")}`);
     }
@@ -243,14 +237,38 @@ export class Exploration extends Scene {
     const wallObj = find("wall-interaction")!;
     this.wallInteractionPoint = { x: wallObj.x!, y: wallObj.y! };
 
-    this.areaPolygons = ["area-1", "area-2", "area-3"].map((name, i) => {
-      const obj = find(name)!;
-      const vertices = (obj.polygon ?? []).map((v) => ({
-        x: obj.x! + v.x,
-        y: obj.y! + v.y,
-      }));
-      return { area: AREAS[i], vertices };
-    });
+    if (!this.anims.exists("skeleton-walk")) {
+      this.anims.create({
+        key: "skeleton-walk",
+        frames: this.anims.generateFrameNumbers("skeleton", {
+          start: 0,
+          end: 7,
+        }),
+        frameRate: 8,
+        repeat: -1,
+      });
+    }
+
+    this.mapEnemies = layer.objects
+      .filter(
+        (o) =>
+          o.type === "enemy" || (o as unknown as { class: string }).class === "enemy",
+      )
+      .flatMap((o) => {
+        const objectId = o.id!;
+        if (this.session.defeatedEncounters.has(`enemy:${objectId}`)) return [];
+        const encounter = ENCOUNTER_BY_NAME.get(o.name ?? "");
+        if (!encounter) {
+          console.warn(`No encounter found for enemy object "${o.name}" (id ${objectId})`);
+          return [];
+        }
+        const sprite = this.add
+          .sprite(o.x!, o.y!, "skeleton")
+          .play("skeleton-walk")
+          .setDepth(2)
+          .setScale(32 / 225);
+        return [{ objectId, encounter, sprite }];
+      });
   }
 
   private isWalkable(x: number, y: number): boolean {
@@ -268,26 +286,6 @@ export class Exploration extends Scene {
       this.isWalkable(x - r, y + r) &&
       this.isWalkable(x + r, y + r)
     );
-  }
-
-  private pointInPolygon(
-    px: number,
-    py: number,
-    vertices: Array<{ x: number; y: number }>,
-  ): boolean {
-    let inside = false;
-    const n = vertices.length;
-    for (let i = 0, j = n - 1; i < n; j = i++) {
-      const { x: xi, y: yi } = vertices[i];
-      const { x: xj, y: yj } = vertices[j];
-      if (
-        yi > py !== yj > py &&
-        px < ((xj - xi) * (py - yi)) / (yj - yi) + xi
-      ) {
-        inside = !inside;
-      }
-    }
-    return inside;
   }
 
   private createHud() {
@@ -420,38 +418,43 @@ export class Exploration extends Scene {
       return;
     }
 
-    const area = this.getNearbyArea();
-
-    if (area) {
-      this.enterArea(area);
+    const enemy = this.getNearbyMapEnemy();
+    if (enemy) {
+      this.startEnemyBattle(enemy);
     }
   }
 
-  private enterArea(area: Area) {
-    const encounter = area.encounters.find(
-      (candidate) =>
-        !this.session.defeatedEncounters.has(
-          this.getEncounterId(area, candidate),
-        ),
+  private getNearbyMapEnemy(): MapEnemy | undefined {
+    return this.mapEnemies.find(
+      (e) =>
+        PhaserMath.Distance.Between(
+          this.player.x,
+          this.player.y,
+          e.sprite.x,
+          e.sprite.y,
+        ) <= INTERACT_DISTANCE,
     );
+  }
 
-    if (!encounter) {
-      this.showMessage(
-        area.name,
-        "This area is cleared. baguettefr gives it a tiny, approving nod.",
-      );
-      return;
-    }
-
-    this.session.currentArea = area;
-    this.session.currentEncounter = this.cloneEncounter(encounter);
-    this.session.currentLocation = area.name;
+  private startEnemyBattle(enemy: MapEnemy) {
+    this.session.currentEncounter = this.cloneEncounter(enemy.encounter);
+    this.session.currentEnemyObjectId = enemy.objectId;
+    this.session.currentLocation = enemy.encounter.name;
     this.scene.start("Battle", { session: this.session });
   }
 
   private winBattle(battleResult: BattleResult) {
-    const { area, encounter, log } = battleResult;
-    this.session.defeatedEncounters.add(this.getEncounterId(area, encounter));
+    const { encounter, log } = battleResult;
+    const objectId = this.session.currentEnemyObjectId;
+
+    if (objectId !== undefined) {
+      this.session.defeatedEncounters.add(`enemy:${objectId}`);
+      const idx = this.mapEnemies.findIndex((e) => e.objectId === objectId);
+      if (idx >= 0) {
+        this.mapEnemies[idx].sprite.destroy();
+        this.mapEnemies.splice(idx, 1);
+      }
+    }
 
     if (encounter.card) {
       this.session.pendingCards.add(encounter.card);
@@ -461,7 +464,6 @@ export class Exploration extends Scene {
       this.session.heroes[encounter.unlockHero].unlocked = true;
     }
 
-    this.session.currentLocation = area.name;
     this.player.setPosition(this.startPoint.x, this.startPoint.y);
     this.statusText.setText(
       log
@@ -569,12 +571,12 @@ export class Exploration extends Scene {
       interaction = "Press E: insert Card / inspect Card Reader wall";
     } else {
       const recruitable = this.getNearbyRecruitableHero();
-      const area = this.getNearbyArea();
+      const enemy = this.getNearbyMapEnemy();
 
       if (recruitable) {
         interaction = `Press E: recruit ${this.session.heroes[recruitable].name}`;
-      } else if (area) {
-        interaction = `Press E: enter ${area.name}`;
+      } else if (enemy) {
+        interaction = `Press E: fight ${enemy.encounter.name}`;
       }
     }
 
@@ -593,12 +595,6 @@ export class Exploration extends Scene {
         ),
       ].join("\n"),
     );
-  }
-
-  private getNearbyArea() {
-    return this.areaPolygons.find(({ vertices }) =>
-      this.pointInPolygon(this.player.x, this.player.y, vertices),
-    )?.area;
   }
 
   private getNearbyRecruitableHero() {
@@ -657,10 +653,6 @@ export class Exploration extends Scene {
     this.getParty().forEach((hero) => {
       hero.hp = hero.maxHp;
     });
-  }
-
-  private getEncounterId(area: Area, encounter: Encounter) {
-    return `${area.key}:${encounter.name}`;
   }
 
   private cloneEncounter(encounter: Encounter): Encounter {
