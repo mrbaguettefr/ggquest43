@@ -13,6 +13,7 @@ import { Seed } from "./scenes/Seed";
 //  https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
 const config: Phaser.Types.Core.GameConfig = {
   type: CANVAS,
+  antialias: false,
   width: 1024,
   height: 768,
   parent: "game-container",
