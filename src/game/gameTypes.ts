@@ -49,6 +49,7 @@ export type GameSession = {
     revealedCards: Set<CardColor>;
     pendingCards: Set<CardColor>;
     defeatedEncounters: Set<string>;
+    exploredTiles: Set<string>;
     heroes: Record<HeroKey, Hero>;
     currentArea?: Area;
     currentEncounter?: Encounter;

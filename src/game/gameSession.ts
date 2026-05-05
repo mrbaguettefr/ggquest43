@@ -11,6 +11,7 @@ export const createGameSession = (): GameSession => {
         revealedCards: new Set(),
         pendingCards: new Set(),
         defeatedEncounters: new Set(),
+        exploredTiles: new Set(),
         heroes: createInitialHeroes(),
         currentLocation: 'Center of the World'
     };
