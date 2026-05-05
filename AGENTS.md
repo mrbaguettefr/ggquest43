@@ -28,8 +28,8 @@
 ## Testing Guidelines
 
 - No automated test. Do not add any tests.
-- Perform a manual playthrough after changes: load game, start from MainMenu, verify collisions, scoring, and GameOver flow using playwright tool. Capture console output to ensure no runtime warnings.
-- When checking a specific scene with playwright, navigate using playwright through the debugScene shortcut `http://localhost:8080/?debugScene=<scene name>` to start directly at that scene instead of going through the full game flow.
+- Optionally perform a manual playthrough after changes using the playwright tool: load game, start from MainMenu, verify collisions, scoring, and GameOver flow. Capture console output to ensure no runtime warnings.
+- When checking a specific scene with playwright, navigate through the debugScene shortcut `http://localhost:8080/?debugScene=<scene name>` to start directly at that scene instead of going through the full game flow.
 
 ## Commit & Pull Request Guidelines
 
