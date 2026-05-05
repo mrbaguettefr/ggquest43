@@ -311,25 +311,6 @@
                  "y":831.333333333333
                 }, 
                 {
-                 "height":0,
-                 "id":10,
-                 "name":"enemy",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"skeleton",
-                         "type":"int",
-                         "value":10
-                        }],
-                 "rotation":0,
-                 "type":"enemy",
-                 "visible":true,
-                 "width":0,
-                 "x":227.333333333333,
-                 "y":836
-                }, 
-                {
                  "gid":577,
                  "height":36,
                  "id":11,
@@ -342,11 +323,30 @@
                          "value":4
                         }],
                  "rotation":0,
-                 "type":"enemy",
+                 "type":"",
                  "visible":true,
                  "width":32,
                  "x":316.75,
                  "y":795.166666666
+                }, 
+                {
+                 "gid":577,
+                 "height":36,
+                 "id":12,
+                 "name":"enemy",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"skeleton",
+                         "type":"int",
+                         "value":10
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":32,
+                 "x":230.083333333333,
+                 "y":836.499999999333
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -799,7 +799,7 @@
          "y":0
         }],
  "nextlayerid":20,
- "nextobjectid":12,
+ "nextobjectid":13,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.1",

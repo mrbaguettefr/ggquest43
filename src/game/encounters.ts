@@ -91,3 +91,10 @@ export const AREAS: Area[] = [
 export const ENCOUNTER_BY_NAME = new Map<string, Encounter>(
     AREAS.flatMap(a => a.encounters.map(e => [e.name, e] as [string, Encounter]))
 );
+
+export const buildSkeletonEncounter = (count: number): Encounter => ({
+    name: count === 1 ? 'Skeleton' : `Skeleton ×${count}`,
+    enemies: Array.from({ length: count }, () => createEnemy('Skeleton Warrior', 40, 8))
+});
+
+export const DEFAULT_SKELETON_ENCOUNTER = buildSkeletonEncounter(1);

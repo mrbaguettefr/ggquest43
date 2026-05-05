@@ -18,8 +18,10 @@ type DebugSceneLaunch = {
 };
 
 const DEBUG_SCENE_PARAM = "debugScene";
-const DEBUG_AREA_PARAM = "debugArea";
-const DEBUG_ENCOUNTER_PARAM = "debugEncounter";
+const DEBUG_AREA_PARAM = "area";
+const DEBUG_ENCOUNTER_PARAM = "encounter";
+const DEBUG_TILE_X_PARAM = "tileX";
+const DEBUG_TILE_Y_PARAM = "tileY";
 
 const STARTABLE_SCENES: DebugStartScene[] = [
   "MainMenu",
@@ -43,10 +45,20 @@ export const getDebugSceneLaunch = (): DebugSceneLaunch | undefined => {
     return undefined;
   }
 
-  if (requestedScene === "PlayerName" || requestedScene === "Exploration") {
+  if (requestedScene === "PlayerName") {
+    return { scene: requestedScene, data: { session: createDebugSession() } };
+  }
+
+  if (requestedScene === "Exploration") {
+    const tx = params.get(DEBUG_TILE_X_PARAM);
+    const ty = params.get(DEBUG_TILE_Y_PARAM);
+    const startTile =
+      tx !== null && ty !== null
+        ? { x: parseInt(tx, 10), y: parseInt(ty, 10) }
+        : undefined;
     return {
       scene: requestedScene,
-      data: { session: createDebugSession() },
+      data: { session: createDebugSession(), startTile },
     };
   }
 

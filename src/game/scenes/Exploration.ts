@@ -1,5 +1,5 @@
 import { Math as PhaserMath, Scene } from "phaser";
-import { ENCOUNTER_BY_NAME } from "../encounters.ts";
+import { AREAS, buildSkeletonEncounter, DEFAULT_SKELETON_ENCOUNTER, ENCOUNTER_BY_NAME } from "../encounters.ts";
 import {
   CARD_LABELS,
   CARD_ORDER,
@@ -38,6 +38,7 @@ export class Exploration extends Scene {
   private startPoint: { x: number; y: number };
   private wallInteractionPoint: { x: number; y: number };
   private mapEnemies: MapEnemy[];
+  private areaPolygons: Array<{ name: string; vertices: Array<{ x: number; y: number }> }>;
   private fogGraphics: Phaser.GameObjects.Graphics;
   private fogTileRevealRadius: number;
   private mapTileWidth: number;
@@ -47,7 +48,7 @@ export class Exploration extends Scene {
     super("Exploration");
   }
 
-  create(data: { session: GameSession; battleResult?: BattleResult }) {
+  create(data: { session: GameSession; battleResult?: BattleResult; startTile?: { x: number; y: number } }) {
     this.session = data.session;
     this.camera = this.cameras.main;
     this.camera.setBackgroundColor(0x1c2740);
@@ -58,7 +59,7 @@ export class Exploration extends Scene {
     }
 
     this.cursors = this.input.keyboard.createCursorKeys();
-    this.createWorld();
+    this.createWorld(data.startTile);
     this.createHud();
     this.registerInput();
     this.applyBattleResult(data.battleResult);
@@ -120,7 +121,7 @@ export class Exploration extends Scene {
     this.updateFog();
   }
 
-  private createWorld() {
+  private createWorld(startTile?: { x: number; y: number }) {
     const map = this.make.tilemap({ key: "worldmap" });
     const wallsTs = map.addTilesetImage("walls", "tileset-wall");
     const stoneTs = map.addTilesetImage("stone-ground", "tileset-stone");
@@ -140,6 +141,13 @@ export class Exploration extends Scene {
 
     this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.extractMapObjects(map);
+
+    if (startTile) {
+      this.startPoint = {
+        x: startTile.x * map.tileWidth + map.tileWidth / 2,
+        y: startTile.y * map.tileHeight + map.tileHeight / 2,
+      };
+    }
 
     if (!this.anims.exists("cloud-idle")) {
       this.anims.create({
@@ -237,6 +245,13 @@ export class Exploration extends Scene {
     const wallObj = find("wall-interaction")!;
     this.wallInteractionPoint = { x: wallObj.x!, y: wallObj.y! };
 
+    this.areaPolygons = ["area-1", "area-2", "area-3"].flatMap((key, i) => {
+      const obj = find(key);
+      if (!obj) return [];
+      const vertices = (obj.polygon ?? []).map((v) => ({ x: obj.x! + v.x, y: obj.y! + v.y }));
+      return [{ name: AREAS[i].name, vertices }];
+    });
+
     if (!this.anims.exists("skeleton-walk")) {
       this.anims.create({
         key: "skeleton-walk",
@@ -244,24 +259,21 @@ export class Exploration extends Scene {
           start: 0,
           end: 7,
         }),
-        frameRate: 8,
+        frameRate: 4,
         repeat: -1,
       });
     }
 
     this.mapEnemies = layer.objects
-      .filter(
-        (o) =>
-          o.type === "enemy" || (o as unknown as { class: string }).class === "enemy",
-      )
+      .filter((o) => o.name === "enemy" || o.type === "enemy")
       .flatMap((o) => {
         const objectId = o.id!;
         if (this.session.defeatedEncounters.has(`enemy:${objectId}`)) return [];
-        const encounter = ENCOUNTER_BY_NAME.get(o.name ?? "");
-        if (!encounter) {
-          console.warn(`No encounter found for enemy object "${o.name}" (id ${objectId})`);
-          return [];
-        }
+        const props = o.properties as Record<string, unknown> | undefined;
+        const skeletonCount = typeof props?.skeleton === "number" ? props.skeleton : undefined;
+        const encounter = skeletonCount
+          ? buildSkeletonEncounter(skeletonCount)
+          : (ENCOUNTER_BY_NAME.get(o.name ?? "") ?? DEFAULT_SKELETON_ENCOUNTER);
         const sprite = this.add
           .sprite(o.x!, o.y!, "skeleton")
           .play("skeleton-walk")
@@ -584,8 +596,28 @@ export class Exploration extends Scene {
     this.updateHud();
   }
 
+  private getCurrentAreaName(): string | undefined {
+    return this.areaPolygons.find(({ vertices }) =>
+      this.pointInPolygon(this.player.x, this.player.y, vertices),
+    )?.name;
+  }
+
+  private pointInPolygon(px: number, py: number, vertices: Array<{ x: number; y: number }>): boolean {
+    let inside = false;
+    const n = vertices.length;
+    for (let i = 0, j = n - 1; i < n; j = i++) {
+      const { x: xi, y: yi } = vertices[i];
+      const { x: xj, y: yj } = vertices[j];
+      if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
+        inside = !inside;
+      }
+    }
+    return inside;
+  }
+
   private updateHud() {
-    this.infoText.setText(`Location: ${this.session.currentLocation}`);
+    const location = this.getCurrentAreaName() ?? this.session.currentLocation;
+    this.infoText.setText(`Location: ${location}`);
     this.partyText.setText(
       [
         "Party:",
