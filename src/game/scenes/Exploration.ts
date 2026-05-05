@@ -28,7 +28,6 @@ export class Exploration extends Scene
         this.session = data.session;
         this.camera = this.cameras.main;
         this.camera.setBackgroundColor(0x1c2740);
-        this.camera.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
         if (!this.input.keyboard)
         {
@@ -104,8 +103,12 @@ export class Exploration extends Scene
         this.worldLayer = this.add.container(0, 0);
 
         const map = this.make.tilemap({ key: 'worldmap' });
-        const tileset = map.addTilesetImage('tileset', 'tileset');
-        map.createLayer('Ground', tileset!, 0, 0)?.setDepth(-1);
+        const wallsTs = map.addTilesetImage('walls', 'tileset-wall');
+        const stoneTs = map.addTilesetImage('stone-ground', 'tileset-stone');
+        const allTilesets = [wallsTs!, stoneTs!];
+        map.createLayer('prototype', allTilesets)?.setDepth(-2);
+        map.createLayer('ground', allTilesets)?.setDepth(-1);
+        this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
         this.drawHub();
         AREAS.forEach((area) => this.drawAreaGate(area));

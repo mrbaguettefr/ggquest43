@@ -1,5 +1,5 @@
-// Resolves external TSX references in map.tmj and writes an inline Phaser-ready
-// JSON to map-tiled.json in the same tileset directory.
+// Resolves external tileset references (TSJ/TSX) in map.tmj and writes an
+// inline Phaser-ready JSON to map-tiled.json in the same tileset directory.
 // Run: node scripts/convert-tmx.mjs
 
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -9,49 +9,55 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TILESET_DIR = join(__dirname, '../public/assets/tileset');
 
-function getAttr(str, name) {
+function parseTsxAttr(str, name) {
     const m = str.match(new RegExp(name + '="([^"]*)"'));
     return m ? m[1] : '';
 }
 
-function numAttr(str, name) {
-    return parseInt(getAttr(str, name), 10) || 0;
-}
+function parseTileset(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    const content = readFileSync(join(TILESET_DIR, filename), 'utf-8');
 
-function parseTsx(filename) {
-    const xml = readFileSync(join(TILESET_DIR, filename), 'utf-8');
-    const tilesetTag = xml.match(/<tileset[^>]+>/)[0];
-    const imageTag = xml.match(/<image[^>]+>/)?.[0] ?? '';
-
-    // TSX source is "../Pixel Art .../TX ....png" relative to tileset dir.
-    // Stripping "../" gives the correct path relative to the tileset dir
-    // (where the output JSON lives).
-    const image = getAttr(imageTag, 'source').replace(/^\.\.\//, '');
-    const trans = getAttr(imageTag, 'trans');
-
-    const result = {
-        name: getAttr(tilesetTag, 'name'),
-        tilewidth: numAttr(tilesetTag, 'tilewidth'),
-        tileheight: numAttr(tilesetTag, 'tileheight'),
-        tilecount: numAttr(tilesetTag, 'tilecount'),
-        columns: numAttr(tilesetTag, 'columns'),
-        image,
-        imagewidth: numAttr(imageTag, 'width'),
-        imageheight: numAttr(imageTag, 'height'),
-        margin: 0,
-        spacing: 0,
-    };
-
-    if (trans) {
-        result.transparentcolor = '#' + trans;
+    if (ext === 'tsj') {
+        const ts = JSON.parse(content);
+        return {
+            name: ts.name,
+            tilewidth: ts.tilewidth,
+            tileheight: ts.tileheight,
+            tilecount: ts.tilecount,
+            columns: ts.columns,
+            image: ts.image,
+            imagewidth: ts.imagewidth,
+            imageheight: ts.imageheight,
+            margin: ts.margin ?? 0,
+            spacing: ts.spacing ?? 0,
+            ...(ts.transparentcolor ? { transparentcolor: ts.transparentcolor } : {}),
+        };
     }
 
-    return result;
+    // TSX (XML fallback)
+    const tilesetTag = content.match(/<tileset[^>]+>/)[0];
+    const imageTag = content.match(/<image[^>]+>/)?.[0] ?? '';
+    const image = parseTsxAttr(imageTag, 'source').replace(/^\.\.\//, '');
+    const trans = parseTsxAttr(imageTag, 'trans');
+    return {
+        name: parseTsxAttr(tilesetTag, 'name'),
+        tilewidth: parseInt(parseTsxAttr(tilesetTag, 'tilewidth'), 10),
+        tileheight: parseInt(parseTsxAttr(tilesetTag, 'tileheight'), 10),
+        tilecount: parseInt(parseTsxAttr(tilesetTag, 'tilecount'), 10),
+        columns: parseInt(parseTsxAttr(tilesetTag, 'columns'), 10),
+        image,
+        imagewidth: parseInt(parseTsxAttr(imageTag, 'width'), 10),
+        imageheight: parseInt(parseTsxAttr(imageTag, 'height'), 10),
+        margin: 0,
+        spacing: 0,
+        ...(trans ? { transparentcolor: '#' + trans } : {}),
+    };
 }
 
 const tmj = JSON.parse(readFileSync(join(TILESET_DIR, 'map.tmj'), 'utf-8'));
 
-const tilesets = tmj.tilesets.map(({ firstgid, source }) => ({ firstgid, ...parseTsx(source) }));
+const tilesets = tmj.tilesets.map(({ firstgid, source }) => ({ firstgid, ...parseTileset(source) }));
 
 const mapJson = { ...tmj, tilesets };
 
