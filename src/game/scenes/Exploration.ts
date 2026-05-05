@@ -1,5 +1,10 @@
 import { Math as PhaserMath, Scene } from "phaser";
-import { AREAS, buildSkeletonEncounter, DEFAULT_SKELETON_ENCOUNTER, ENCOUNTER_BY_NAME } from "../encounters.ts";
+import {
+  AREAS,
+  buildSkeletonEncounter,
+  DEFAULT_SKELETON_ENCOUNTER,
+  ENCOUNTER_BY_NAME,
+} from "../encounters.ts";
 import {
   CARD_LABELS,
   CARD_ORDER,
@@ -18,6 +23,11 @@ type MapEnemy = {
   encounter: Encounter;
   sprite: Phaser.GameObjects.Sprite;
 };
+
+type PlayerDirection = "down" | "right" | "up";
+
+const PLAYER_ANIMATION_DIRECTIONS: PlayerDirection[] = ["down", "right", "up"];
+const CLOUD_FRAME_COUNT = 25;
 
 export class Exploration extends Scene {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -38,17 +48,26 @@ export class Exploration extends Scene {
   private startPoint: { x: number; y: number };
   private wallInteractionPoint: { x: number; y: number };
   private mapEnemies: MapEnemy[];
-  private areaPolygons: Array<{ name: string; vertices: Array<{ x: number; y: number }> }>;
+  private areaPolygons: Array<{
+    name: string;
+    vertices: Array<{ x: number; y: number }>;
+  }>;
   private fogGraphics: Phaser.GameObjects.Graphics;
   private fogTileRevealRadius: number;
   private mapTileWidth: number;
   private mapTileHeight: number;
+  private playerDirection: PlayerDirection = "down";
+  private playerFacingLeft = false;
 
   constructor() {
     super("Exploration");
   }
 
-  create(data: { session: GameSession; battleResult?: BattleResult; startTile?: { x: number; y: number } }) {
+  create(data: {
+    session: GameSession;
+    battleResult?: BattleResult;
+    startTile?: { x: number; y: number };
+  }) {
     this.session = data.session;
     this.camera = this.cameras.main;
     this.camera.setBackgroundColor(0x1c2740);
@@ -108,14 +127,19 @@ export class Exploration extends Scene {
     const moving = velocityX !== 0 || velocityY !== 0;
 
     if (moving) {
-      this.player.play("cloud-walk", true);
+      this.playerDirection = this.getPlayerDirection(velocityX, velocityY);
 
-      if (velocityX !== 0) {
-        this.player.setFlipX(velocityX < 0);
+      if (this.playerDirection === "right" && velocityX !== 0) {
+        this.playerFacingLeft = velocityX < 0;
+      } else {
+        this.playerFacingLeft = false;
       }
-    } else {
-      this.player.play("cloud-idle", true);
     }
+
+    this.player.setFlipX(
+      this.playerDirection === "right" && this.playerFacingLeft,
+    );
+    this.player.play(this.getPlayerAnimationKey(this.playerDirection), true);
 
     this.updateExploreText();
     this.updateFog();
@@ -149,36 +173,52 @@ export class Exploration extends Scene {
       };
     }
 
-    if (!this.anims.exists("cloud-idle")) {
-      this.anims.create({
-        key: "cloud-idle",
-        frames: this.anims.generateFrameNumbers("cloud", { start: 0, end: 5 }),
-        frameRate: 8,
-        repeat: -1,
-      });
-    }
-
-    if (!this.anims.exists("cloud-walk")) {
-      this.anims.create({
-        key: "cloud-walk",
-        frames: this.anims.generateFrameNumbers("cloud-walk", {
-          start: 0,
-          end: 7,
-        }),
-        frameRate: 12,
-        repeat: -1,
-      });
-    }
+    this.createPlayerAnimations();
 
     this.player = this.add
-      .sprite(this.startPoint.x, this.startPoint.y, "cloud")
-      .play("cloud-idle");
-    this.player.setScale(28 / this.player.width).setDepth(2);
+      .sprite(this.startPoint.x, this.startPoint.y, "cloud-down", "0")
+      .play(this.getPlayerAnimationKey(this.playerDirection));
+    this.player.setScale(64 / this.player.width).setDepth(2);
 
     map.createLayer("deco-2", allTilesets)?.setDepth(3);
 
     this.createFog(map);
     this.camera.startFollow(this.player, true, 0.08, 0.08);
+  }
+
+  private createPlayerAnimations() {
+    for (const direction of PLAYER_ANIMATION_DIRECTIONS) {
+      const key = this.getPlayerAnimationKey(direction);
+
+      if (this.anims.exists(key)) {
+        continue;
+      }
+
+      this.anims.create({
+        key,
+        frames: this.anims.generateFrameNames(`cloud-${direction}`, {
+          start: 0,
+          end: CLOUD_FRAME_COUNT - 1,
+        }),
+        frameRate: 8,
+        repeat: -1,
+      });
+    }
+  }
+
+  private getPlayerDirection(
+    velocityX: number,
+    velocityY: number,
+  ): PlayerDirection {
+    if (Math.abs(velocityY) > Math.abs(velocityX)) {
+      return velocityY < 0 ? "up" : "down";
+    }
+
+    return "right";
+  }
+
+  private getPlayerAnimationKey(direction: PlayerDirection) {
+    return `cloud-idle-${direction}`;
   }
 
   private createFog(map: Phaser.Tilemaps.Tilemap) {
@@ -248,7 +288,10 @@ export class Exploration extends Scene {
     this.areaPolygons = ["area-1", "area-2", "area-3"].flatMap((key, i) => {
       const obj = find(key);
       if (!obj) return [];
-      const vertices = (obj.polygon ?? []).map((v) => ({ x: obj.x! + v.x, y: obj.y! + v.y }));
+      const vertices = (obj.polygon ?? []).map((v) => ({
+        x: obj.x! + v.x,
+        y: obj.y! + v.y,
+      }));
       return [{ name: AREAS[i].name, vertices }];
     });
 
@@ -270,7 +313,8 @@ export class Exploration extends Scene {
         const objectId = o.id!;
         if (this.session.defeatedEncounters.has(`enemy:${objectId}`)) return [];
         const props = o.properties as Record<string, unknown> | undefined;
-        const skeletonCount = typeof props?.skeleton === "number" ? props.skeleton : undefined;
+        const skeletonCount =
+          typeof props?.skeleton === "number" ? props.skeleton : undefined;
         const encounter = skeletonCount
           ? buildSkeletonEncounter(skeletonCount)
           : (ENCOUNTER_BY_NAME.get(o.name ?? "") ?? DEFAULT_SKELETON_ENCOUNTER);
@@ -602,13 +646,20 @@ export class Exploration extends Scene {
     )?.name;
   }
 
-  private pointInPolygon(px: number, py: number, vertices: Array<{ x: number; y: number }>): boolean {
+  private pointInPolygon(
+    px: number,
+    py: number,
+    vertices: Array<{ x: number; y: number }>,
+  ): boolean {
     let inside = false;
     const n = vertices.length;
     for (let i = 0, j = n - 1; i < n; j = i++) {
       const { x: xi, y: yi } = vertices[i];
       const { x: xj, y: yj } = vertices[j];
-      if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
+      if (
+        yi > py !== yj > py &&
+        px < ((xj - xi) * (py - yi)) / (yj - yi) + xi
+      ) {
         inside = !inside;
       }
     }

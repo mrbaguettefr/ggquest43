@@ -153,6 +153,7 @@ The player gradually understands what the gift is through hints from NPC "baguet
   * `src/game/scenes/Battle.ts` owns fullscreen combat rendering, target selection, turn resolution, victory, defeat, and returning battle results to Exploration
   * `src/game/scenes/GameOver.ts` remains available as a standalone Game Over scene
 
+* Cloud's exploration sprite uses the `public/assets/world/characters/cloud-iso_idle_{down,right,up}-v1.*` image and atlas JSON files. The custom atlas JSON is adapted into Phaser atlas textures during Preloader setup, then Exploration uses directional idle animations for down, right, and up. Left-facing movement reuses the right-facing atlas and flips the player sprite horizontally with Phaser's flip API.
 * `src/game/gameSession.ts` creates the shared game session object passed between Seed, PlayerName, Exploration, and Battle
 * `src/game/debugStart.ts` supports dev-only URL scene starts with dummy session data for testing scenes that normally require earlier flow
 * `src/game/gameTypes.ts` contains shared gameplay types
