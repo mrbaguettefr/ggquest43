@@ -46,39 +46,39 @@ export class Preloader extends Scene {
     //  Load the assets for the game - Replace with your own assets
     this.load.setPath("assets");
 
-    this.load.image("main-menu-logo", "main-menu-logo.png");
+    this.load.image("main-menu-logo", "MainMenu/main-menu-logo.png");
     this.load.image(
       "tileset-wall",
-      "tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Tileset Wall.png",
+      "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Tileset Wall.png",
     );
     this.load.image(
       "tileset-stone",
-      "tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Tileset Stone Ground.png",
+      "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Tileset Stone Ground.png",
     );
     this.load.image(
       "tileset-props",
-      "tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Props.png",
+      "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Props.png",
     );
-    this.load.tilemapTiledJSON("worldmap", "tileset/map-tiled.json");
+    this.load.tilemapTiledJSON("worldmap", "Exploration/tileset/map-tiled.json");
     for (const state of CLOUD_ANIMATION_STATES) {
       for (const dir of CLOUD_DIRECTIONS) {
         this.load.image(
           this.getCloudAssetKey(state, dir, "img"),
-          `world/characters/cloud-iso_${state}_${dir}-v1.png`,
+          `Exploration/world/characters/cloud-iso_${state}_${dir}-v1.png`,
         );
         this.load.json(
           this.getCloudAssetKey(state, dir, "json"),
-          `world/characters/cloud-iso_${state}_${dir}-v1.json`,
+          `Exploration/world/characters/cloud-iso_${state}_${dir}-v1.json`,
         );
       }
     }
-    this.load.spritesheet("skeleton", "world/monsters/skeleton.png", {
+    this.load.spritesheet("skeleton", "Exploration/world/monsters/skeleton.png", {
       frameWidth: 211,
       frameHeight: 225,
       spacing: 4,
     });
-    this.load.image("battle-bg", "battle/background/battlefield-cave.png");
-    this.load.spritesheet("cloud-battle-idle", "battle/characters/cloud-idle-v1.png", {
+    this.load.image("battle-bg", "Battle/background/battlefield-cave.png");
+    this.load.spritesheet("cloud-battle-idle", "Battle/characters/cloud-idle-v1.png", {
       frameWidth: 256,
       frameHeight: 256,
     });

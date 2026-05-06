@@ -7,7 +7,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const TILESET_DIR = join(__dirname, '../public/assets/tileset');
+const TILESET_DIR = join(__dirname, '../public/assets/Exploration/tileset');
 
 function parseTsxAttr(str, name) {
     const m = str.match(new RegExp(name + '="([^"]*)"'));
