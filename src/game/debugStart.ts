@@ -49,6 +49,10 @@ export const getDebugSceneLaunch = (): DebugSceneLaunch | undefined => {
     return { scene: requestedScene, data: { session: createDebugSession() } };
   }
 
+  if (requestedScene === "MainMenu" || requestedScene === "Credits") {
+    return { scene: requestedScene, data: { session: createDebugSession() } };
+  }
+
   if (requestedScene === "Exploration") {
     const tx = params.get(DEBUG_TILE_X_PARAM);
     const ty = params.get(DEBUG_TILE_Y_PARAM);
@@ -94,7 +98,6 @@ const createDebugSession = (): GameSession => {
 
   session.seedCode = "DEBUG-SEED";
   session.playerName = "GGLeBoss";
-  session.welcomeMessage = "Debug welcome message";
   session.secretGift = secretGift;
   session.secretFragments = splitSecret(secretGift);
 

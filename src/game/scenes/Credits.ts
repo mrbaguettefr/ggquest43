@@ -1,4 +1,5 @@
 import { Scene } from 'phaser';
+import type { GameSession } from '../gameTypes.ts';
 
 type CreditSection = {
     heading: string;
@@ -153,14 +154,16 @@ export class Credits extends Scene
 {
     private creditsText: Phaser.GameObjects.Text;
     private hintText: Phaser.GameObjects.Text;
+    private session?: GameSession;
 
     constructor ()
     {
         super('Credits');
     }
 
-    create ()
+    create (data: { session?: GameSession })
     {
+        this.session = data.session;
         this.cameras.main.setBackgroundColor(0x111827);
 
         this.add.image(512, 384, 'background').setAlpha(0.2);
@@ -205,12 +208,17 @@ export class Credits extends Scene
         });
 
         this.input.once('pointerdown', () => {
-            this.scene.start('MainMenu');
+            this.returnToMainMenu();
         });
 
         this.input.keyboard?.once('keydown-ENTER', () => {
-            this.scene.start('MainMenu');
+            this.returnToMainMenu();
         });
+    }
+
+    private returnToMainMenu ()
+    {
+        this.scene.start('MainMenu', { session: this.session });
     }
 
     private buildCreditsText ()

@@ -43,7 +43,6 @@ export type Area = {
 export type GameSession = {
     seedCode: string;
     playerName: string;
-    welcomeMessage: string;
     secretGift: string;
     secretFragments: string[];
     revealedCards: Set<CardColor>;

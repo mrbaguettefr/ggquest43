@@ -71,6 +71,8 @@ export class Exploration extends Scene {
     startTile?: { x: number; y: number };
   }) {
     this.session = data.session;
+    this.inputLocked = false;
+    this.messageAfterClose = undefined;
     this.camera = this.cameras.main;
     this.camera.setBackgroundColor(0x1c2740);
     this.camera.setZoom(2);
@@ -84,6 +86,9 @@ export class Exploration extends Scene {
     this.createHud();
     this.registerInput();
     this.applyBattleResult(data.battleResult);
+    this.camera.centerOn(this.player.x, this.player.y);
+    this.layoutHud();
+    this.updateFog();
   }
 
   update(_time: number, delta: number) {
@@ -149,6 +154,7 @@ export class Exploration extends Scene {
       true,
     );
 
+    this.layoutHud();
     this.updateExploreText();
     this.updateFog();
   }
@@ -364,75 +370,102 @@ export class Exploration extends Scene {
     this.infoText = this.add
       .text(16, 14, "", {
         fontFamily: "Arial",
-        fontSize: 18,
+        fontSize: 14,
         color: "#ffffff",
         stroke: "#000000",
-        strokeThickness: 4,
+        strokeThickness: 3,
       })
-      .setScrollFactor(0)
       .setDepth(20);
 
     this.partyText = this.add
-      .text(16, 84, "", {
+      .text(16, 40, "", {
         fontFamily: "Courier New",
-        fontSize: 16,
+        fontSize: 13,
         color: "#ffffff",
         stroke: "#000000",
-        strokeThickness: 4,
+        strokeThickness: 3,
       })
-      .setScrollFactor(0)
       .setDepth(20);
 
     this.statusText = this.add
       .text(512, 712, "", {
         fontFamily: "Arial Black",
-        fontSize: 20,
+        fontSize: 16,
         color: "#fff6c4",
         stroke: "#000000",
-        strokeThickness: 5,
+        strokeThickness: 4,
         align: "center",
         wordWrap: { width: 900 },
       })
       .setOrigin(0.5)
-      .setScrollFactor(0)
       .setDepth(40);
 
     this.interactionText = this.add
       .text(512, 650, "", {
         fontFamily: "Arial Black",
-        fontSize: 20,
+        fontSize: 15,
         color: "#ffffff",
         stroke: "#000000",
-        strokeThickness: 6,
+        strokeThickness: 4,
         align: "center",
         wordWrap: { width: 880 },
       })
       .setOrigin(0.5)
-      .setScrollFactor(0)
       .setDepth(20);
 
     this.promptText = this.add
       .text(512, 360, "", {
         fontFamily: "Arial Black",
-        fontSize: 26,
+        fontSize: 20,
         color: "#ffffff",
         stroke: "#000000",
-        strokeThickness: 7,
+        strokeThickness: 5,
         align: "center",
         wordWrap: { width: 820 },
       })
       .setOrigin(0.5)
-      .setScrollFactor(0)
       .setDepth(40)
       .setVisible(false);
   }
 
+  private layoutHud() {
+    const zoom = this.camera.zoom;
+    const view = this.camera.worldView;
+    const toWorld = (screenX: number, screenY: number) => ({
+      x: view.left + screenX / zoom,
+      y: view.top + screenY / zoom,
+    });
+    const scale = 1 / zoom;
+
+    const infoPosition = toWorld(16, 14);
+    const partyPosition = toWorld(16, 40);
+    const statusPosition = toWorld(
+      this.scale.width / 2,
+      this.scale.height - 56,
+    );
+    const interactionPosition = toWorld(
+      this.scale.width / 2,
+      this.scale.height - 118,
+    );
+    const promptPosition = toWorld(this.scale.width / 2, this.scale.height / 2);
+
+    this.infoText.setPosition(infoPosition.x, infoPosition.y).setScale(scale);
+    this.partyText.setPosition(partyPosition.x, partyPosition.y).setScale(scale);
+    this.statusText
+      .setPosition(statusPosition.x, statusPosition.y)
+      .setScale(scale);
+    this.interactionText
+      .setPosition(interactionPosition.x, interactionPosition.y)
+      .setScale(scale);
+    this.promptText
+      .setPosition(promptPosition.x, promptPosition.y)
+      .setScale(scale);
+  }
+
   private registerInput() {
     this.input.keyboard?.on("keydown", this.handleKey, this);
-    this.input.on("pointerdown", this.handlePointer, this);
     this.events.once("shutdown", () => {
       this.input.keyboard?.off("keydown", this.handleKey, this);
-      this.input.off("pointerdown", this.handlePointer, this);
     });
   }
 
@@ -450,20 +483,9 @@ export class Exploration extends Scene {
     }
   }
 
-  private handlePointer() {
-    if (this.inputLocked) {
-      this.closeMessage();
-    } else {
-      this.interact();
-    }
-  }
-
   private applyBattleResult(battleResult: BattleResult | undefined) {
     if (!battleResult) {
       this.session.currentLocation = "Center of the World";
-      this.statusText.setText(
-        `Welcome, ${this.session.playerName}. Arrow keys move. Press E near gates, heroes, and the wall.`,
-      );
       this.updateHud();
       return;
     }

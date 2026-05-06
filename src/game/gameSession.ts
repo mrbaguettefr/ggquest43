@@ -5,7 +5,6 @@ export const createGameSession = (): GameSession => {
     return {
         seedCode: '',
         playerName: '',
-        welcomeMessage: '',
         secretGift: '',
         secretFragments: [],
         revealedCards: new Set(),

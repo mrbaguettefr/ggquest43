@@ -46,7 +46,7 @@ export class Preloader extends Scene {
     //  Load the assets for the game - Replace with your own assets
     this.load.setPath("assets");
 
-    this.load.image("logo", "logo.png");
+    this.load.image("main-menu-logo", "main-menu-logo.png");
     this.load.image(
       "tileset-wall",
       "tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Tileset Wall.png",
@@ -105,8 +105,8 @@ export class Preloader extends Scene {
       return;
     }
 
-    //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
-    this.scene.start("MainMenu");
+    //  Move to Seed first so the game session is ready before MainMenu.
+    this.scene.start("Seed");
   }
 
   private registerCloudAtlases() {

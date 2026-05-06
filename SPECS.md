@@ -10,15 +10,14 @@
 
 * Seed game code behavior:
 
-  * The player is warned that the seed game code must be correct
-  * The seed game code is used to decrypt an encrypted welcome message from the shared config file
-  * welcome message is shown to the player so the player can confirm that the seed worked
-  * The same seed game code is also used to decrypt `secret_gift` from the shared config file
+  * If no seed game code is present, the player is warned that a seed game code is required
+  * If a seed game code is present, it is used to decrypt `secret_gift` from the shared config file
   * the decoded `secret_gift` value is stored in memory for the rest of the game
   * The full gift code is never shown immediately
   * The decoded gift code is later revealed in fragments through the Card Reader wall
 
-* After the decrypted welcome message is shown and the player confirms it, the game asks: "Enter your name"
+* After the seed game code initializes the session, the game displays the Main Menu
+* Choosing Start Game from the Main Menu asks: "Enter your name"
 
 * Input field behavior:
 
@@ -107,11 +106,11 @@ The map is divided into 3 areas with increasing difficulty:
 
 ## Hidden Objective
 
-The shared config file contains an encrypted welcome message and the real gift value encrypted as `secret_gift`.
+The shared config file contains the real gift value encrypted as `secret_gift`.
 
 Technical constraint: the game will be publicly available, so source code, bundled assets and config files must be treated as visible to players. Security measures are required to avoid exposing the gift value directly, including storing `secret_gift` encrypted and only decrypting it in the browser after the seed game code is accepted.
 
-At the start of the game, the player must enter a seed game code. The UI must warn the player that the seed game code must be correct. This seed game code is used to decrypt a welcome message and `secret_gift` from the shared config file, using simple browser-side decryption. The decrypted welcome message is shown to the player for confirmation without additional validation. The game keeps the decoded gift value in memory for the rest of the session.
+At the start of the game, the player must provide a seed game code before reaching the Main Menu. If no seed is present, the UI warns the player that a seed game code is required. If a seed is present, it is used to decrypt `secret_gift` from the shared config file with simple browser-side decryption. The Main Menu is displayed immediately after the session initializes, and the game keeps the decoded gift value in memory for the rest of the session.
 
 The player then sees a mysterious wall with 3 missing Card Reader slots in the style of Doom keycards: green, blue and red. The wall shows incomplete fragments of a code, but not enough to understand the full reward immediately.
 
@@ -125,10 +124,9 @@ The player gradually understands what the gift is through hints from NPC "baguet
 
 * Source code and config names must never mention the real gift type directly; use `secret_gift` everywhere
 * The game is public, so source code, assets and config files must not expose the plain gift value
-* Shared config contains an encrypted welcome message used to confirm that the seed game code works
 * Shared config contains the encrypted `secret_gift`
-* Seed game code decrypts the welcome message and `secret_gift` with simple browser-side decryption
-* The decrypted welcome message is shown immediately after a successful seed entry
+* Seed game code decrypts `secret_gift` with simple browser-side decryption
+* The Main Menu is shown immediately after a successful seed entry
 * Decrypted value is kept only for the current game session
 * Card Readers reveal fragments from the decrypted key
 * The full gift code is only visible after all 3 Cards have been inserted
@@ -145,9 +143,9 @@ The player gradually understands what the gift is through hints from NPC "baguet
 * Phaser scene flow is split by game phase:
 
   * `src/game/scenes/Boot.ts` loads the early background asset and starts Preloader
-  * `src/game/scenes/Preloader.ts` loads game assets, checks for a dev-only debug start override, and otherwise starts MainMenu
-  * `src/game/scenes/MainMenu.ts` shows the opening menu and starts Seed
-  * `src/game/scenes/Seed.ts` owns seed game code entry, welcome-message decryption, secret gift decryption, and initial session creation
+  * `src/game/scenes/Preloader.ts` loads game assets, checks for a dev-only debug start override, and otherwise starts Seed
+  * `src/game/scenes/Seed.ts` owns seed game code entry, secret gift decryption, initial session creation, and then starts MainMenu immediately when a seed is present
+  * `src/game/scenes/MainMenu.ts` shows a black-background opening menu with the `main-menu-logo` asset, a Start Game item that starts PlayerName with the decrypted session, and a Credits item that starts Credits
   * `src/game/scenes/PlayerName.ts` owns the forced "GGLeBoss" name-entry gag
   * `src/game/scenes/Exploration.ts` owns world rendering, movement, map interactions, Card Reader wall interactions, hero recruitment, battle entry, resurrection handling, and post-battle rewards
   * `src/game/scenes/Battle.ts` owns fullscreen combat rendering, target selection, turn resolution, victory, defeat, and returning battle results to Exploration
@@ -161,7 +159,7 @@ The player gradually understands what the gift is through hints from NPC "baguet
 * `src/game/encounters.ts` contains area and enemy encounter data
 * `src/game/heroes.ts` creates the initial hero roster
 * `src/game/secret.ts` contains secret gift helpers
-* `src/game/sharedConfig.ts` contains the encrypted welcome message and encrypted `secret_gift`
+* `src/game/sharedConfig.ts` contains the encrypted `secret_gift`
 
 ### Dev Scene Start Overrides
 
@@ -278,6 +276,9 @@ For now, the UI stays simple and readable.
 ### Exploration UI
 
 Always visible while exploring:
+
+* HUD text is laid out against the camera viewport with inverse zoom scaling, so it remains visible while the camera follows and zooms on the player
+* The game canvas is constrained to the browser viewport, preventing the fixed HUD from being clipped on shorter screens
 
 * Current location label
 
