@@ -25,8 +25,10 @@ type MapEnemy = {
 };
 
 type PlayerDirection = "down" | "right" | "up";
+type PlayerAnimationState = "idle" | "walk";
 
 const PLAYER_ANIMATION_DIRECTIONS: PlayerDirection[] = ["down", "right", "up"];
+const PLAYER_ANIMATION_STATES: PlayerAnimationState[] = ["idle", "walk"];
 const CLOUD_FRAME_COUNT = 25;
 
 export class Exploration extends Scene {
@@ -139,7 +141,10 @@ export class Exploration extends Scene {
     this.player.setFlipX(
       this.playerDirection === "right" && this.playerFacingLeft,
     );
-    this.player.play(this.getPlayerAnimationKey(this.playerDirection), true);
+    this.player.play(
+      this.getPlayerAnimationKey(moving ? "walk" : "idle", this.playerDirection),
+      true,
+    );
 
     this.updateExploreText();
     this.updateFog();
@@ -176,8 +181,8 @@ export class Exploration extends Scene {
     this.createPlayerAnimations();
 
     this.player = this.add
-      .sprite(this.startPoint.x, this.startPoint.y, "cloud-down", "0")
-      .play(this.getPlayerAnimationKey(this.playerDirection));
+      .sprite(this.startPoint.x, this.startPoint.y, "cloud-idle-down", "0")
+      .play(this.getPlayerAnimationKey("idle", this.playerDirection));
     this.player.setScale(64 / this.player.width).setDepth(2);
 
     map.createLayer("deco-2", allTilesets)?.setDepth(3);
@@ -187,22 +192,24 @@ export class Exploration extends Scene {
   }
 
   private createPlayerAnimations() {
-    for (const direction of PLAYER_ANIMATION_DIRECTIONS) {
-      const key = this.getPlayerAnimationKey(direction);
+    for (const state of PLAYER_ANIMATION_STATES) {
+      for (const direction of PLAYER_ANIMATION_DIRECTIONS) {
+        const key = this.getPlayerAnimationKey(state, direction);
 
-      if (this.anims.exists(key)) {
-        continue;
+        if (this.anims.exists(key)) {
+          continue;
+        }
+
+        this.anims.create({
+          key,
+          frames: this.anims.generateFrameNames(`cloud-${state}-${direction}`, {
+            start: 0,
+            end: CLOUD_FRAME_COUNT - 1,
+          }),
+          frameRate: state === "walk" ? 12 : 8,
+          repeat: -1,
+        });
       }
-
-      this.anims.create({
-        key,
-        frames: this.anims.generateFrameNames(`cloud-${direction}`, {
-          start: 0,
-          end: CLOUD_FRAME_COUNT - 1,
-        }),
-        frameRate: 8,
-        repeat: -1,
-      });
     }
   }
 
@@ -217,8 +224,11 @@ export class Exploration extends Scene {
     return "right";
   }
 
-  private getPlayerAnimationKey(direction: PlayerDirection) {
-    return `cloud-idle-${direction}`;
+  private getPlayerAnimationKey(
+    state: PlayerAnimationState,
+    direction: PlayerDirection,
+  ) {
+    return `cloud-${state}-${direction}`;
   }
 
   private createFog(map: Phaser.Tilemaps.Tilemap) {

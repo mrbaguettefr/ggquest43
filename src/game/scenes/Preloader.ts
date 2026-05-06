@@ -2,8 +2,10 @@ import { Scene } from "phaser";
 import { getDebugSceneLaunch } from "../debugStart.ts";
 
 const CLOUD_DIRECTIONS = ["down", "right", "up"] as const;
+const CLOUD_ANIMATION_STATES = ["idle", "walk"] as const;
 
 type CloudDirection = (typeof CLOUD_DIRECTIONS)[number];
+type CloudAnimationState = (typeof CLOUD_ANIMATION_STATES)[number];
 
 type CloudAtlasFrame = {
   x: number;
@@ -58,9 +60,17 @@ export class Preloader extends Scene {
       "tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Props.png",
     );
     this.load.tilemapTiledJSON("worldmap", "tileset/map-tiled.json");
-    for (const dir of CLOUD_DIRECTIONS) {
-      this.load.image(`cloud-img-${dir}`, `world/characters/cloud-iso_idle_${dir}-v1.png`);
-      this.load.json(`cloud-json-${dir}`, `world/characters/cloud-iso_idle_${dir}-v1.json`);
+    for (const state of CLOUD_ANIMATION_STATES) {
+      for (const dir of CLOUD_DIRECTIONS) {
+        this.load.image(
+          this.getCloudAssetKey(state, dir, "img"),
+          `world/characters/cloud-iso_${state}_${dir}-v1.png`,
+        );
+        this.load.json(
+          this.getCloudAssetKey(state, dir, "json"),
+          `world/characters/cloud-iso_${state}_${dir}-v1.json`,
+        );
+      }
     }
     this.load.spritesheet("skeleton", "world/monsters/skeleton.png", {
       frameWidth: 211,
@@ -86,28 +96,40 @@ export class Preloader extends Scene {
   }
 
   private registerCloudAtlases() {
-    for (const direction of CLOUD_DIRECTIONS) {
-      const key = this.getCloudAtlasKey(direction);
+    for (const state of CLOUD_ANIMATION_STATES) {
+      for (const direction of CLOUD_DIRECTIONS) {
+        const key = this.getCloudAtlasKey(state, direction);
 
-      if (this.textures.exists(key)) {
-        continue;
+        if (this.textures.exists(key)) {
+          continue;
+        }
+
+        const image = this.textures
+          .get(this.getCloudAssetKey(state, direction, "img"))
+          .getSourceImage() as HTMLImageElement;
+        const atlas = this.cache.json.get(
+          this.getCloudAssetKey(state, direction, "json"),
+        ) as CloudAtlasData | undefined;
+
+        if (!atlas) {
+          throw new Error(`Cloud ${state} atlas data is missing for ${direction}.`);
+        }
+
+        this.textures.addAtlas(key, image, this.toPhaserAtlas(atlas));
       }
-
-      const image = this.textures
-        .get(`cloud-img-${direction}`)
-        .getSourceImage() as HTMLImageElement;
-      const atlas = this.cache.json.get(`cloud-json-${direction}`) as CloudAtlasData | undefined;
-
-      if (!atlas) {
-        throw new Error(`Cloud atlas data is missing for ${direction}.`);
-      }
-
-      this.textures.addAtlas(key, image, this.toPhaserAtlas(atlas));
     }
   }
 
-  private getCloudAtlasKey(direction: CloudDirection) {
-    return `cloud-${direction}`;
+  private getCloudAssetKey(
+    state: CloudAnimationState,
+    direction: CloudDirection,
+    kind: "img" | "json",
+  ) {
+    return `cloud-${state}-${kind}-${direction}`;
+  }
+
+  private getCloudAtlasKey(state: CloudAnimationState, direction: CloudDirection) {
+    return `cloud-${state}-${direction}`;
   }
 
   private toPhaserAtlas(atlas: CloudAtlasData) {
