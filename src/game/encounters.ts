@@ -14,6 +14,7 @@ const createEnemy = (name: string, hp: number, damage: number, flying = false, b
 export const KING_SLIME_BOSS_ENCOUNTER: Encounter = {
     name: 'King Slime',
     card: 'blue',
+    unlockHero: 'leon',
     enemies: [
         {
             ...createEnemy('King Slime Boss', 220, 3, false, true),

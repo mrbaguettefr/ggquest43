@@ -29,6 +29,11 @@ type MapNpc = {
   sprite: Phaser.GameObjects.Sprite;
 };
 
+type MapHeroSpawn = {
+  heroKey: HeroKey;
+  sprite: Phaser.GameObjects.Sprite;
+};
+
 type TiledObjectProperty = {
   name: string;
   value: unknown;
@@ -73,6 +78,8 @@ export class Exploration extends Scene {
   private wallInteractionPoint: { x: number; y: number };
   private mapEnemies: MapEnemy[];
   private mapNpcs: MapNpc[];
+  private mapHeroSpawns: MapHeroSpawn[];
+  private mapHeroSpawnPoints: Partial<Record<HeroKey, { x: number; y: number }>>;
   private areaPolygons: Array<{
     name: string;
     vertices: Array<{ x: number; y: number }>;
@@ -349,6 +356,10 @@ export class Exploration extends Scene {
 
     const wallObj = find("wall-interaction")!;
     this.wallInteractionPoint = { x: wallObj.x!, y: wallObj.y! };
+    const leonObj = find("leon");
+    this.mapHeroSpawnPoints = {
+      ...(leonObj ? { leon: { x: leonObj.x!, y: leonObj.y! } } : {}),
+    };
 
     this.areaPolygons = ["area-1", "area-2", "area-3"].flatMap((key, i) => {
       const obj = find(key);
@@ -401,6 +412,32 @@ export class Exploration extends Scene {
         this.trackWorldObject(sprite);
         return { name: "baguettefr", sprite };
       });
+
+    this.mapHeroSpawns = [];
+    this.refreshMapHeroSpawns();
+  }
+
+  private refreshMapHeroSpawns() {
+    this.addMapHeroSpawn("leon", "leon-exploration-idle-down");
+  }
+
+  private addMapHeroSpawn(heroKey: HeroKey, textureKey: string) {
+    const point = this.mapHeroSpawnPoints[heroKey];
+    const hero = this.session.heroes[heroKey];
+    const existing = this.mapHeroSpawns.some((spawn) => spawn.heroKey === heroKey);
+
+    if (!point || existing || !hero.unlocked || hero.recruited) {
+      return;
+    }
+
+    const sprite = this.add
+      .sprite(point.x, point.y, textureKey, "0")
+      .play(textureKey)
+      .setOrigin(0.5, 0.75)
+      .setDepth(2)
+      .setScale(64 / 256);
+    this.trackWorldObject(sprite);
+    this.mapHeroSpawns.push({ heroKey, sprite });
   }
 
   private isMapEnemyObject(object: Phaser.Types.Tilemaps.TiledObject) {
@@ -706,6 +743,7 @@ export class Exploration extends Scene {
 
     if (encounter.unlockHero) {
       this.session.heroes[encounter.unlockHero].unlocked = true;
+      this.refreshMapHeroSpawns();
     }
 
     const returnPos = this.session.preBattlePosition ?? this.startPoint;
@@ -739,6 +777,9 @@ export class Exploration extends Scene {
     const hero = this.session.heroes[heroKey];
     hero.recruited = true;
     hero.hp = hero.maxHp;
+    const spawn = this.mapHeroSpawns.find((candidate) => candidate.heroKey === heroKey);
+    spawn?.sprite.destroy();
+    this.mapHeroSpawns = this.mapHeroSpawns.filter((candidate) => candidate.heroKey !== heroKey);
     this.showMessage(
       `${hero.name} Recruited`,
       `${hero.name} joins the party.\nSpecial: ${hero.special}`,
@@ -840,19 +881,25 @@ export class Exploration extends Scene {
   }
 
   private getNearbyRecruitableHero() {
-    const leonNear =
-      PhaserMath.Distance.Between(this.player.x, this.player.y, 355, 620) <=
-      INTERACT_DISTANCE;
     const knightNear =
       PhaserMath.Distance.Between(this.player.x, this.player.y, 575, 620) <=
       INTERACT_DISTANCE;
+    const heroSpawn = this.mapHeroSpawns.find(
+      (spawn) =>
+        PhaserMath.Distance.Between(
+          this.player.x,
+          this.player.y,
+          spawn.sprite.x,
+          spawn.sprite.y,
+        ) <= INTERACT_DISTANCE,
+    );
 
     if (
-      leonNear &&
-      this.session.heroes.leon.unlocked &&
-      !this.session.heroes.leon.recruited
+      heroSpawn &&
+      this.session.heroes[heroSpawn.heroKey].unlocked &&
+      !this.session.heroes[heroSpawn.heroKey].recruited
     ) {
-      return "leon";
+      return heroSpawn.heroKey;
     }
 
     if (

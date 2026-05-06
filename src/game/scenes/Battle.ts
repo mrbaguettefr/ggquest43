@@ -1,5 +1,5 @@
 import { Math as PhaserMath, Scene } from 'phaser';
-import type { BattleResult, Encounter, GameSession } from '../gameTypes.ts';
+import type { BattleResult, Encounter, GameSession, Hero } from '../gameTypes.ts';
 
 type BattleState = 'choosing-action' | 'choosing-target' | 'done';
 type ActionChoice = 'attack' | 'skip' | 'flee';
@@ -97,18 +97,39 @@ export class Battle extends Scene
     private createHeroSprites()
     {
         const party = this.getParty();
-        party.forEach((_, index) => {
+        party.forEach((hero, index) => {
+            const config = this.getHeroBattleSpriteConfig(hero);
             const sprite = this.add.sprite(
                 HERO_X,
                 HERO_Y_START + index * HERO_Y_STEP,
-                'cloud-battle-idle',
+                config.texture,
             )
-                .setFlipX(true)
-                .setScale(SPRITE_SCALE)
+                .setFlipX(config.flipX)
+                .setScale(config.scale)
                 .setDepth(5)
-                .play('battle-idle');
+                .play(config.animation);
             this.heroSprites.push(sprite);
         });
+    }
+
+    private getHeroBattleSpriteConfig(hero: Hero)
+    {
+        if (hero.key === 'leon')
+        {
+            return {
+                texture: 'leon-battle-idle',
+                animation: 'leon-battle-idle',
+                scale: SPRITE_SCALE,
+                flipX: false
+            };
+        }
+
+        return {
+            texture: 'cloud-battle-idle',
+            animation: 'battle-idle',
+            scale: SPRITE_SCALE,
+            flipX: hero.key === 'cloud'
+        };
     }
 
     private createEnemySprites()

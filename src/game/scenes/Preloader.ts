@@ -74,6 +74,14 @@ export class Preloader extends Scene {
       "baguettefr-idle-down-json",
       "Exploration/world/characters/baguettefr-iso_idle_down-v1.json",
     );
+    this.load.image(
+      "leon-exploration-idle-down-img",
+      "Exploration/world/characters/leon-iso_idle_down-v1.png",
+    );
+    this.load.json(
+      "leon-exploration-idle-down-json",
+      "Exploration/world/characters/leon-iso_idle_down-v1.json",
+    );
     for (const state of CLOUD_ANIMATION_STATES) {
       for (const dir of CLOUD_DIRECTIONS) {
         this.load.image(
@@ -104,6 +112,10 @@ export class Preloader extends Scene {
       frameWidth: 256,
       frameHeight: 256,
     });
+    this.load.spritesheet("leon-battle-idle", "Battle/characters/leon-idle_with_pistol_in_hand-v1.png", {
+      frameWidth: 256,
+      frameHeight: 256,
+    });
     this.load.image(
       "king-slime-boss-battle-idle-img",
       "Battle/monsters/king-slime-boss-idle-v1.png",
@@ -124,6 +136,11 @@ export class Preloader extends Scene {
       "baguettefr-idle-down-json",
     );
     this.registerAtlas(
+      "leon-exploration-idle-down",
+      "leon-exploration-idle-down-img",
+      "leon-exploration-idle-down-json",
+    );
+    this.registerAtlas(
       "king-slime-boss-exploration-idle",
       "king-slime-boss-exploration-idle-img",
       "king-slime-boss-exploration-idle-json",
@@ -142,9 +159,22 @@ export class Preloader extends Scene {
         repeat: -1,
       });
     }
+    if (!this.anims.exists("leon-battle-idle")) {
+      this.anims.create({
+        key: "leon-battle-idle",
+        frames: this.anims.generateFrameNumbers("leon-battle-idle", { start: 0, end: 24 }),
+        frameRate: 8,
+        repeat: -1,
+      });
+    }
     this.createAtlasAnimation(
       "baguettefr-idle-down",
       "baguettefr-idle-down",
+      8,
+    );
+    this.createAtlasAnimation(
+      "leon-exploration-idle-down",
+      "leon-exploration-idle-down",
       8,
     );
     this.createAtlasAnimation(
