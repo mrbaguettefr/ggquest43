@@ -153,6 +153,7 @@ The player gradually understands what the gift is through hints from NPC "baguet
 
 * Cloud's exploration sprite uses the `public/assets/Exploration/world/characters/cloud-iso_{idle,walk}_{down,right,up}-v1.*` image and atlas JSON files. The custom atlas JSON is adapted into Phaser atlas textures during Preloader setup, then Exploration uses directional idle animations while standing and directional walk animations while moving. Left-facing movement reuses the right-facing walk/idle atlases and flips the player sprite horizontally with Phaser's flip API.
 * Scene-owned assets are grouped under `public/assets/<SceneName>/` when they are only used by that scene. `MainMenu` owns its logo, `Exploration` owns world characters, monsters, and tilemap assets, and `Battle` owns combat background and battle character sprites. Shared assets, such as `public/assets/bg.png`, remain at the shared assets root.
+* The editable Tiled exploration map is `public/assets/Exploration/tileset/map.tmj`, with external tilesets stored as `.tsj` files in the same folder. The Vite `tiledMapPlugin` inlines those tilesets into `public/assets/Exploration/tileset/map-tiled.json` before dev and production builds; Phaser loads the generated `map-tiled.json`.
 * `src/game/gameSession.ts` creates the shared game session object passed between Seed, PlayerName, Exploration, and Battle
 * `src/game/debugStart.ts` supports dev-only URL scene starts with dummy session data for testing scenes that normally require earlier flow
 * `src/game/gameTypes.ts` contains shared gameplay types

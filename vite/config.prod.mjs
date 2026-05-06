@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import vitePluginBundleObfuscator from 'vite-plugin-bundle-obfuscator';
+import { tiledMapPlugin } from './plugins/tiled-map.mjs';
 
 
 const phasermsg = () => {
@@ -37,6 +38,7 @@ export default defineConfig({
         port: 8080
     },
     plugins: [
+        tiledMapPlugin(),
         vitePluginBundleObfuscator(),
         phasermsg()
     ]

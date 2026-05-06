@@ -9,3 +9,6 @@
 - recruting heroes
 - flying enemy
 - fear spell enemy
+
+minor bugs:
+- location UI is not updated after battle

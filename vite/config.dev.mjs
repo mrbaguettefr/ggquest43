@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { tiledMapPlugin } from './plugins/tiled-map.mjs';
 
 export default defineConfig({
     base: './',
@@ -15,5 +16,8 @@ export default defineConfig({
     },
     server: {
         port: 8080
-    }
+    },
+    plugins: [
+        tiledMapPlugin()
+    ]
 });
