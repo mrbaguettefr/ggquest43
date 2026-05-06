@@ -24,6 +24,11 @@ type MapEnemy = {
   sprite: Phaser.GameObjects.Sprite;
 };
 
+type MapNpc = {
+  name: "baguettefr";
+  sprite: Phaser.GameObjects.Sprite;
+};
+
 type TiledObjectProperty = {
   name: string;
   value: unknown;
@@ -37,6 +42,12 @@ const PLAYER_ANIMATION_STATES: PlayerAnimationState[] = ["idle", "walk"];
 const CLOUD_FRAME_COUNT = 25;
 const PLAYER_COLLISION_RADIUS = 14;
 const MAP_ENEMY_COLLISION_DISTANCE = INTERACT_DISTANCE - 2;
+const BAGUETTEFR_DIALOG_LINES = [
+  "I have seen many walls with holes. Usually they want cards. Sometimes they want emotional support.",
+  "One color is a whisper. Three colors become a secret. I recommend whispering back in the correct order.",
+  "The gift is not in the monsters. The monsters are just aggressively holding the stationery.",
+  "When the wall has all three cards, read what it shows exactly. The reward is hiding in plain sight.",
+];
 
 export class Exploration extends Scene {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -61,6 +72,7 @@ export class Exploration extends Scene {
   private startPoint: { x: number; y: number };
   private wallInteractionPoint: { x: number; y: number };
   private mapEnemies: MapEnemy[];
+  private mapNpcs: MapNpc[];
   private areaPolygons: Array<{
     name: string;
     vertices: Array<{ x: number; y: number }>;
@@ -376,6 +388,19 @@ export class Exploration extends Scene {
         this.trackWorldObject(sprite);
         return [{ objectId, encounter, sprite }];
       });
+
+    this.mapNpcs = layer.objects
+      .filter((o) => o.name === "baguettefr")
+      .map((o) => {
+        const sprite = this.add
+          .sprite(o.x!, o.y!, "baguettefr-idle-down", "0")
+          .play("baguettefr-idle-down")
+          .setOrigin(0.5, 0.75)
+          .setDepth(2)
+          .setScale(64 / 256);
+        this.trackWorldObject(sprite);
+        return { name: "baguettefr", sprite };
+      });
   }
 
   private isMapEnemyObject(object: Phaser.Types.Tilemaps.TiledObject) {
@@ -618,6 +643,12 @@ export class Exploration extends Scene {
     const enemy = this.getNearbyMapEnemy();
     if (enemy) {
       this.startEnemyBattle(enemy);
+      return;
+    }
+
+    const npc = this.getNearbyNpc();
+    if (npc) {
+      this.showNpcDialog(npc);
     }
   }
 
@@ -715,6 +746,18 @@ export class Exploration extends Scene {
     this.updateHud();
   }
 
+  private showNpcDialog(npc: MapNpc) {
+    this.showMessage(npc.name, this.getBaguettefrDialog());
+  }
+
+  private getBaguettefrDialog() {
+    const progress = Math.min(
+      this.session.revealedCards.size + this.session.pendingCards.size,
+      BAGUETTEFR_DIALOG_LINES.length - 1,
+    );
+    return BAGUETTEFR_DIALOG_LINES[progress];
+  }
+
   private showMessage(title: string, body: string, afterClose?: () => void) {
     this.inputLocked = true;
     this.messageAfterClose = afterClose;
@@ -741,11 +784,14 @@ export class Exploration extends Scene {
     } else {
       const recruitable = this.getNearbyRecruitableHero();
       const enemy = this.getNearbyMapEnemy();
+      const npc = this.getNearbyNpc();
 
       if (recruitable) {
         interaction = `Press E: recruit ${this.session.heroes[recruitable].name}`;
       } else if (enemy) {
         interaction = `Press E: fight ${enemy.encounter.name}`;
+      } else if (npc) {
+        interaction = `Press E: talk to ${npc.name}`;
       }
     }
 
@@ -818,6 +864,18 @@ export class Exploration extends Scene {
     }
 
     return undefined;
+  }
+
+  private getNearbyNpc(): MapNpc | undefined {
+    return this.mapNpcs.find(
+      (npc) =>
+        PhaserMath.Distance.Between(
+          this.player.x,
+          this.player.y,
+          npc.sprite.x,
+          npc.sprite.y,
+        ) <= INTERACT_DISTANCE,
+    );
   }
 
   private isNearHubWall() {

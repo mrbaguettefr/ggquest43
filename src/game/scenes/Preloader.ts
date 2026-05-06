@@ -66,6 +66,14 @@ export class Preloader extends Scene {
       "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Props.png",
     );
     this.load.tilemapTiledJSON("worldmap", "Exploration/tileset/map-tiled.json");
+    this.load.image(
+      "baguettefr-idle-down-img",
+      "Exploration/world/characters/baguettefr-iso_idle_down-v1.png",
+    );
+    this.load.json(
+      "baguettefr-idle-down-json",
+      "Exploration/world/characters/baguettefr-iso_idle_down-v1.json",
+    );
     for (const state of CLOUD_ANIMATION_STATES) {
       for (const dir of CLOUD_DIRECTIONS) {
         this.load.image(
@@ -111,6 +119,11 @@ export class Preloader extends Scene {
     //  For example, you can define global animations here, so we can use them in other scenes.
     this.registerCloudAtlases();
     this.registerAtlas(
+      "baguettefr-idle-down",
+      "baguettefr-idle-down-img",
+      "baguettefr-idle-down-json",
+    );
+    this.registerAtlas(
       "king-slime-boss-exploration-idle",
       "king-slime-boss-exploration-idle-img",
       "king-slime-boss-exploration-idle-json",
@@ -129,6 +142,11 @@ export class Preloader extends Scene {
         repeat: -1,
       });
     }
+    this.createAtlasAnimation(
+      "baguettefr-idle-down",
+      "baguettefr-idle-down",
+      8,
+    );
     this.createAtlasAnimation(
       "king-slime-boss-exploration-idle",
       "king-slime-boss-exploration-idle",

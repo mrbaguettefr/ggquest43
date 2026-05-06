@@ -1,14 +1,29 @@
-- Bosses
-    -> drop chest
-    -> card access
-- Wall mechanism
-    - insert card
-    - show final code
+
 - baguettefr NPC
     - hints
 - recruting heroes
 - flying enemy
 - fear spell enemy
 
+medium:
+
+battle:
+    - finger graphic in battle
+    - heroes and enemy graphics
+    - hp under heroes
+
+low:
+- Bosses
+    -> drop chest
+
 minor bugs:
 - location UI is not updated after battle
+
+=== DONE ===
+
+- Bosses
+    -> drop chest
+    -> card access
+- Wall mechanism
+    - insert card
+    - show final code
