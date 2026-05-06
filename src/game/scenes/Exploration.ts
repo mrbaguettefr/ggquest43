@@ -35,6 +35,10 @@ type MapHeroSpawn = {
   sprite: Phaser.GameObjects.Sprite;
 };
 
+type InteractionHighlightTarget =
+  | { kind: "sprite"; sprite: Phaser.GameObjects.Sprite }
+  | { kind: "point"; x: number; y: number; width: number; height: number };
+
 type TiledObjectProperty = {
   name: string;
   value: unknown;
@@ -48,6 +52,11 @@ const PLAYER_ANIMATION_STATES: PlayerAnimationState[] = ["idle", "walk"];
 const CLOUD_FRAME_COUNT = 25;
 const PLAYER_COLLISION_RADIUS = 14;
 const MAP_CHARACTER_COLLISION_DISTANCE = INTERACT_DISTANCE - 2;
+const OUTLINE_PADDING = 6;
+const OUTLINE_THICKNESS = 2;
+const KNIGHT_RECRUIT_POINT = { x: 575, y: 620 };
+const WALL_HIGHLIGHT_SIZE = { width: 52, height: 52 };
+const POINT_HIGHLIGHT_SIZE = { width: 36, height: 36 };
 const BAGUETTEFR_DIALOG_LINES = [
   "I have seen many walls with holes. Usually they want cards. Sometimes they want emotional support.",
   "One color is a whisper. Three colors become a secret. I recommend whispering back in the correct order.",
@@ -66,6 +75,7 @@ export class Exploration extends Scene {
   private statusText: Phaser.GameObjects.Text;
   private interactionText: Phaser.GameObjects.Text;
   private promptText: Phaser.GameObjects.Text;
+  private interactionHighlight: Phaser.GameObjects.Graphics;
   private worldObjects: Phaser.GameObjects.GameObject[] = [];
   private hudObjects: Phaser.GameObjects.GameObject[] = [];
   private session: GameSession;
@@ -199,7 +209,7 @@ export class Exploration extends Scene {
       true,
     );
 
-    this.updateExploreText();
+    this.updateInteractionState();
     this.updateFog();
   }
 
@@ -252,6 +262,9 @@ export class Exploration extends Scene {
       .setScale(64 / this.player.width)
       .setDepth(2);
     this.trackWorldObject(this.player);
+
+    this.interactionHighlight = this.add.graphics().setDepth(3.5);
+    this.trackWorldObject(this.interactionHighlight);
 
     const decoTopLayer = map.createLayer("deco-2", allTilesets)?.setDepth(3);
     this.trackWorldObject(decoTopLayer);
@@ -837,27 +850,106 @@ export class Exploration extends Scene {
     }
   }
 
-  private updateExploreText() {
-    let interaction = "";
+  private updateInteractionState() {
+    const { text, target } = this.getInteractionPrompt();
+    this.interactionText.setText(text);
+    this.drawInteractionHighlight(target);
+    this.updateHud();
+  }
 
-    if (this.isNearHubWall()) {
-      interaction = "Press E: insert Card / inspect Card Reader wall";
-    } else {
-      const recruitable = this.getNearbyRecruitableHero();
-      const enemy = this.getNearbyMapEnemy();
-      const npc = this.getNearbyNpc();
-
-      if (recruitable) {
-        interaction = `Press E: recruit ${this.session.heroes[recruitable].name}`;
-      } else if (enemy) {
-        interaction = `Press E: fight ${enemy.encounter.name}`;
-      } else if (npc) {
-        interaction = `Press E: talk to ${npc.name}`;
-      }
+  private getInteractionPrompt(): {
+    text: string;
+    target?: InteractionHighlightTarget;
+  } {
+    const recruitable = this.getNearbyRecruitableHero();
+    if (recruitable) {
+      return {
+        text: `Press E: recruit ${this.session.heroes[recruitable].name}`,
+        target: this.getRecruitableHeroHighlightTarget(recruitable),
+      };
     }
 
-    this.interactionText.setText(interaction);
-    this.updateHud();
+    if (this.isNearHubWall()) {
+      return {
+        text: "Press E: insert Card / inspect Card Reader wall",
+        target: {
+          kind: "point",
+          x: this.wallInteractionPoint.x,
+          y: this.wallInteractionPoint.y,
+          width: WALL_HIGHLIGHT_SIZE.width,
+          height: WALL_HIGHLIGHT_SIZE.height,
+        },
+      };
+    }
+
+    const enemy = this.getNearbyMapEnemy();
+    if (enemy) {
+      return {
+        text: `Press E: fight ${enemy.encounter.name}`,
+        target: { kind: "sprite", sprite: enemy.sprite },
+      };
+    }
+
+    const npc = this.getNearbyNpc();
+    if (npc) {
+      return {
+        text: `Press E: talk to ${npc.name}`,
+        target: { kind: "sprite", sprite: npc.sprite },
+      };
+    }
+
+    return { text: "" };
+  }
+
+  private getRecruitableHeroHighlightTarget(
+    heroKey: HeroKey,
+  ): InteractionHighlightTarget | undefined {
+    if (heroKey === "knight") {
+      return {
+        kind: "point",
+        x: KNIGHT_RECRUIT_POINT.x,
+        y: KNIGHT_RECRUIT_POINT.y,
+        width: POINT_HIGHLIGHT_SIZE.width,
+        height: POINT_HIGHLIGHT_SIZE.height,
+      };
+    }
+
+    const spawn = this.mapHeroSpawns.find((candidate) => candidate.heroKey === heroKey);
+    if (!spawn) {
+      return undefined;
+    }
+
+    return { kind: "sprite", sprite: spawn.sprite };
+  }
+
+  private drawInteractionHighlight(target?: InteractionHighlightTarget) {
+    this.interactionHighlight.clear();
+
+    if (!target) {
+      return;
+    }
+
+    this.interactionHighlight.lineStyle(OUTLINE_THICKNESS, 0xffffff, 1);
+
+    if (target.kind === "sprite") {
+      const bounds = target.sprite.getBounds();
+      this.interactionHighlight.strokeRoundedRect(
+        bounds.x - OUTLINE_PADDING,
+        bounds.y - OUTLINE_PADDING,
+        bounds.width + OUTLINE_PADDING * 2,
+        bounds.height + OUTLINE_PADDING * 2,
+        8,
+      );
+      return;
+    }
+
+    this.interactionHighlight.strokeRoundedRect(
+      target.x - target.width / 2,
+      target.y - target.height / 2,
+      target.width,
+      target.height,
+      8,
+    );
   }
 
   private getCurrentAreaName(): string | undefined {
@@ -902,7 +994,12 @@ export class Exploration extends Scene {
 
   private getNearbyRecruitableHero() {
     const knightNear =
-      PhaserMath.Distance.Between(this.player.x, this.player.y, 575, 620) <=
+      PhaserMath.Distance.Between(
+        this.player.x,
+        this.player.y,
+        KNIGHT_RECRUIT_POINT.x,
+        KNIGHT_RECRUIT_POINT.y,
+      ) <=
       INTERACT_DISTANCE;
     const heroSpawn = this.mapHeroSpawns.find(
       (spawn) =>
