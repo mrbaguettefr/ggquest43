@@ -21,6 +21,9 @@ export type Enemy = {
     damage: number;
     flying?: boolean;
     boss?: boolean;
+    battleTexture?: string;
+    battleAnimation?: string;
+    battleScale?: number;
 };
 
 export type Encounter = {

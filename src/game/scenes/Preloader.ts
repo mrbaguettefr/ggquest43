@@ -77,17 +77,43 @@ export class Preloader extends Scene {
       frameHeight: 225,
       spacing: 4,
     });
+    this.load.image(
+      "king-slime-boss-exploration-idle-img",
+      "Exploration/world/monsters/king-slime-boss-iso_idle_right-v1.png",
+    );
+    this.load.json(
+      "king-slime-boss-exploration-idle-json",
+      "Exploration/world/monsters/king-slime-boss-iso_idle_right-v1.json",
+    );
     this.load.image("battle-bg", "Battle/background/battlefield-cave.png");
     this.load.spritesheet("cloud-battle-idle", "Battle/characters/cloud-idle-v1.png", {
       frameWidth: 256,
       frameHeight: 256,
     });
+    this.load.image(
+      "king-slime-boss-battle-idle-img",
+      "Battle/monsters/king-slime-boss-idle-v1.png",
+    );
+    this.load.json(
+      "king-slime-boss-battle-idle-json",
+      "Battle/monsters/king-slime-boss-idle-v1.json",
+    );
   }
 
   create() {
     //  When all the assets have loaded, it's often worth creating global objects here that the rest of the game can use.
     //  For example, you can define global animations here, so we can use them in other scenes.
     this.registerCloudAtlases();
+    this.registerAtlas(
+      "king-slime-boss-exploration-idle",
+      "king-slime-boss-exploration-idle-img",
+      "king-slime-boss-exploration-idle-json",
+    );
+    this.registerAtlas(
+      "king-slime-boss-battle-idle",
+      "king-slime-boss-battle-idle-img",
+      "king-slime-boss-battle-idle-json",
+    );
 
     if (!this.anims.exists("battle-idle")) {
       this.anims.create({
@@ -97,6 +123,16 @@ export class Preloader extends Scene {
         repeat: -1,
       });
     }
+    this.createAtlasAnimation(
+      "king-slime-boss-exploration-idle",
+      "king-slime-boss-exploration-idle",
+      6,
+    );
+    this.createAtlasAnimation(
+      "king-slime-boss-battle-idle",
+      "king-slime-boss-battle-idle",
+      8,
+    );
 
     const debugLaunch = getDebugSceneLaunch();
 
@@ -132,6 +168,37 @@ export class Preloader extends Scene {
         this.textures.addAtlas(key, image, this.toPhaserAtlas(atlas));
       }
     }
+  }
+
+  private registerAtlas(key: string, imageKey: string, jsonKey: string) {
+    if (this.textures.exists(key)) {
+      return;
+    }
+
+    const image = this.textures.get(imageKey).getSourceImage() as HTMLImageElement;
+    const atlas = this.cache.json.get(jsonKey) as CloudAtlasData | undefined;
+
+    if (!atlas) {
+      throw new Error(`${key} atlas data is missing.`);
+    }
+
+    this.textures.addAtlas(key, image, this.toPhaserAtlas(atlas));
+  }
+
+  private createAtlasAnimation(key: string, textureKey: string, frameRate: number) {
+    if (this.anims.exists(key)) {
+      return;
+    }
+
+    this.anims.create({
+      key,
+      frames: this.anims.generateFrameNames(textureKey, {
+        start: 0,
+        end: 24,
+      }),
+      frameRate,
+      repeat: -1,
+    });
   }
 
   private getCloudAssetKey(

@@ -4,6 +4,7 @@ import {
   buildSkeletonEncounter,
   DEFAULT_SKELETON_ENCOUNTER,
   ENCOUNTER_BY_NAME,
+  KING_SLIME_BOSS_ENCOUNTER,
 } from "../encounters.ts";
 import {
   CARD_LABELS,
@@ -24,12 +25,19 @@ type MapEnemy = {
   sprite: Phaser.GameObjects.Sprite;
 };
 
+type TiledObjectProperty = {
+  name: string;
+  value: unknown;
+};
+
 type PlayerDirection = "down" | "right" | "up";
 type PlayerAnimationState = "idle" | "walk";
 
 const PLAYER_ANIMATION_DIRECTIONS: PlayerDirection[] = ["down", "right", "up"];
 const PLAYER_ANIMATION_STATES: PlayerAnimationState[] = ["idle", "walk"];
 const CLOUD_FRAME_COUNT = 25;
+const PLAYER_COLLISION_RADIUS = 14;
+const MAP_ENEMY_COLLISION_DISTANCE = INTERACT_DISTANCE - 2;
 
 export class Exploration extends Scene {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -348,24 +356,80 @@ export class Exploration extends Scene {
     }
 
     this.mapEnemies = layer.objects
-      .filter((o) => o.name === "enemy" || o.type === "enemy")
+      .filter((o) => this.isMapEnemyObject(o))
       .flatMap((o) => {
         const objectId = o.id!;
         if (this.session.defeatedEncounters.has(`enemy:${objectId}`)) return [];
-        const props = o.properties as Record<string, unknown> | undefined;
         const skeletonCount =
-          typeof props?.skeleton === "number" ? props.skeleton : undefined;
-        const encounter = skeletonCount
+          this.getNumberObjectProperty(o, "skeleton") ?? undefined;
+        const encounter = this.hasObjectProperty(o, "king-slime")
+          ? KING_SLIME_BOSS_ENCOUNTER
+          : skeletonCount
           ? buildSkeletonEncounter(skeletonCount)
           : (ENCOUNTER_BY_NAME.get(o.name ?? "") ?? DEFAULT_SKELETON_ENCOUNTER);
-        const sprite = this.add
-          .sprite(o.x!, o.y!, "skeleton")
-          .play("skeleton-walk")
-          .setDepth(2)
-          .setScale(32 / 225);
+        const sprite = this.createMapEnemySprite(o, encounter);
         this.trackWorldObject(sprite);
         return [{ objectId, encounter, sprite }];
       });
+  }
+
+  private isMapEnemyObject(object: Phaser.Types.Tilemaps.TiledObject) {
+    return (
+      object.name === "enemy" ||
+      object.type === "enemy" ||
+      object.name === "boss" ||
+      this.hasObjectProperty(object, "king-slime")
+    );
+  }
+
+  private createMapEnemySprite(
+    object: Phaser.Types.Tilemaps.TiledObject,
+    encounter: Encounter,
+  ) {
+    if (encounter === KING_SLIME_BOSS_ENCOUNTER) {
+      return this.add
+        .sprite(object.x!, object.y!, "king-slime-boss-exploration-idle")
+        .play("king-slime-boss-exploration-idle")
+        .setDepth(2)
+        .setScale(0.28);
+    }
+
+    return this.add
+      .sprite(object.x!, object.y!, "skeleton")
+      .play("skeleton-walk")
+      .setDepth(2)
+      .setScale(32 / 225);
+  }
+
+  private getNumberObjectProperty(
+    object: Phaser.Types.Tilemaps.TiledObject,
+    name: string,
+  ) {
+    const value = this.getObjectProperty(object, name);
+    return typeof value === "number" ? value : undefined;
+  }
+
+  private hasObjectProperty(
+    object: Phaser.Types.Tilemaps.TiledObject,
+    name: string,
+  ) {
+    return this.getObjectProperty(object, name) !== undefined;
+  }
+
+  private getObjectProperty(
+    object: Phaser.Types.Tilemaps.TiledObject,
+    name: string,
+  ) {
+    const properties = object.properties as
+      | TiledObjectProperty[]
+      | Record<string, unknown>
+      | undefined;
+
+    if (Array.isArray(properties)) {
+      return properties.find((property) => property.name === name)?.value;
+    }
+
+    return properties?.[name];
   }
 
   private isWalkable(x: number, y: number): boolean {
@@ -376,12 +440,32 @@ export class Exploration extends Scene {
   }
 
   private canMoveTo(x: number, y: number): boolean {
-    const r = 14;
     return (
-      this.isWalkable(x - r, y - r) &&
-      this.isWalkable(x + r, y - r) &&
-      this.isWalkable(x - r, y + r) &&
-      this.isWalkable(x + r, y + r)
+      this.isWalkable(
+        x - PLAYER_COLLISION_RADIUS,
+        y - PLAYER_COLLISION_RADIUS,
+      ) &&
+      this.isWalkable(
+        x + PLAYER_COLLISION_RADIUS,
+        y - PLAYER_COLLISION_RADIUS,
+      ) &&
+      this.isWalkable(
+        x - PLAYER_COLLISION_RADIUS,
+        y + PLAYER_COLLISION_RADIUS,
+      ) &&
+      this.isWalkable(
+        x + PLAYER_COLLISION_RADIUS,
+        y + PLAYER_COLLISION_RADIUS,
+      ) &&
+      !this.isBlockedByMapEnemy(x, y)
+    );
+  }
+
+  private isBlockedByMapEnemy(x: number, y: number): boolean {
+    return this.mapEnemies.some(
+      (enemy) =>
+        PhaserMath.Distance.Between(x, y, enemy.sprite.x, enemy.sprite.y) <
+        MAP_ENEMY_COLLISION_DISTANCE,
     );
   }
 

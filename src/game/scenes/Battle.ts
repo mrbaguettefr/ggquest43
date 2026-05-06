@@ -116,15 +116,23 @@ export class Battle extends Scene
         this.encounter.enemies.forEach((enemy, index) => {
             const x = ENEMY_X;
             const y = ENEMY_Y_START + index * ENEMY_Y_STEP;
+            const texture = enemy.battleTexture ?? 'cloud-battle-idle';
+            const animation = enemy.battleAnimation ?? 'battle-idle';
+            const scale = enemy.battleScale ?? SPRITE_SCALE;
 
-            const sprite = this.add.sprite(x, y, 'cloud-battle-idle')
-                .setScale(SPRITE_SCALE)
+            const sprite = this.add.sprite(x, y, texture)
+                .setScale(scale)
                 .setDepth(5)
-                .setTint(0xaaaaee)
-                .play('battle-idle');
+                .play(animation);
+
+            if (!enemy.battleTexture)
+            {
+                sprite.setTint(0xaaaaee);
+            }
+
             this.enemySprites.push(sprite);
 
-            const label = this.add.text(x, y + 68, this.enemyLabelText(enemy), {
+            const label = this.add.text(x, this.getEnemyLabelY(sprite), this.enemyLabelText(enemy), {
                 fontFamily: 'Arial',
                 fontSize: 15,
                 color: '#ffffff',
@@ -142,6 +150,11 @@ export class Battle extends Scene
                 this.resolveAttack();
             });
         });
+    }
+
+    private getEnemyLabelY(sprite: Phaser.GameObjects.Sprite)
+    {
+        return sprite.y + Math.max(68, sprite.displayHeight / 2 + 12);
     }
 
     private enemyLabelText(enemy: { name: string; hp: number; maxHp: number })

@@ -11,6 +11,19 @@ const createEnemy = (name: string, hp: number, damage: number, flying = false, b
     };
 };
 
+export const KING_SLIME_BOSS_ENCOUNTER: Encounter = {
+    name: 'King Slime',
+    card: 'blue',
+    enemies: [
+        {
+            ...createEnemy('King Slime Boss', 220, 3, false, true),
+            battleTexture: 'king-slime-boss-battle-idle',
+            battleAnimation: 'king-slime-boss-battle-idle',
+            battleScale: 0.58
+        }
+    ]
+};
+
 export const AREAS: Area[] = [
     {
         key: 'plains',
@@ -89,7 +102,10 @@ export const AREAS: Area[] = [
 ];
 
 export const ENCOUNTER_BY_NAME = new Map<string, Encounter>(
-    AREAS.flatMap(a => a.encounters.map(e => [e.name, e] as [string, Encounter]))
+    [
+        ...AREAS.flatMap(a => a.encounters.map(e => [e.name, e] as [string, Encounter])),
+        [KING_SLIME_BOSS_ENCOUNTER.name, KING_SLIME_BOSS_ENCOUNTER]
+    ]
 );
 
 export const buildSkeletonEncounter = (count: number): Encounter => ({

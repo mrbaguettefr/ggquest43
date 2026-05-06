@@ -279,38 +279,6 @@
                  "y":625.333333333333
                 }, 
                 {
-                 "height":0,
-                 "id":7,
-                 "name":"",
-                 "opacity":1,
-                 "point":true,
-                 "properties":[
-                        {
-                         "name":"skeleton",
-                         "type":"int",
-                         "value":4
-                        }],
-                 "rotation":0,
-                 "type":"enemy",
-                 "visible":true,
-                 "width":0,
-                 "x":352,
-                 "y":768
-                }, 
-                {
-                 "height":0,
-                 "id":8,
-                 "name":"",
-                 "opacity":1,
-                 "point":true,
-                 "rotation":0,
-                 "type":"enemy",
-                 "visible":true,
-                 "width":0,
-                 "x":190.666666666667,
-                 "y":831.333333333333
-                }, 
-                {
                  "gid":577,
                  "height":36,
                  "id":11,
@@ -347,6 +315,44 @@
                  "width":32,
                  "x":230.083333333333,
                  "y":836.499999999333
+                }, 
+                {
+                 "gid":577,
+                 "height":36,
+                 "id":13,
+                 "name":"enemy",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"skeleton",
+                         "type":"int",
+                         "value":4
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":32,
+                 "x":302.711146134314,
+                 "y":841.81963050521
+                }, 
+                {
+                 "gid":577,
+                 "height":36,
+                 "id":14,
+                 "name":"boss",
+                 "opacity":1,
+                 "properties":[
+                        {
+                         "name":"king-slime",
+                         "type":"int",
+                         "value":1
+                        }],
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":32,
+                 "x":161.742754574906,
+                 "y":1398.68855616846
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -799,7 +805,7 @@
          "y":0
         }],
  "nextlayerid":20,
- "nextobjectid":13,
+ "nextobjectid":15,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.12.1",
