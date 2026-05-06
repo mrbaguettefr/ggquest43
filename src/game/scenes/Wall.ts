@@ -1,4 +1,5 @@
 import { Scene } from "phaser";
+import { installDebugDialog, isDebugToggleKey } from "../debugDialog.ts";
 import { CARD_ORDER } from "../gameConstants.ts";
 import type { CardColor, GameSession } from "../gameTypes.ts";
 
@@ -63,7 +64,19 @@ export class Wall extends Scene {
       throw new Error("Keyboard input is unavailable.");
     }
 
-    this.input.keyboard.once("keydown", this.returnToExploration, this);
+    installDebugDialog(this, { session: this.session });
+    this.input.keyboard.on("keydown", this.handleKey, this);
+    this.events.once("shutdown", () => {
+      this.input.keyboard?.off("keydown", this.handleKey, this);
+    });
+  }
+
+  private handleKey(event: KeyboardEvent) {
+    if (isDebugToggleKey(event)) {
+      return;
+    }
+
+    this.returnToExploration();
   }
 
   private addInsertedCards() {

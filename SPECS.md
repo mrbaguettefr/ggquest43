@@ -168,12 +168,14 @@ The player gradually understands what the gift is through hints from NPC "baguet
 * `src/game/heroes.ts` creates the initial hero roster
 * `src/game/secret.ts` contains secret gift helpers
 * `src/game/sharedConfig.ts` contains the encrypted `secret_gift`
+* In dev and production scenes, pressing O toggles an in-scene debug dialog. When a `GameSession` is available, the dialog can set the active party size to 1, 2, or 3 heroes, updating hero unlocked/recruited state and refreshing visible scene UI or sprites.
 
 ### Dev Scene Start Overrides
 
 * In Vite dev mode only, adding `?debugScene=<SceneName>` to the URL starts that scene after Preloader finishes loading assets
 * Supported debug scenes are `MainMenu`, `Seed`, `PlayerName`, `Exploration`, `Wall`, `Battle`, `Credits`, and `GameOver`
-* `PlayerName`, `Exploration`, `Wall`, and `Battle` receive a dummy `GameSession` that simulates accepted seed entry, completed player naming, decoded secret fragments, and recruited heroes
+* `PlayerName`, `Wall`, and `Battle` receive a dummy `GameSession` that simulates accepted seed entry, completed player naming, decoded secret fragments, and recruited heroes
+* `Exploration` debug starts receive a dummy `GameSession` with only Cloud in the recruited party
 * Wall debug starts can set inserted cards with `cards=<mask>`, where the three mask positions are blue, green, and red. `000` means no cards, `X00` means blue, `0X0` means green, `00X` means red, and `XX0` means blue and green.
 * `Battle` also receives `currentArea` and `currentEncounter`; by default this starts `The Forgotten Plains` encounter `0`
 * Battle debug starts can select another fight with `debugArea` and `debugEncounter`, for example `?debugScene=Battle&debugArea=mountains&debugEncounter=1`

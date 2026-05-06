@@ -79,7 +79,7 @@ export const getDebugSceneLaunch = (): DebugSceneLaunch | undefined => {
         : undefined;
     return {
       scene: requestedScene,
-      data: { session: createDebugSession(), startTile },
+      data: { session: createDebugSession(["cloud"]), startTile },
     };
   }
 
@@ -122,7 +122,9 @@ const createDebugWallSession = (params: URLSearchParams): GameSession => {
   return session;
 };
 
-const createDebugSession = (): GameSession => {
+const createDebugSession = (
+  recruitedHeroes: HeroKey[] = ["cloud", "leon", "knight"],
+): GameSession => {
   const secretGift = "DEBUG-SECRET-GIFTX";
   const session = createGameSession();
 
@@ -131,7 +133,7 @@ const createDebugSession = (): GameSession => {
   session.secretGift = secretGift;
   session.secretFragments = splitSecret(secretGift);
 
-  recruitDebugHeroes(session, ["cloud", "leon", "knight"]);
+  recruitDebugHeroes(session, recruitedHeroes);
 
   return session;
 };

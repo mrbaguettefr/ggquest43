@@ -15,6 +15,7 @@ battle:
 low:
 - Bosses
     -> drop chest
+- permanent local storage
 
 minor bugs:
 - location UI is not updated after battle

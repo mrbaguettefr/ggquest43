@@ -1,4 +1,5 @@
 import { Math as PhaserMath, Scene } from 'phaser';
+import { installDebugDialog } from '../debugDialog.ts';
 import type { BattleResult, Encounter, GameSession, Hero } from '../gameTypes.ts';
 
 type BattleState = 'choosing-action' | 'choosing-target' | 'done';
@@ -73,6 +74,12 @@ export class Battle extends Scene
         this.createCommandWindow();
         this.createPartyHpPanel();
         this.createLogText();
+        installDebugDialog(this, {
+            session: this.session,
+            onSessionChanged: () => {
+                this.refreshBattleParty();
+            }
+        });
 
         this.ensureSelectedLiveTarget();
 
@@ -454,6 +461,18 @@ export class Battle extends Scene
         this.getParty().forEach((hero, index) => {
             this.partyHpLines[index]?.setText(this.heroHpText(hero));
         });
+    }
+
+    private refreshBattleParty()
+    {
+        this.heroSprites.forEach((sprite) => {
+            sprite.destroy();
+        });
+        this.heroSprites = [];
+        this.partyHpPanel.destroy();
+        this.partyHpLines = [];
+        this.createHeroSprites();
+        this.createPartyHpPanel();
     }
 
     private refreshFinger()

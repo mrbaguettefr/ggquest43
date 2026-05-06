@@ -11,6 +11,7 @@ import {
   INTERACT_DISTANCE,
   PLAYER_SPEED,
 } from "../gameConstants.ts";
+import { installDebugDialog } from "../debugDialog.ts";
 import type {
   BattleResult,
   Encounter,
@@ -122,6 +123,13 @@ export class Exploration extends Scene {
     this.createWorld(data.startTile, data.startPosition);
     this.createHud();
     this.setupUiCamera();
+    installDebugDialog(this, {
+      session: this.session,
+      onSessionChanged: () => {
+        this.refreshMapHeroSpawns();
+        this.updateHud();
+      },
+    });
     this.registerInput();
     this.applyBattleResult(data.battleResult);
     this.camera.centerOn(this.player.x, this.player.y);
@@ -418,6 +426,10 @@ export class Exploration extends Scene {
   }
 
   private refreshMapHeroSpawns() {
+    this.mapHeroSpawns.forEach((spawn) => {
+      spawn.sprite.destroy();
+    });
+    this.mapHeroSpawns = [];
     this.addMapHeroSpawn("leon", "leon-exploration-idle-down");
   }
 
