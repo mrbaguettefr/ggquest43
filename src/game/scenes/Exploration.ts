@@ -142,7 +142,10 @@ export class Exploration extends Scene {
       this.playerDirection === "right" && this.playerFacingLeft,
     );
     this.player.play(
-      this.getPlayerAnimationKey(moving ? "walk" : "idle", this.playerDirection),
+      this.getPlayerAnimationKey(
+        moving ? "walk" : "idle",
+        this.playerDirection,
+      ),
       true,
     );
 
@@ -183,7 +186,10 @@ export class Exploration extends Scene {
     this.player = this.add
       .sprite(this.startPoint.x, this.startPoint.y, "cloud-idle-down", "0")
       .play(this.getPlayerAnimationKey("idle", this.playerDirection));
-    this.player.setScale(64 / this.player.width).setDepth(2);
+    this.player
+      .setOrigin(0.5, 0.7)
+      .setScale(64 / this.player.width)
+      .setDepth(2);
 
     map.createLayer("deco-2", allTilesets)?.setDepth(3);
 
@@ -206,7 +212,7 @@ export class Exploration extends Scene {
             start: 0,
             end: CLOUD_FRAME_COUNT - 1,
           }),
-          frameRate: state === "walk" ? 12 : 8,
+          frameRate: state === "walk" ? 16 : 8,
           repeat: -1,
         });
       }
