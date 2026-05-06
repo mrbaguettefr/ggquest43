@@ -4,7 +4,7 @@ import { Credits } from "./scenes/Credits";
 import { Exploration } from "./scenes/Exploration";
 import { GameOver } from "./scenes/GameOver";
 import { MainMenu } from "./scenes/MainMenu";
-import { AUTO, CANVAS, Game } from "phaser";
+import { CANVAS, Game } from "phaser";
 import { PlayerName } from "./scenes/PlayerName";
 import { Preloader } from "./scenes/Preloader";
 import { Seed } from "./scenes/Seed";
