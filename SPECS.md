@@ -148,7 +148,7 @@ The player gradually understands what the gift is through hints from NPC "baguet
   * `src/game/scenes/MainMenu.ts` shows a black-background opening menu with the `main-menu-logo` asset, a Start Game item that starts PlayerName with the decrypted session, and a Credits item that starts Credits
   * `src/game/scenes/PlayerName.ts` owns the forced "GGLeBoss" name-entry gag
   * `src/game/scenes/Exploration.ts` owns world rendering, movement, map interactions, routing into Card Reader wall interactions, hero recruitment, battle entry, resurrection handling, and post-battle rewards
-  * `src/game/scenes/Wall.ts` shows the Card Reader wall close-up using `public/assets/Wall/wall-0.png`; when no card has been inserted, Cloud says "There is an weird wall with 3 holes", pending cards are inserted from this close-up view, inserted access cards are drawn over the wall from the three-frame row spritesheet `public/assets/Wall/inserted-cards.png`, and pressing any key returns to the same exploration map position unless the final card starts Credits
+  * `src/game/scenes/Wall.ts` shows the Card Reader wall close-up using `public/assets/Wall/wall-0.png`; when no card has been inserted, Cloud says "There is an weird wall with 3 holes", pending cards are inserted from this close-up view, inserted access cards are drawn over the wall from the three-frame row spritesheet `public/assets/Wall/inserted-cards.png`, and revealed fragment codes are written in the top panel in blue-green-red slot order with blank unrevealed fragments separated by dashes. Pressing any key returns to the same exploration map position unless the final card starts Credits.
   * `src/game/scenes/Battle.ts` owns fullscreen combat rendering, target selection, turn resolution, victory, defeat, and returning battle results to Exploration
   * `src/game/scenes/GameOver.ts` remains available as a standalone Game Over scene
 
@@ -171,6 +171,7 @@ The player gradually understands what the gift is through hints from NPC "baguet
 * In Vite dev mode only, adding `?debugScene=<SceneName>` to the URL starts that scene after Preloader finishes loading assets
 * Supported debug scenes are `MainMenu`, `Seed`, `PlayerName`, `Exploration`, `Wall`, `Battle`, `Credits`, and `GameOver`
 * `PlayerName`, `Exploration`, `Wall`, and `Battle` receive a dummy `GameSession` that simulates accepted seed entry, completed player naming, decoded secret fragments, and recruited heroes
+* Wall debug starts can set inserted cards with `cards=<mask>`, where the three mask positions are blue, green, and red. `000` means no cards, `X00` means blue, `0X0` means green, `00X` means red, and `XX0` means blue and green.
 * `Battle` also receives `currentArea` and `currentEncounter`; by default this starts `The Forgotten Plains` encounter `0`
 * Battle debug starts can select another fight with `debugArea` and `debugEncounter`, for example `?debugScene=Battle&debugArea=mountains&debugEncounter=1`
 

@@ -1,7 +1,13 @@
 import { AREAS } from "./encounters.ts";
 import { createGameSession } from "./gameSession.ts";
 import { splitSecret } from "./secret.ts";
-import type { Area, Encounter, GameSession, HeroKey } from "./gameTypes.ts";
+import type {
+  Area,
+  CardColor,
+  Encounter,
+  GameSession,
+  HeroKey,
+} from "./gameTypes.ts";
 
 type DebugStartScene =
   | "MainMenu"
@@ -23,6 +29,8 @@ const DEBUG_AREA_PARAM = "area";
 const DEBUG_ENCOUNTER_PARAM = "encounter";
 const DEBUG_TILE_X_PARAM = "tileX";
 const DEBUG_TILE_Y_PARAM = "tileY";
+const DEBUG_WALL_CARDS_PARAM = "cards";
+const DEBUG_WALL_CARD_ORDER: CardColor[] = ["blue", "green", "red"];
 
 const STARTABLE_SCENES: DebugStartScene[] = [
   "MainMenu",
@@ -51,11 +59,14 @@ export const getDebugSceneLaunch = (): DebugSceneLaunch | undefined => {
     return { scene: requestedScene, data: { session: createDebugSession() } };
   }
 
-  if (
-    requestedScene === "MainMenu" ||
-    requestedScene === "Credits" ||
-    requestedScene === "Wall"
-  ) {
+  if (requestedScene === "Wall") {
+    return {
+      scene: requestedScene,
+      data: { session: createDebugWallSession(params) },
+    };
+  }
+
+  if (requestedScene === "MainMenu" || requestedScene === "Credits") {
     return { scene: requestedScene, data: { session: createDebugSession() } };
   }
 
@@ -98,8 +109,21 @@ const createDebugBattleSession = (params: URLSearchParams): GameSession => {
   return session;
 };
 
+const createDebugWallSession = (params: URLSearchParams): GameSession => {
+  const session = createDebugSession();
+  const mask = params.get(DEBUG_WALL_CARDS_PARAM) ?? "000";
+
+  DEBUG_WALL_CARD_ORDER.forEach((card, index) => {
+    if (mask[index] === "X" || mask[index] === "x") {
+      session.revealedCards.add(card);
+    }
+  });
+
+  return session;
+};
+
 const createDebugSession = (): GameSession => {
-  const secretGift = "DEBUG-SECRET-GIFT";
+  const secretGift = "DEBUG-SECRET-GIFTX";
   const session = createGameSession();
 
   session.seedCode = "DEBUG-SEED";

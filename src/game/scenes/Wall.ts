@@ -1,10 +1,12 @@
 import { Scene } from "phaser";
-import { CARD_LABELS, CARD_ORDER } from "../gameConstants.ts";
+import { CARD_ORDER } from "../gameConstants.ts";
 import type { CardColor, GameSession } from "../gameTypes.ts";
 
 const CANVAS_W = 1024;
 const CANVAS_H = 768;
 const INSERTED_CARD_SCALE = 0.34;
+const FRAGMENT_TEXT_Y = 260;
+const WALL_CARD_ORDER: CardColor[] = ["blue", "green", "red"];
 
 const INSERTED_CARD_SLOTS: Record<
   CardColor,
@@ -41,18 +43,21 @@ export class Wall extends Scene {
 
     const dialog = this.buildDialog();
     this.addInsertedCards();
+    this.addFragmentText();
 
-    this.add
-      .text(CANVAS_W / 2, CANVAS_H - 96, dialog, {
-        fontFamily: "Arial Black",
-        fontSize: 24,
-        color: "#ffffff",
-        stroke: "#000000",
-        strokeThickness: 6,
-        align: "center",
-        wordWrap: { width: 880 },
-      })
-      .setOrigin(0.5);
+    if (dialog) {
+      this.add
+        .text(CANVAS_W / 2, CANVAS_H - 96, dialog, {
+          fontFamily: "Arial Black",
+          fontSize: 24,
+          color: "#ffffff",
+          stroke: "#000000",
+          strokeThickness: 6,
+          align: "center",
+          wordWrap: { width: 880 },
+        })
+        .setOrigin(0.5);
+    }
 
     if (!this.input.keyboard) {
       throw new Error("Keyboard input is unavailable.");
@@ -62,7 +67,7 @@ export class Wall extends Scene {
   }
 
   private addInsertedCards() {
-    CARD_ORDER.forEach((card) => {
+    WALL_CARD_ORDER.forEach((card) => {
       if (!this.session.revealedCards.has(card)) {
         return;
       }
@@ -75,6 +80,21 @@ export class Wall extends Scene {
     });
   }
 
+  private addFragmentText() {
+    this.add
+      .text(CANVAS_W / 2, FRAGMENT_TEXT_Y, this.buildFragmentCode(), {
+        fontFamily: "Courier New",
+        fontSize: 32,
+        color: "#d8f2ff",
+        stroke: "#000000",
+        strokeThickness: 5,
+        align: "center",
+        wordWrap: { width: 760 },
+      })
+      .setOrigin(0.5)
+      .setDepth(2);
+  }
+
   private buildDialog() {
     const card = CARD_ORDER.find(
       (candidate) =>
@@ -83,37 +103,26 @@ export class Wall extends Scene {
     );
 
     if (card) {
-      return this.insertCard(card);
+      this.insertCard(card);
+      return "";
     }
 
     if (this.session.revealedCards.size === 0) {
       return "Cloud: There is an weird wall with 3 holes";
     }
 
-    return this.buildWallStatus();
+    return "";
   }
 
   private insertCard(card: (typeof CARD_ORDER)[number]) {
-    const index = CARD_ORDER.indexOf(card);
     this.session.revealedCards.add(card);
     this.session.pendingCards.delete(card);
     this.restoreParty();
 
-    const lines = [
-      `${CARD_LABELS[card]} inserted.`,
-      `Fragment ${index + 1}: ${this.session.secretFragments[index]}`,
-    ];
-
     if (card === "green") {
-      lines.push(
-        "Leon appears near the wall, looking extremely serious about a silly problem.",
-      );
+      this.session.heroes.leon.unlocked = true;
     } else if (card === "blue") {
-      lines.push(
-        "Knight appears near the wall and immediately makes everyone uncomfortable.",
-      );
-    } else {
-      lines.push(`Full secret_gift: ${this.session.secretGift}`);
+      this.session.heroes.knight.unlocked = true;
     }
 
     if (this.session.revealedCards.size === CARD_ORDER.length) {
@@ -121,16 +130,15 @@ export class Wall extends Scene {
         this.scene.start("Credits");
       };
     }
-
-    return lines.join("\n");
   }
 
-  private buildWallStatus() {
-    return CARD_ORDER.map((card, index) => {
+  private buildFragmentCode() {
+    return WALL_CARD_ORDER.map((card) => {
+      const fragmentIndex = CARD_ORDER.indexOf(card);
       return this.session.revealedCards.has(card)
-        ? `${CARD_LABELS[card]}: ${this.session.secretFragments[index]}`
-        : `${CARD_LABELS[card]}: ?????`;
-    }).join("\n");
+        ? this.session.secretFragments[fragmentIndex]
+        : "";
+    }).join(" - ");
   }
 
   private restoreParty() {
