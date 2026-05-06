@@ -8,6 +8,7 @@ type DebugStartScene =
   | "Seed"
   | "PlayerName"
   | "Exploration"
+  | "Wall"
   | "Battle"
   | "Credits"
   | "GameOver";
@@ -28,6 +29,7 @@ const STARTABLE_SCENES: DebugStartScene[] = [
   "Seed",
   "PlayerName",
   "Exploration",
+  "Wall",
   "Battle",
   "Credits",
   "GameOver",
@@ -49,7 +51,11 @@ export const getDebugSceneLaunch = (): DebugSceneLaunch | undefined => {
     return { scene: requestedScene, data: { session: createDebugSession() } };
   }
 
-  if (requestedScene === "MainMenu" || requestedScene === "Credits") {
+  if (
+    requestedScene === "MainMenu" ||
+    requestedScene === "Credits" ||
+    requestedScene === "Wall"
+  ) {
     return { scene: requestedScene, data: { session: createDebugSession() } };
   }
 

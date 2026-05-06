@@ -8,7 +8,6 @@ import {
 } from "../encounters.ts";
 import {
   CARD_LABELS,
-  CARD_ORDER,
   INTERACT_DISTANCE,
   PLAYER_SPEED,
 } from "../gameConstants.ts";
@@ -81,6 +80,7 @@ export class Exploration extends Scene {
     session: GameSession;
     battleResult?: BattleResult;
     startTile?: { x: number; y: number };
+    startPosition?: { x: number; y: number };
   }) {
     this.session = data.session;
     this.inputLocked = false;
@@ -100,7 +100,7 @@ export class Exploration extends Scene {
       s: Input.Keyboard.KeyCodes.S,
       d: Input.Keyboard.KeyCodes.D,
     }) as Record<"w" | "a" | "s" | "d", Phaser.Input.Keyboard.Key>;
-    this.createWorld(data.startTile);
+    this.createWorld(data.startTile, data.startPosition);
     this.createHud();
     this.setupUiCamera();
     this.registerInput();
@@ -176,7 +176,10 @@ export class Exploration extends Scene {
     this.updateFog();
   }
 
-  private createWorld(startTile?: { x: number; y: number }) {
+  private createWorld(
+    startTile?: { x: number; y: number },
+    startPosition?: { x: number; y: number },
+  ) {
     const map = this.make.tilemap({ key: "worldmap" });
     const wallsTs = map.addTilesetImage("walls", "tileset-wall");
     const stoneTs = map.addTilesetImage("stone-ground", "tileset-stone");
@@ -208,6 +211,8 @@ export class Exploration extends Scene {
         x: startTile.x * map.tileWidth + map.tileWidth / 2,
         y: startTile.y * map.tileHeight + map.tileHeight / 2,
       };
+    } else if (startPosition) {
+      this.startPoint = startPosition;
     }
 
     this.createPlayerAnimations();
@@ -606,7 +611,7 @@ export class Exploration extends Scene {
     }
 
     if (this.isNearHubWall()) {
-      this.insertPendingCard();
+      this.openWallScene();
       return;
     }
 
@@ -637,6 +642,17 @@ export class Exploration extends Scene {
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once("camerafadeoutcomplete", () => {
       this.scene.start("Battle", { session: this.session });
+    });
+  }
+
+  private openWallScene() {
+    this.inputLocked = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once("camerafadeoutcomplete", () => {
+      this.scene.start("Wall", {
+        session: this.session,
+        returnPosition: { x: this.player.x, y: this.player.y },
+      });
     });
   }
 
@@ -686,53 +702,6 @@ export class Exploration extends Scene {
       `${reason}\nResurrected at the Card Reader wall with full HP.`,
     );
     this.updateHud();
-  }
-
-  private insertPendingCard() {
-    const card = CARD_ORDER.find(
-      (candidate) =>
-        this.session.pendingCards.has(candidate) &&
-        !this.session.revealedCards.has(candidate),
-    );
-
-    if (!card) {
-      this.showMessage("Card Reader Wall", this.buildWallMessage());
-      return;
-    }
-
-    const index = CARD_ORDER.indexOf(card);
-    this.session.revealedCards.add(card);
-    this.session.pendingCards.delete(card);
-    this.restoreParty();
-
-    const lines = [
-      `${CARD_LABELS[card]} inserted.`,
-      `Fragment ${index + 1}: ${this.session.secretFragments[index]}`,
-    ];
-
-    if (card === "green") {
-      lines.push(
-        "Leon appears near the wall, looking extremely serious about a silly problem.",
-      );
-    } else if (card === "blue") {
-      lines.push(
-        "Knight appears near the wall and immediately makes everyone uncomfortable.",
-      );
-    } else {
-      lines.push(`Full secret_gift: ${this.session.secretGift}`);
-    }
-
-    this.showMessage("Card Reader Online", lines.join("\n"), () => {
-      if (this.session.revealedCards.size === 3) {
-        this.showMessage(
-          "Quest Complete",
-          `The full secret_gift is:\n${this.session.secretGift}\n\nbaguettefr pretends this was planned all along.\n\nThe credits are legally obligated to begin next.`,
-          () => {
-            this.scene.start("Credits");
-          },
-        );
-      }
-    });
   }
 
   private recruitHero(heroKey: HeroKey) {
@@ -860,16 +829,6 @@ export class Exploration extends Scene {
         this.wallInteractionPoint.y,
       ) <= INTERACT_DISTANCE
     );
-  }
-
-  private buildWallMessage() {
-    const fragments = CARD_ORDER.map((card, index) => {
-      return this.session.revealedCards.has(card)
-        ? `${CARD_LABELS[card]}: ${this.session.secretFragments[index]}`
-        : `${CARD_LABELS[card]}: ?????`;
-    });
-
-    return fragments.join("\n");
   }
 
   private getParty() {

@@ -147,14 +147,15 @@ The player gradually understands what the gift is through hints from NPC "baguet
   * `src/game/scenes/Seed.ts` owns seed game code entry, secret gift decryption, initial session creation, and then starts MainMenu immediately when a seed is present
   * `src/game/scenes/MainMenu.ts` shows a black-background opening menu with the `main-menu-logo` asset, a Start Game item that starts PlayerName with the decrypted session, and a Credits item that starts Credits
   * `src/game/scenes/PlayerName.ts` owns the forced "GGLeBoss" name-entry gag
-  * `src/game/scenes/Exploration.ts` owns world rendering, movement, map interactions, Card Reader wall interactions, hero recruitment, battle entry, resurrection handling, and post-battle rewards
+  * `src/game/scenes/Exploration.ts` owns world rendering, movement, map interactions, routing into Card Reader wall interactions, hero recruitment, battle entry, resurrection handling, and post-battle rewards
+  * `src/game/scenes/Wall.ts` shows the Card Reader wall close-up using `public/assets/Wall/wall-0.png`; when no card has been inserted, Cloud says "There is an weird wall with 3 holes", pending cards are inserted from this close-up view, and pressing any key returns to the same exploration map position unless the final card starts Credits
   * `src/game/scenes/Battle.ts` owns fullscreen combat rendering, target selection, turn resolution, victory, defeat, and returning battle results to Exploration
   * `src/game/scenes/GameOver.ts` remains available as a standalone Game Over scene
 
 * Cloud's exploration sprite uses the `public/assets/Exploration/world/characters/cloud-iso_{idle,walk}_{down,right,up}-v1.*` image and atlas JSON files. The custom atlas JSON is adapted into Phaser atlas textures during Preloader setup, then Exploration uses directional idle animations while standing and directional walk animations while moving. Left-facing movement reuses the right-facing walk/idle atlases and flips the player sprite horizontally with Phaser's flip API.
 * Active map enemies block Cloud's exploration movement like obstacles while still allowing Cloud to stand within interaction range and press E to start the fight. Defeated enemies are removed from both the map and movement blocking.
 * Exploration map objects named `boss` with a `king-slime` custom property start the King Slime boss encounter when the player stands nearby and presses E. The boss uses `public/assets/Exploration/world/monsters/king-slime-boss-iso_idle_right-v1.*` on the map, uses `public/assets/Battle/monsters/king-slime-boss-idle-v1.*` in battle, has high HP with weak attack damage, and awards the Blue Card when defeated.
-* Scene-owned assets are grouped under `public/assets/<SceneName>/` when they are only used by that scene. `MainMenu` owns its logo, `Exploration` owns world characters, monsters, and tilemap assets, and `Battle` owns combat background and battle character sprites. Shared assets, such as `public/assets/bg.png`, remain at the shared assets root.
+* Scene-owned assets are grouped under `public/assets/<SceneName>/` when they are only used by that scene. `MainMenu` owns its logo, `Exploration` owns world characters, monsters, and tilemap assets, `Wall` owns the Card Reader wall background, and `Battle` owns combat background and battle character sprites. Shared assets, such as `public/assets/bg.png`, remain at the shared assets root.
 * The editable Tiled exploration map is `public/assets/Exploration/tileset/map.tmj`, with external tilesets stored as `.tsj` files in the same folder. The Vite `tiledMapPlugin` inlines those tilesets into `public/assets/Exploration/tileset/map-tiled.json` before dev and production builds; Phaser loads the generated `map-tiled.json`.
 * `src/game/gameSession.ts` creates the shared game session object passed between Seed, PlayerName, Exploration, and Battle
 * `src/game/debugStart.ts` supports dev-only URL scene starts with dummy session data for testing scenes that normally require earlier flow
@@ -168,8 +169,8 @@ The player gradually understands what the gift is through hints from NPC "baguet
 ### Dev Scene Start Overrides
 
 * In Vite dev mode only, adding `?debugScene=<SceneName>` to the URL starts that scene after Preloader finishes loading assets
-* Supported debug scenes are `MainMenu`, `Seed`, `PlayerName`, `Exploration`, `Battle`, `Credits`, and `GameOver`
-* `PlayerName`, `Exploration`, and `Battle` receive a dummy `GameSession` that simulates accepted seed entry, completed player naming, decoded secret fragments, and recruited heroes
+* Supported debug scenes are `MainMenu`, `Seed`, `PlayerName`, `Exploration`, `Wall`, `Battle`, `Credits`, and `GameOver`
+* `PlayerName`, `Exploration`, `Wall`, and `Battle` receive a dummy `GameSession` that simulates accepted seed entry, completed player naming, decoded secret fragments, and recruited heroes
 * `Battle` also receives `currentArea` and `currentEncounter`; by default this starts `The Forgotten Plains` encounter `0`
 * Battle debug starts can select another fight with `debugArea` and `debugEncounter`, for example `?debugScene=Battle&debugArea=mountains&debugEncounter=1`
 

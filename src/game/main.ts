@@ -8,6 +8,7 @@ import { CANVAS, Game } from "phaser";
 import { PlayerName } from "./scenes/PlayerName";
 import { Preloader } from "./scenes/Preloader";
 import { Seed } from "./scenes/Seed";
+import { Wall } from "./scenes/Wall";
 
 //  Find out more information about the Game Config at:
 //  https://docs.phaser.io/api-documentation/typedef/types-core#gameconfig
@@ -25,6 +26,7 @@ const config: Phaser.Types.Core.GameConfig = {
     Seed,
     PlayerName,
     Exploration,
+    Wall,
     Battle,
     Credits,
     GameOver,
