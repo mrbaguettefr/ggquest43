@@ -77,12 +77,26 @@ export class Preloader extends Scene {
       frameHeight: 225,
       spacing: 4,
     });
+    this.load.image("battle-bg", "battle/background/battlefield-cave.png");
+    this.load.spritesheet("cloud-battle-idle", "battle/characters/cloud-idle-v1.png", {
+      frameWidth: 256,
+      frameHeight: 256,
+    });
   }
 
   create() {
     //  When all the assets have loaded, it's often worth creating global objects here that the rest of the game can use.
     //  For example, you can define global animations here, so we can use them in other scenes.
     this.registerCloudAtlases();
+
+    if (!this.anims.exists("battle-idle")) {
+      this.anims.create({
+        key: "battle-idle",
+        frames: this.anims.generateFrameNumbers("cloud-battle-idle", { start: 0, end: 24 }),
+        frameRate: 8,
+        repeat: -1,
+      });
+    }
 
     const debugLaunch = getDebugSceneLaunch();
 

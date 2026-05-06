@@ -55,6 +55,7 @@ export type GameSession = {
     currentEncounter?: Encounter;
     currentEnemyObjectId?: number;
     currentLocation: string;
+    preBattlePosition?: { x: number; y: number };
 };
 
 export type BattleResult = {

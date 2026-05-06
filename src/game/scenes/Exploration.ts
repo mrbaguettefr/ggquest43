@@ -512,7 +512,12 @@ export class Exploration extends Scene {
     this.session.currentEncounter = this.cloneEncounter(enemy.encounter);
     this.session.currentEnemyObjectId = enemy.objectId;
     this.session.currentLocation = enemy.encounter.name;
-    this.scene.start("Battle", { session: this.session });
+    this.session.preBattlePosition = { x: this.player.x, y: this.player.y };
+    this.inputLocked = true;
+    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.once("camerafadeoutcomplete", () => {
+      this.scene.start("Battle", { session: this.session });
+    });
   }
 
   private winBattle(battleResult: BattleResult) {
@@ -536,7 +541,9 @@ export class Exploration extends Scene {
       this.session.heroes[encounter.unlockHero].unlocked = true;
     }
 
-    this.player.setPosition(this.startPoint.x, this.startPoint.y);
+    const returnPos = this.session.preBattlePosition ?? this.startPoint;
+    this.session.preBattlePosition = undefined;
+    this.player.setPosition(returnPos.x, returnPos.y);
     this.statusText.setText(
       log
         .concat([
@@ -553,6 +560,7 @@ export class Exploration extends Scene {
   private loseBattle(reason: string) {
     this.restoreParty();
     this.session.currentLocation = "Center of the World";
+    this.session.preBattlePosition = undefined;
     this.player.setPosition(this.startPoint.x, this.startPoint.y);
     this.statusText.setText(
       `${reason}\nResurrected at the Card Reader wall with full HP.`,
