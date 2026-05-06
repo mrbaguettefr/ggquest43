@@ -1,4 +1,4 @@
-import { Input, Math as PhaserMath, Scene } from "phaser";
+import { Input, Math as PhaserMath, Scene, WEBGL } from "phaser";
 import {
   AREAS,
   buildSkeletonEncounter,
@@ -52,8 +52,11 @@ const PLAYER_ANIMATION_STATES: PlayerAnimationState[] = ["idle", "walk"];
 const CLOUD_FRAME_COUNT = 25;
 const PLAYER_COLLISION_RADIUS = 14;
 const MAP_CHARACTER_COLLISION_DISTANCE = INTERACT_DISTANCE - 2;
-const OUTLINE_PADDING = 6;
 const OUTLINE_THICKNESS = 2;
+const SPRITE_HIGHLIGHT_OUTER_STRENGTH = 10;
+const SPRITE_HIGHLIGHT_INNER_STRENGTH = 0;
+const SPRITE_HIGHLIGHT_QUALITY = 10;
+const SPRITE_HIGHLIGHT_DISTANCE = 8;
 const KNIGHT_RECRUIT_POINT = { x: 575, y: 620 };
 const WALL_HIGHLIGHT_SIZE = { width: 52, height: 52 };
 const POINT_HIGHLIGHT_SIZE = { width: 36, height: 36 };
@@ -76,6 +79,8 @@ export class Exploration extends Scene {
   private interactionText: Phaser.GameObjects.Text;
   private promptText: Phaser.GameObjects.Text;
   private interactionHighlight: Phaser.GameObjects.Graphics;
+  private highlightedSprite: Phaser.GameObjects.Sprite | undefined;
+  private highlightedSpriteGlow: Phaser.Filters.Glow | undefined;
   private worldObjects: Phaser.GameObjects.GameObject[] = [];
   private hudObjects: Phaser.GameObjects.GameObject[] = [];
   private session: GameSession;
@@ -90,7 +95,9 @@ export class Exploration extends Scene {
   private mapEnemies: MapEnemy[];
   private mapNpcs: MapNpc[];
   private mapHeroSpawns: MapHeroSpawn[];
-  private mapHeroSpawnPoints: Partial<Record<HeroKey, { x: number; y: number }>>;
+  private mapHeroSpawnPoints: Partial<
+    Record<HeroKey, { x: number; y: number }>
+  >;
   private areaPolygons: Array<{
     name: string;
     vertices: Array<{ x: number; y: number }>;
@@ -225,7 +232,9 @@ export class Exploration extends Scene {
 
     this.walkableGid = stoneTs!.firstgid + 9;
 
-    const prototypeLayer = map.createLayer("prototype", allTilesets)?.setDepth(-2);
+    const prototypeLayer = map
+      .createLayer("prototype", allTilesets)
+      ?.setDepth(-2);
     this.trackWorldObject(prototypeLayer);
     this.groundLayer = map
       .createLayer("ground", allTilesets)!
@@ -414,8 +423,9 @@ export class Exploration extends Scene {
         const encounter = this.hasObjectProperty(o, "king-slime")
           ? KING_SLIME_BOSS_ENCOUNTER
           : skeletonCount
-          ? buildSkeletonEncounter(skeletonCount)
-          : (ENCOUNTER_BY_NAME.get(o.name ?? "") ?? DEFAULT_SKELETON_ENCOUNTER);
+            ? buildSkeletonEncounter(skeletonCount)
+            : (ENCOUNTER_BY_NAME.get(o.name ?? "") ??
+              DEFAULT_SKELETON_ENCOUNTER);
         const sprite = this.createMapEnemySprite(o, encounter);
         this.trackWorldObject(sprite);
         return [{ objectId, encounter, sprite }];
@@ -449,7 +459,9 @@ export class Exploration extends Scene {
   private addMapHeroSpawn(heroKey: HeroKey, textureKey: string) {
     const point = this.mapHeroSpawnPoints[heroKey];
     const hero = this.session.heroes[heroKey];
-    const existing = this.mapHeroSpawns.some((spawn) => spawn.heroKey === heroKey);
+    const existing = this.mapHeroSpawns.some(
+      (spawn) => spawn.heroKey === heroKey,
+    );
 
     if (!point || existing || !hero.unlocked || hero.recruited) {
       return;
@@ -649,9 +661,7 @@ export class Exploration extends Scene {
     this.uiCamera.ignore(this.worldObjects);
   }
 
-  private trackWorldObject(
-    object: Phaser.GameObjects.GameObject | undefined,
-  ) {
+  private trackWorldObject(object: Phaser.GameObjects.GameObject | undefined) {
     if (!object) {
       return;
     }
@@ -810,9 +820,13 @@ export class Exploration extends Scene {
     const hero = this.session.heroes[heroKey];
     hero.recruited = true;
     hero.hp = hero.maxHp;
-    const spawn = this.mapHeroSpawns.find((candidate) => candidate.heroKey === heroKey);
+    const spawn = this.mapHeroSpawns.find(
+      (candidate) => candidate.heroKey === heroKey,
+    );
     spawn?.sprite.destroy();
-    this.mapHeroSpawns = this.mapHeroSpawns.filter((candidate) => candidate.heroKey !== heroKey);
+    this.mapHeroSpawns = this.mapHeroSpawns.filter(
+      (candidate) => candidate.heroKey !== heroKey,
+    );
     this.showMessage(
       `${hero.name} Recruited`,
       `${hero.name} joins the party.\nSpecial: ${hero.special}`,
@@ -914,7 +928,9 @@ export class Exploration extends Scene {
       };
     }
 
-    const spawn = this.mapHeroSpawns.find((candidate) => candidate.heroKey === heroKey);
+    const spawn = this.mapHeroSpawns.find(
+      (candidate) => candidate.heroKey === heroKey,
+    );
     if (!spawn) {
       return undefined;
     }
@@ -924,25 +940,18 @@ export class Exploration extends Scene {
 
   private drawInteractionHighlight(target?: InteractionHighlightTarget) {
     this.interactionHighlight.clear();
+    this.clearHighlightedSprite();
 
     if (!target) {
       return;
     }
 
-    this.interactionHighlight.lineStyle(OUTLINE_THICKNESS, 0xffffff, 1);
-
     if (target.kind === "sprite") {
-      const bounds = target.sprite.getBounds();
-      this.interactionHighlight.strokeRoundedRect(
-        bounds.x - OUTLINE_PADDING,
-        bounds.y - OUTLINE_PADDING,
-        bounds.width + OUTLINE_PADDING * 2,
-        bounds.height + OUTLINE_PADDING * 2,
-        8,
-      );
+      this.highlightSprite(target.sprite);
       return;
     }
 
+    this.interactionHighlight.lineStyle(OUTLINE_THICKNESS, 0xffffff, 1);
     this.interactionHighlight.strokeRoundedRect(
       target.x - target.width / 2,
       target.y - target.height / 2,
@@ -950,6 +959,59 @@ export class Exploration extends Scene {
       target.height,
       8,
     );
+  }
+
+  private highlightSprite(sprite: Phaser.GameObjects.Sprite) {
+    if (this.game.renderer.type !== WEBGL) {
+      this.drawSpriteBoundsHighlight(sprite);
+      return;
+    }
+
+    sprite.enableFilters();
+    const filterList = sprite.filters?.external;
+
+    if (!filterList) {
+      this.drawSpriteBoundsHighlight(sprite);
+      return;
+    }
+
+    this.highlightedSprite = sprite;
+    this.highlightedSpriteGlow = filterList.addGlow(
+      0xffffff,
+      SPRITE_HIGHLIGHT_OUTER_STRENGTH,
+      SPRITE_HIGHLIGHT_INNER_STRENGTH,
+      1,
+      false,
+      SPRITE_HIGHLIGHT_QUALITY,
+      SPRITE_HIGHLIGHT_DISTANCE,
+    );
+  }
+
+  private drawSpriteBoundsHighlight(sprite: Phaser.GameObjects.Sprite) {
+    return;
+    const bounds = sprite.getBounds();
+    this.interactionHighlight.lineStyle(OUTLINE_THICKNESS, 0xffffff, 1);
+    this.interactionHighlight.strokeRoundedRect(
+      bounds.x - 6,
+      bounds.y - 6,
+      bounds.width + 12,
+      bounds.height + 12,
+      8,
+    );
+  }
+
+  private clearHighlightedSprite() {
+    if (!this.highlightedSprite || !this.highlightedSpriteGlow) {
+      this.highlightedSprite = undefined;
+      this.highlightedSpriteGlow = undefined;
+      return;
+    }
+
+    this.highlightedSprite.filters?.external?.remove(
+      this.highlightedSpriteGlow,
+    );
+    this.highlightedSpriteGlow = undefined;
+    this.highlightedSprite = undefined;
   }
 
   private getCurrentAreaName(): string | undefined {
@@ -999,8 +1061,7 @@ export class Exploration extends Scene {
         this.player.y,
         KNIGHT_RECRUIT_POINT.x,
         KNIGHT_RECRUIT_POINT.y,
-      ) <=
-      INTERACT_DISTANCE;
+      ) <= INTERACT_DISTANCE;
     const heroSpawn = this.mapHeroSpawns.find(
       (spawn) =>
         PhaserMath.Distance.Between(
