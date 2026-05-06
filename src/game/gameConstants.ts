@@ -5,7 +5,6 @@ export const WORLD_HEIGHT = 920;
 export const PLAYER_SPEED = 200;
 export const INTERACT_DISTANCE = 120;
 export const FORCED_NAME = "GGLeBoss";
-export const INITIAL_SEED_TEXT = "";
 export const CARD_ORDER: CardColor[] = ["green", "blue", "red"];
 
 export const CARD_LABELS: Record<CardColor, string> = {
