@@ -278,8 +278,9 @@ For now, the UI stays simple and readable.
 
 Always visible while exploring:
 
-* HUD text is laid out against the camera viewport with inverse zoom scaling, so it remains visible while the camera follows and zooms on the player
+* Exploration renders HUD text through a fixed UI camera. The main camera ignores HUD objects, and the UI camera ignores world objects, so UI text stays stable while the world camera follows and zooms on the player
 * The game canvas is constrained to the browser viewport, preventing the fixed HUD from being clipped on shorter screens
+* The player can move with either Arrow keys or WASD
 
 * Current location label
 

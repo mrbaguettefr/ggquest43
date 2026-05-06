@@ -1,4 +1,4 @@
-import { Math as PhaserMath, Scene } from "phaser";
+import { Input, Math as PhaserMath, Scene } from "phaser";
 import {
   AREAS,
   buildSkeletonEncounter,
@@ -33,13 +33,17 @@ const CLOUD_FRAME_COUNT = 25;
 
 export class Exploration extends Scene {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
+  private wasdKeys: Record<"w" | "a" | "s" | "d", Phaser.Input.Keyboard.Key>;
   private player: Phaser.GameObjects.Sprite;
   private camera: Phaser.Cameras.Scene2D.Camera;
+  private uiCamera: Phaser.Cameras.Scene2D.Camera;
   private infoText: Phaser.GameObjects.Text;
   private partyText: Phaser.GameObjects.Text;
   private statusText: Phaser.GameObjects.Text;
   private interactionText: Phaser.GameObjects.Text;
   private promptText: Phaser.GameObjects.Text;
+  private worldObjects: Phaser.GameObjects.GameObject[] = [];
+  private hudObjects: Phaser.GameObjects.GameObject[] = [];
   private session: GameSession;
   private messageAfterClose: (() => void) | undefined;
   private inputLocked = false;
@@ -82,12 +86,18 @@ export class Exploration extends Scene {
     }
 
     this.cursors = this.input.keyboard.createCursorKeys();
+    this.wasdKeys = this.input.keyboard.addKeys({
+      w: Input.Keyboard.KeyCodes.W,
+      a: Input.Keyboard.KeyCodes.A,
+      s: Input.Keyboard.KeyCodes.S,
+      d: Input.Keyboard.KeyCodes.D,
+    }) as Record<"w" | "a" | "s" | "d", Phaser.Input.Keyboard.Key>;
     this.createWorld(data.startTile);
     this.createHud();
+    this.setupUiCamera();
     this.registerInput();
     this.applyBattleResult(data.battleResult);
     this.camera.centerOn(this.player.x, this.player.y);
-    this.layoutHud();
     this.updateFog();
   }
 
@@ -100,15 +110,15 @@ export class Exploration extends Scene {
     let velocityX = 0;
     let velocityY = 0;
 
-    if (this.cursors.left.isDown) {
+    if (this.cursors.left.isDown || this.wasdKeys.a.isDown) {
       velocityX = -1;
-    } else if (this.cursors.right.isDown) {
+    } else if (this.cursors.right.isDown || this.wasdKeys.d.isDown) {
       velocityX = 1;
     }
 
-    if (this.cursors.up.isDown) {
+    if (this.cursors.up.isDown || this.wasdKeys.w.isDown) {
       velocityY = -1;
-    } else if (this.cursors.down.isDown) {
+    } else if (this.cursors.down.isDown || this.wasdKeys.s.isDown) {
       velocityY = 1;
     }
 
@@ -154,7 +164,6 @@ export class Exploration extends Scene {
       true,
     );
 
-    this.layoutHud();
     this.updateExploreText();
     this.updateFog();
   }
@@ -168,14 +177,20 @@ export class Exploration extends Scene {
 
     this.walkableGid = stoneTs!.firstgid + 9;
 
-    map.createLayer("prototype", allTilesets)?.setDepth(-2);
+    const prototypeLayer = map.createLayer("prototype", allTilesets)?.setDepth(-2);
+    this.trackWorldObject(prototypeLayer);
     this.groundLayer = map
       .createLayer("ground", allTilesets)!
       .setDepth(-1) as Phaser.Tilemaps.TilemapLayer;
-    map.createLayer("deco-ground", allTilesets)?.setDepth(0);
+    this.trackWorldObject(this.groundLayer);
+    const decoGroundLayer = map
+      .createLayer("deco-ground", allTilesets)
+      ?.setDepth(0);
+    this.trackWorldObject(decoGroundLayer);
     this.blockingLayer = map
       .createLayer("deco-1-blocking", allTilesets)!
       .setDepth(1) as Phaser.Tilemaps.TilemapLayer;
+    this.trackWorldObject(this.blockingLayer);
 
     this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     this.extractMapObjects(map);
@@ -196,8 +211,10 @@ export class Exploration extends Scene {
       .setOrigin(0.5, 0.7)
       .setScale(64 / this.player.width)
       .setDepth(2);
+    this.trackWorldObject(this.player);
 
-    map.createLayer("deco-2", allTilesets)?.setDepth(3);
+    const decoTopLayer = map.createLayer("deco-2", allTilesets)?.setDepth(3);
+    this.trackWorldObject(decoTopLayer);
 
     this.createFog(map);
     this.camera.startFollow(this.player, true, 0.08, 0.08);
@@ -253,6 +270,7 @@ export class Exploration extends Scene {
 
     this.fogGraphics = this.add.graphics();
     this.fogGraphics.setDepth(4);
+    this.trackWorldObject(this.fogGraphics);
 
     this.updateFog();
   }
@@ -345,6 +363,7 @@ export class Exploration extends Scene {
           .play("skeleton-walk")
           .setDepth(2)
           .setScale(32 / 225);
+        this.trackWorldObject(sprite);
         return [{ objectId, encounter, sprite }];
       });
   }
@@ -426,40 +445,35 @@ export class Exploration extends Scene {
       .setOrigin(0.5)
       .setDepth(40)
       .setVisible(false);
+
+    this.hudObjects = [
+      this.infoText,
+      this.partyText,
+      this.statusText,
+      this.interactionText,
+      this.promptText,
+    ];
   }
 
-  private layoutHud() {
-    const zoom = this.camera.zoom;
-    const view = this.camera.worldView;
-    const toWorld = (screenX: number, screenY: number) => ({
-      x: view.left + screenX / zoom,
-      y: view.top + screenY / zoom,
-    });
-    const scale = 1 / zoom;
+  private setupUiCamera() {
+    this.camera.ignore(this.hudObjects);
 
-    const infoPosition = toWorld(16, 14);
-    const partyPosition = toWorld(16, 40);
-    const statusPosition = toWorld(
-      this.scale.width / 2,
-      this.scale.height - 56,
-    );
-    const interactionPosition = toWorld(
-      this.scale.width / 2,
-      this.scale.height - 118,
-    );
-    const promptPosition = toWorld(this.scale.width / 2, this.scale.height / 2);
+    this.uiCamera = this.cameras
+      .add(0, 0, this.scale.width, this.scale.height)
+      .setScroll(0, 0)
+      .setZoom(1);
+    this.uiCamera.ignore(this.worldObjects);
+  }
 
-    this.infoText.setPosition(infoPosition.x, infoPosition.y).setScale(scale);
-    this.partyText.setPosition(partyPosition.x, partyPosition.y).setScale(scale);
-    this.statusText
-      .setPosition(statusPosition.x, statusPosition.y)
-      .setScale(scale);
-    this.interactionText
-      .setPosition(interactionPosition.x, interactionPosition.y)
-      .setScale(scale);
-    this.promptText
-      .setPosition(promptPosition.x, promptPosition.y)
-      .setScale(scale);
+  private trackWorldObject(
+    object: Phaser.GameObjects.GameObject | undefined,
+  ) {
+    if (!object) {
+      return;
+    }
+
+    this.worldObjects.push(object);
+    this.uiCamera?.ignore(object);
   }
 
   private registerInput() {
