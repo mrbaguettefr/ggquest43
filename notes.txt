@@ -1,0 +1,11 @@
+- Bosses
+    -> drop chest
+    -> card access
+- Wall mechanism
+    - insert card
+    - show final code
+- baguettefr NPC
+    - hints
+- recruting heroes
+- flying enemy
+- fear spell enemy
