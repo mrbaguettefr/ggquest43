@@ -166,7 +166,7 @@ The player gradually understands what the gift is through hints from NPC "baguet
 * `src/game/debugStart.ts` supports dev-only URL scene starts with dummy session data for testing scenes that normally require earlier flow
 * `src/game/gameTypes.ts` contains shared gameplay types
 * `src/game/gameConstants.ts` contains world, movement, name, and Card Reader constants
-* `src/game/encounters.ts` contains area and enemy encounter data
+* `src/game/encounters.ts` contains area encounter definitions, enemy presets, and the shared resolver that maps exploration objects to battle encounters
 * `src/game/heroes.ts` creates the initial hero roster
 * `src/game/secret.ts` contains secret gift helpers
 * `src/game/sharedConfig.ts` contains the encrypted `secret_gift`

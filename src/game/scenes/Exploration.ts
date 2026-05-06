@@ -1,10 +1,8 @@
 import { Input, Math as PhaserMath, Scene, WEBGL } from "phaser";
 import {
   AREAS,
-  buildSkeletonEncounter,
-  DEFAULT_SKELETON_ENCOUNTER,
-  ENCOUNTER_BY_NAME,
   KING_SLIME_BOSS_ENCOUNTER,
+  resolveEncounter,
 } from "../encounters.ts";
 import {
   CARD_LABELS,
@@ -66,6 +64,8 @@ const BAGUETTEFR_DIALOG_LINES = [
   "The gift is not in the monsters. The monsters are just aggressively holding the stationery.",
   "When the wall has all three cards, read what it shows exactly. The reward is hiding in plain sight.",
 ];
+const REQUIRED_MAP_OBJECTS = ["start", "wall-interaction"];
+const AREA_OBJECT_KEYS = ["area-1", "area-2", "area-3"] as const;
 
 export class Exploration extends Scene {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -376,7 +376,8 @@ export class Exploration extends Scene {
     }
 
     const find = (name: string) => layer.objects.find((o) => o.name === name);
-    const missing = ["start", "wall-interaction"].filter((n) => !find(n));
+
+    const missing = REQUIRED_MAP_OBJECTS.filter((name) => !find(name));
     if (missing.length > 0) {
       throw new Error(`Map is missing required objects: ${missing.join(", ")}`);
     }
@@ -391,14 +392,22 @@ export class Exploration extends Scene {
       ...(leonObj ? { leon: { x: leonObj.x!, y: leonObj.y! } } : {}),
     };
 
-    this.areaPolygons = ["area-1", "area-2", "area-3"].flatMap((key, i) => {
-      const obj = find(key);
-      if (!obj) return [];
-      const vertices = (obj.polygon ?? []).map((v) => ({
-        x: obj.x! + v.x,
-        y: obj.y! + v.y,
-      }));
-      return [{ name: AREAS[i].name, vertices }];
+    this.areaPolygons = AREA_OBJECT_KEYS.flatMap((key, i) => {
+      const object = find(key);
+
+      if (!object) {
+        return [];
+      }
+
+      return [
+        {
+          name: AREAS[i].name,
+          vertices: (object.polygon ?? []).map((vertex) => ({
+            x: object.x! + vertex.x,
+            y: object.y! + vertex.y,
+          })),
+        },
+      ];
     });
 
     if (!this.anims.exists("skeleton-walk")) {
@@ -414,28 +423,25 @@ export class Exploration extends Scene {
     }
 
     this.mapEnemies = layer.objects
-      .filter((o) => this.isMapEnemyObject(o))
-      .flatMap((o) => {
-        const objectId = o.id!;
-        if (this.session.defeatedEncounters.has(`enemy:${objectId}`)) return [];
-        const skeletonCount =
-          this.getNumberObjectProperty(o, "skeleton") ?? undefined;
-        const encounter = this.hasObjectProperty(o, "king-slime")
-          ? KING_SLIME_BOSS_ENCOUNTER
-          : skeletonCount
-            ? buildSkeletonEncounter(skeletonCount)
-            : (ENCOUNTER_BY_NAME.get(o.name ?? "") ??
-              DEFAULT_SKELETON_ENCOUNTER);
-        const sprite = this.createMapEnemySprite(o, encounter);
+      .filter((object) => this.isMapEnemyObject(object))
+      .flatMap((object) => {
+        const objectId = object.id!;
+
+        if (this.session.defeatedEncounters.has(`enemy:${objectId}`)) {
+          return [];
+        }
+
+        const encounter = this.getMapEncounter(object);
+        const sprite = this.createMapEnemySprite(object, encounter);
         this.trackWorldObject(sprite);
         return [{ objectId, encounter, sprite }];
       });
 
     this.mapNpcs = layer.objects
-      .filter((o) => o.name === "baguettefr")
-      .map((o) => {
+      .filter((object) => object.name === "baguettefr")
+      .map((object) => {
         const sprite = this.add
-          .sprite(o.x!, o.y!, "baguettefr-idle-down", "0")
+          .sprite(object.x!, object.y!, "baguettefr-idle-down", "0")
           .play("baguettefr-idle-down")
           .setOrigin(0.5, 0.75)
           .setDepth(2)
@@ -484,6 +490,14 @@ export class Exploration extends Scene {
       object.name === "boss" ||
       this.hasObjectProperty(object, "king-slime")
     );
+  }
+
+  private getMapEncounter(object: Phaser.Types.Tilemaps.TiledObject) {
+    return resolveEncounter({
+      encounterName: object.name ?? undefined,
+      skeletonCount: this.getNumberObjectProperty(object, "skeleton"),
+      isKingSlimeBoss: this.hasObjectProperty(object, "king-slime"),
+    });
   }
 
   private createMapEnemySprite(
@@ -988,7 +1002,6 @@ export class Exploration extends Scene {
   }
 
   private drawSpriteBoundsHighlight(sprite: Phaser.GameObjects.Sprite) {
-    return;
     const bounds = sprite.getBounds();
     this.interactionHighlight.lineStyle(OUTLINE_THICKNESS, 0xffffff, 1);
     this.interactionHighlight.strokeRoundedRect(
@@ -1055,21 +1068,13 @@ export class Exploration extends Scene {
   }
 
   private getNearbyRecruitableHero() {
-    const knightNear =
-      PhaserMath.Distance.Between(
-        this.player.x,
-        this.player.y,
-        KNIGHT_RECRUIT_POINT.x,
-        KNIGHT_RECRUIT_POINT.y,
-      ) <= INTERACT_DISTANCE;
+    const knightNear = this.isWithinInteractionDistance(
+      KNIGHT_RECRUIT_POINT.x,
+      KNIGHT_RECRUIT_POINT.y,
+    );
     const heroSpawn = this.mapHeroSpawns.find(
       (spawn) =>
-        PhaserMath.Distance.Between(
-          this.player.x,
-          this.player.y,
-          spawn.sprite.x,
-          spawn.sprite.y,
-        ) <= INTERACT_DISTANCE,
+        this.isWithinInteractionDistance(spawn.sprite.x, spawn.sprite.y),
     );
 
     if (
@@ -1093,24 +1098,21 @@ export class Exploration extends Scene {
 
   private getNearbyNpc(): MapNpc | undefined {
     return this.mapNpcs.find(
-      (npc) =>
-        PhaserMath.Distance.Between(
-          this.player.x,
-          this.player.y,
-          npc.sprite.x,
-          npc.sprite.y,
-        ) <= INTERACT_DISTANCE,
+      (npc) => this.isWithinInteractionDistance(npc.sprite.x, npc.sprite.y),
     );
   }
 
   private isNearHubWall() {
+    return this.isWithinInteractionDistance(
+      this.wallInteractionPoint.x,
+      this.wallInteractionPoint.y,
+    );
+  }
+
+  private isWithinInteractionDistance(x: number, y: number) {
     return (
-      PhaserMath.Distance.Between(
-        this.player.x,
-        this.player.y,
-        this.wallInteractionPoint.x,
-        this.wallInteractionPoint.y,
-      ) <= INTERACT_DISTANCE
+      PhaserMath.Distance.Between(this.player.x, this.player.y, x, y) <=
+      INTERACT_DISTANCE
     );
   }
 

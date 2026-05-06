@@ -115,3 +115,27 @@ export const buildSkeletonEncounter = (count: number): Encounter => ({
 });
 
 export const DEFAULT_SKELETON_ENCOUNTER = buildSkeletonEncounter(1);
+
+export const resolveEncounter = ({
+    encounterName,
+    skeletonCount,
+    isKingSlimeBoss
+}: {
+    encounterName?: string;
+    skeletonCount?: number;
+    isKingSlimeBoss?: boolean;
+}): Encounter => {
+    if (isKingSlimeBoss) {
+        return KING_SLIME_BOSS_ENCOUNTER;
+    }
+
+    if (skeletonCount !== undefined) {
+        return buildSkeletonEncounter(skeletonCount);
+    }
+
+    if (encounterName) {
+        return ENCOUNTER_BY_NAME.get(encounterName) ?? DEFAULT_SKELETON_ENCOUNTER;
+    }
+
+    return DEFAULT_SKELETON_ENCOUNTER;
+};
