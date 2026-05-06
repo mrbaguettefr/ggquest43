@@ -180,7 +180,7 @@ The player gradually understands what the gift is through hints from NPC "baguet
 * `Exploration` debug starts receive a dummy `GameSession` with only Cloud in the recruited party
 * Wall debug starts can set inserted cards with `cards=<mask>`, where the three mask positions are blue, green, and red. `000` means no cards, `X00` means blue, `0X0` means green, `00X` means red, and `XX0` means blue and green.
 * `Battle` also receives `currentArea` and `currentEncounter`; by default this starts `The Forgotten Plains` encounter `0`
-* Battle debug starts can select another fight with `debugArea` and `debugEncounter`, for example `?debugScene=Battle&debugArea=mountains&debugEncounter=1`
+* Battle debug starts can select another fight with `area` and `encounter`, for example `?debugScene=Battle&area=mountains&encounter=1`
 
 ---
 

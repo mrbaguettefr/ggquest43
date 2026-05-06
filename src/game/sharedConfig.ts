@@ -1,14 +1,18 @@
 export const SHARED_CONFIG = {
     encrypted_secret_gift: 'AQZmFHgCGhJ5GXAIA2h8ZHdg'
-};
+} as const;
 
-export const decryptConfigValue = (encryptedValue: string, seedGameCode: string) => {
-    if (seedGameCode.length === 0)
-    {
+export const decryptConfigValue = (
+    encryptedValue: string,
+    seedGameCode: string
+): string => {
+    if (seedGameCode.length === 0) {
         return '';
     }
 
-    const bytes = Uint8Array.from(atob(encryptedValue), (character) => character.charCodeAt(0));
+    const bytes = Uint8Array.from(atob(encryptedValue), (character) =>
+        character.charCodeAt(0)
+    );
     const decoded = Array.from(bytes, (byte, index) => {
         const key = seedGameCode.charCodeAt(index % seedGameCode.length);
 

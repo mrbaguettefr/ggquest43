@@ -25,8 +25,8 @@ type DebugSceneLaunch = {
 };
 
 const DEBUG_SCENE_PARAM = "debugScene";
-const DEBUG_AREA_PARAM = "area";
-const DEBUG_ENCOUNTER_PARAM = "encounter";
+const AREA_PARAM = "area";
+const ENCOUNTER_PARAM = "encounter";
 const DEBUG_TILE_X_PARAM = "tileX";
 const DEBUG_TILE_Y_PARAM = "tileY";
 const DEBUG_WALL_CARDS_PARAM = "cards";
@@ -148,7 +148,7 @@ const recruitDebugHeroes = (session: GameSession, heroKeys: HeroKey[]) => {
 };
 
 const getDebugArea = (params: URLSearchParams): Area => {
-  const requestedArea = params.get(DEBUG_AREA_PARAM);
+  const requestedArea = params.get(AREA_PARAM);
 
   return (
     AREAS.find(
@@ -158,7 +158,7 @@ const getDebugArea = (params: URLSearchParams): Area => {
 };
 
 const getDebugEncounter = (area: Area, params: URLSearchParams): Encounter => {
-  const requestedEncounter = params.get(DEBUG_ENCOUNTER_PARAM);
+  const requestedEncounter = params.get(ENCOUNTER_PARAM);
   const requestedEncounterIndex = Number(requestedEncounter);
 
   if (Number.isInteger(requestedEncounterIndex)) {

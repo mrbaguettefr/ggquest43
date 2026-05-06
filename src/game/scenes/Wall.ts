@@ -140,7 +140,7 @@ export class Wall extends Scene {
 
     if (this.session.revealedCards.size === CARD_ORDER.length) {
       this.afterClose = () => {
-        this.scene.start("Credits");
+        this.scene.start("Credits", { session: this.session });
       };
     }
   }
