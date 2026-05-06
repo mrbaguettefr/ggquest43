@@ -1,6 +1,4 @@
 
-- baguettefr NPC
-    - hints
 - recruting heroes
 - flying enemy
 - fear spell enemy
@@ -22,6 +20,10 @@ minor bugs:
 
 === DONE ===
 
+
+- baguettefr NPC
+    - hints
+    
 - Bosses
     -> drop chest
     -> card access

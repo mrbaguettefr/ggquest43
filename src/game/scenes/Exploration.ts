@@ -47,7 +47,7 @@ const PLAYER_ANIMATION_DIRECTIONS: PlayerDirection[] = ["down", "right", "up"];
 const PLAYER_ANIMATION_STATES: PlayerAnimationState[] = ["idle", "walk"];
 const CLOUD_FRAME_COUNT = 25;
 const PLAYER_COLLISION_RADIUS = 14;
-const MAP_ENEMY_COLLISION_DISTANCE = INTERACT_DISTANCE - 2;
+const MAP_CHARACTER_COLLISION_DISTANCE = INTERACT_DISTANCE - 2;
 const BAGUETTEFR_DIALOG_LINES = [
   "I have seen many walls with holes. Usually they want cards. Sometimes they want emotional support.",
   "One color is a whisper. Three colors become a secret. I recommend whispering back in the correct order.",
@@ -536,16 +536,24 @@ export class Exploration extends Scene {
         x + PLAYER_COLLISION_RADIUS,
         y + PLAYER_COLLISION_RADIUS,
       ) &&
-      !this.isBlockedByMapEnemy(x, y)
+      !this.isBlockedByMapCharacter(x, y)
     );
   }
 
-  private isBlockedByMapEnemy(x: number, y: number): boolean {
-    return this.mapEnemies.some(
-      (enemy) =>
-        PhaserMath.Distance.Between(x, y, enemy.sprite.x, enemy.sprite.y) <
-        MAP_ENEMY_COLLISION_DISTANCE,
+  private isBlockedByMapCharacter(x: number, y: number): boolean {
+    return this.getBlockingMapCharacters().some(
+      (sprite) =>
+        PhaserMath.Distance.Between(x, y, sprite.x, sprite.y) <
+        MAP_CHARACTER_COLLISION_DISTANCE,
     );
+  }
+
+  private getBlockingMapCharacters(): Phaser.GameObjects.Sprite[] {
+    return [
+      ...this.mapEnemies.map((enemy) => enemy.sprite),
+      ...this.mapNpcs.map((npc) => npc.sprite),
+      ...this.mapHeroSpawns.map((spawn) => spawn.sprite),
+    ];
   }
 
   private createHud() {
