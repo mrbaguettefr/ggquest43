@@ -1,9 +1,19 @@
 import { Scene } from "phaser";
 import { CARD_LABELS, CARD_ORDER } from "../gameConstants.ts";
-import type { GameSession } from "../gameTypes.ts";
+import type { CardColor, GameSession } from "../gameTypes.ts";
 
 const CANVAS_W = 1024;
 const CANVAS_H = 768;
+const INSERTED_CARD_SCALE = 0.34;
+
+const INSERTED_CARD_SLOTS: Record<
+  CardColor,
+  { frame: number; x: number; y: number }
+> = {
+  blue: { frame: 0, x: 319, y: 562 },
+  green: { frame: 1, x: 512, y: 562 },
+  red: { frame: 2, x: 705, y: 562 },
+};
 
 export class Wall extends Scene {
   private session: GameSession;
@@ -29,8 +39,11 @@ export class Wall extends Scene {
       .image(CANVAS_W / 2, CANVAS_H / 2, "wall-0")
       .setDisplaySize(CANVAS_W, CANVAS_H);
 
+    const dialog = this.buildDialog();
+    this.addInsertedCards();
+
     this.add
-      .text(CANVAS_W / 2, CANVAS_H - 96, this.buildDialog(), {
+      .text(CANVAS_W / 2, CANVAS_H - 96, dialog, {
         fontFamily: "Arial Black",
         fontSize: 24,
         color: "#ffffff",
@@ -46,6 +59,20 @@ export class Wall extends Scene {
     }
 
     this.input.keyboard.once("keydown", this.returnToExploration, this);
+  }
+
+  private addInsertedCards() {
+    CARD_ORDER.forEach((card) => {
+      if (!this.session.revealedCards.has(card)) {
+        return;
+      }
+
+      const slot = INSERTED_CARD_SLOTS[card];
+      this.add
+        .sprite(slot.x, slot.y, "wall-inserted-cards", slot.frame)
+        .setScale(INSERTED_CARD_SCALE)
+        .setDepth(1);
+    });
   }
 
   private buildDialog() {

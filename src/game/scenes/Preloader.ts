@@ -48,6 +48,11 @@ export class Preloader extends Scene {
 
     this.load.image("main-menu-logo", "MainMenu/main-menu-logo.png");
     this.load.image("wall-0", "Wall/wall-0.png");
+    this.load.spritesheet("wall-inserted-cards", "Wall/inserted-cards.png", {
+      frameWidth: 436,
+      frameHeight: 459,
+      spacing: 1,
+    });
     this.load.image(
       "tileset-wall",
       "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Tileset Wall.png",

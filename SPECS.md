@@ -148,7 +148,7 @@ The player gradually understands what the gift is through hints from NPC "baguet
   * `src/game/scenes/MainMenu.ts` shows a black-background opening menu with the `main-menu-logo` asset, a Start Game item that starts PlayerName with the decrypted session, and a Credits item that starts Credits
   * `src/game/scenes/PlayerName.ts` owns the forced "GGLeBoss" name-entry gag
   * `src/game/scenes/Exploration.ts` owns world rendering, movement, map interactions, routing into Card Reader wall interactions, hero recruitment, battle entry, resurrection handling, and post-battle rewards
-  * `src/game/scenes/Wall.ts` shows the Card Reader wall close-up using `public/assets/Wall/wall-0.png`; when no card has been inserted, Cloud says "There is an weird wall with 3 holes", pending cards are inserted from this close-up view, and pressing any key returns to the same exploration map position unless the final card starts Credits
+  * `src/game/scenes/Wall.ts` shows the Card Reader wall close-up using `public/assets/Wall/wall-0.png`; when no card has been inserted, Cloud says "There is an weird wall with 3 holes", pending cards are inserted from this close-up view, inserted access cards are drawn over the wall from the three-frame row spritesheet `public/assets/Wall/inserted-cards.png`, and pressing any key returns to the same exploration map position unless the final card starts Credits
   * `src/game/scenes/Battle.ts` owns fullscreen combat rendering, target selection, turn resolution, victory, defeat, and returning battle results to Exploration
   * `src/game/scenes/GameOver.ts` remains available as a standalone Game Over scene
 
