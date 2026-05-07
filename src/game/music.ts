@@ -3,7 +3,6 @@ import type { AreaKey } from "./gameTypes.ts";
 
 type MusicSound = Phaser.Sound.BaseSound & {
   volume: number;
-  setVolume(value: number): MusicSound;
 };
 
 const EXPLORATION_MUSIC_BY_AREA: Record<AreaKey, string> = {
@@ -29,34 +28,66 @@ export const playMusic = (
   key: string,
   fadeDuration = 600,
 ) => {
-  if (currentMusicKey === key && currentMusic?.isPlaying) {
+  if (currentMusicKey === key && currentMusic) {
     return;
   }
 
   const previousMusic = currentMusic;
-  currentMusicKey = key;
-  currentMusic = scene.sound.add(key, {
+  const nextMusic = scene.sound.add(key) as MusicSound;
+  nextMusic.volume = 0;
+  nextMusic.play({
     loop: true,
     volume: 0,
-  }) as MusicSound;
-  currentMusic.play();
-
-  scene.tweens.add({
-    targets: currentMusic,
-    volume: MUSIC_VOLUME,
-    duration: fadeDuration,
-    onUpdate: () => currentMusic?.setVolume(currentMusic.volume),
   });
 
-  if (!previousMusic) {
+  currentMusicKey = key;
+  currentMusic = nextMusic;
+
+  if (fadeDuration <= 0) {
+    nextMusic.volume = MUSIC_VOLUME;
+  } else {
+    scene.tweens.add({
+      targets: nextMusic,
+      volume: MUSIC_VOLUME,
+      duration: fadeDuration,
+    });
+  }
+
+  if (!previousMusic || previousMusic === nextMusic) {
     return;
   }
+
+  scene.tweens.killTweensOf(previousMusic);
+
+  if (fadeDuration <= 0) {
+    previousMusic.stop();
+    previousMusic.destroy();
+  } else {
+    scene.tweens.add({
+      targets: previousMusic,
+      volume: 0,
+      duration: fadeDuration,
+      onComplete: () => {
+        previousMusic.stop();
+        previousMusic.destroy();
+      },
+    });
+  }
+};
+
+export const stopMusic = (scene: Scene, fadeDuration = 500) => {
+  if (!currentMusic) {
+    return;
+  }
+
+  const previousMusic = currentMusic;
+  currentMusic = undefined;
+  currentMusicKey = undefined;
 
   scene.tweens.add({
     targets: previousMusic,
     volume: 0,
     duration: fadeDuration,
-    onUpdate: () => previousMusic.setVolume(previousMusic.volume),
     onComplete: () => {
       previousMusic.stop();
       previousMusic.destroy();
