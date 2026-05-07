@@ -459,7 +459,11 @@ export class Battle extends Scene
         this.refreshFinger();
         this.cameras.main.fadeOut(400, 0, 0, 0);
         this.cameras.main.once('camerafadeoutcomplete', () => {
-            this.scene.start('Exploration', { session: this.session, battleResult });
+            this.scene.start('Exploration', {
+                session: this.session,
+                battleResult,
+                startPosition: battleResult.won ? this.session.preBattlePosition : undefined
+            });
         });
     }
 
