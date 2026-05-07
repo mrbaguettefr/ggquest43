@@ -124,6 +124,7 @@ export class Exploration extends Scene {
   private mapTileHeight: number;
   private playerDirection: PlayerDirection = "down";
   private playerFacingLeft = false;
+  private flightMode = false;
 
   constructor() {
     super("Exploration");
@@ -162,6 +163,10 @@ export class Exploration extends Scene {
       onSessionChanged: () => {
         this.refreshMapHeroSpawns();
         this.updateHud();
+      },
+      flightModeToggle: () => {
+        this.flightMode = !this.flightMode;
+        return this.flightMode;
       },
     });
     this.registerInput();
@@ -706,6 +711,7 @@ export class Exploration extends Scene {
   }
 
   private canMoveTo(x: number, y: number): boolean {
+    if (this.flightMode) return true;
     return (
       this.isWalkable(
         x - PLAYER_COLLISION_RADIUS,
@@ -1067,8 +1073,9 @@ export class Exploration extends Scene {
     if (enemy) {
       const totalCount = enemy.encounter.enemies.reduce((sum, e) => sum + (e.count ?? 1), 0);
       const stackLabel = getApproximateStackLabel(totalCount);
+      const displayName = enemy.encounter.name.replace(/ ×\d+/g, '');
       return {
-        text: `Press E: fight ${enemy.encounter.name} — ${stackLabel}`,
+        text: `Press E: fight ${displayName} — ${stackLabel}`,
         target: { kind: "sprite", sprite: enemy.sprite },
       };
     }

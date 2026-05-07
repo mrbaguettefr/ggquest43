@@ -8,6 +8,7 @@ type DebugDialogOptions = {
   session?: GameSession;
   mapHeroUnlocks?: HeroKey[];
   onSessionChanged?: () => void;
+  flightModeToggle?: () => boolean;
 };
 
 export const isDebugToggleKey = (event: KeyboardEvent) => {
@@ -48,13 +49,16 @@ const createDebugPanel = (
 ) => {
   const unlockCount = options.mapHeroUnlocks?.length ?? 0;
   const hasMapHeroUnlocks = unlockCount > 0;
-  const panelHeight = hasMapHeroUnlocks ? 390 : 260;
+  const hasFlightMode = !!options.flightModeToggle;
+  const flightOffset = hasFlightMode ? 52 : 0;
+  const panelHeight = (hasMapHeroUnlocks ? 390 : 260) + flightOffset;
   const titleY = hasMapHeroUnlocks ? -160 : -96;
   const teamLabelY = hasMapHeroUnlocks ? -108 : -48;
   const teamButtonY = hasMapHeroUnlocks ? -60 : 0;
   const unlockStartY = 0;
   const statusY = hasMapHeroUnlocks ? 116 : 48;
-  const hintY = hasMapHeroUnlocks ? 160 : 96;
+  const flightButtonY = hasMapHeroUnlocks ? 160 : 96;
+  const hintY = flightButtonY + flightOffset;
   const panel = scene.add.container(512, 384).setDepth(PANEL_DEPTH);
   const bg = scene.add
     .rectangle(0, 0, 440, panelHeight, 0x111827, 0.94)
@@ -156,10 +160,56 @@ const createDebugPanel = (
     });
   }
 
+  if (hasFlightMode) {
+    let flightOn = false;
+    const flightBtn = createToggleButton(
+      scene,
+      0,
+      flightButtonY,
+      () => `Flight: ${flightOn ? 'ON ✈' : 'OFF'}`,
+      () => { flightOn = options.flightModeToggle!(); },
+    );
+    panel.add(flightBtn);
+  }
+
   refreshStatus(options.session, status);
   configureDebugPanelCamera(scene, panel);
 
   return panel;
+};
+
+const createToggleButton = (
+  scene: Scene,
+  x: number,
+  y: number,
+  getLabel: () => string,
+  onToggle: () => void,
+  width = 184,
+) => {
+  const container = scene.add.container(x, y);
+  const bg = scene.add
+    .rectangle(0, 0, width, 44, 0x243b6b, 0.96)
+    .setStrokeStyle(2, 0x6688ff, 1);
+  const text = scene.add
+    .text(0, 0, getLabel(), {
+      fontFamily: 'Arial Black',
+      fontSize: 18,
+      color: '#ffffff',
+      stroke: '#000000',
+      strokeThickness: 4,
+      align: 'center',
+    })
+    .setOrigin(0.5);
+  container.add([bg, text]);
+  container.setSize(width, 44);
+  container.setInteractive({ useHandCursor: true });
+  container.on('pointerover', () => bg.setFillStyle(0x365aa0, 0.96));
+  container.on('pointerout', () => bg.setFillStyle(0x243b6b, 0.96));
+  container.on('pointerdown', () => {
+    onToggle();
+    text.setText(getLabel());
+  });
+  return container;
 };
 
 const createButton = (
