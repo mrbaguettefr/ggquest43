@@ -15,11 +15,13 @@ import type {
   Encounter,
   GameSession,
   HeroKey,
+  Area,
 } from "../gameTypes.ts";
 
 type MapEnemy = {
   objectId: number;
   encounter: Encounter;
+  area?: Area;
   sprite: Phaser.GameObjects.Sprite;
 };
 
@@ -101,7 +103,7 @@ export class Exploration extends Scene {
     Record<HeroKey, { x: number; y: number }>
   >;
   private areaPolygons: Array<{
-    name: string;
+    area: Area;
     vertices: Array<{ x: number; y: number }>;
   }>;
   private fogGraphics: Phaser.GameObjects.Graphics;
@@ -429,7 +431,7 @@ export class Exploration extends Scene {
 
       return [
         {
-          name: AREAS[i].name,
+          area: AREAS[i],
           vertices: (object.polygon ?? []).map((vertex) => ({
             x: object.x! + vertex.x,
             y: object.y! + vertex.y,
@@ -460,9 +462,10 @@ export class Exploration extends Scene {
         }
 
         const encounter = this.getMapEncounter(object);
+        const area = this.getAreaAtPosition(object.x!, object.y!);
         const sprite = this.createMapEnemySprite(object, encounter);
         this.trackWorldObject(sprite);
-        return [{ objectId, encounter, sprite }];
+        return [{ objectId, encounter, area, sprite }];
       });
 
     this.mapNpcs = layer.objects
@@ -827,8 +830,11 @@ export class Exploration extends Scene {
   }
 
   private startEnemyBattle(enemy: MapEnemy) {
+    this.syncCurrentAreaFromPlayer();
     this.session.currentEncounter = this.cloneEncounter(enemy.encounter);
     this.session.currentEnemyObjectId = enemy.objectId;
+    this.session.currentArea =
+      enemy.area ?? this.getAreaAtPosition(enemy.sprite.x, enemy.sprite.y) ?? this.session.currentArea;
     this.session.currentLocation = enemy.encounter.name;
     this.session.preBattlePosition = { x: this.player.x, y: this.player.y };
     this.inputLocked = true;
@@ -1095,10 +1101,33 @@ export class Exploration extends Scene {
     this.highlightedSprite = undefined;
   }
 
+  private getCurrentArea(): Area | undefined {
+    return this.getAreaAtPosition(this.player.x, this.player.y);
+  }
+
+  private getAreaAtPosition(x: number, y: number): Area | undefined {
+    return this.areaPolygons.find(({ vertices }) =>
+      this.pointInPolygon(x, y, vertices),
+    )?.area;
+  }
+
+  private syncCurrentAreaFromPlayer() {
+    const currentArea = this.getCurrentArea();
+
+    if (currentArea) {
+      this.session.currentArea = currentArea;
+      this.session.currentLocation = currentArea.name;
+      return;
+    }
+
+    this.session.currentArea = undefined;
+    this.session.currentLocation = "Center of the World";
+  }
+
   private getCurrentAreaName(): string | undefined {
     return this.areaPolygons.find(({ vertices }) =>
       this.pointInPolygon(this.player.x, this.player.y, vertices),
-    )?.name;
+    )?.area.name;
   }
 
   private pointInPolygon(
@@ -1122,6 +1151,7 @@ export class Exploration extends Scene {
   }
 
   private updateHud() {
+    this.syncCurrentAreaFromPlayer();
     const location = this.getCurrentAreaName() ?? this.session.currentLocation;
     this.infoText.setText(`Location: ${location}`);
     this.partyText.setText(

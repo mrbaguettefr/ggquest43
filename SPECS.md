@@ -156,6 +156,7 @@ The player gradually understands what the gift is through hints from NPC "baguet
 * After King Slime is defeated, Leon unlocks and appears at the exploration map object named `leon` until recruited. Exploration renders Leon with `public/assets/Exploration/world/characters/leon-iso_idle_down-v1.*`, plays the idle-down animation, and lets the player press E nearby to recruit him.
 * The `baguettefr` NPC is placed from the exploration map object named `baguettefr`. Exploration renders the NPC with `public/assets/Exploration/world/characters/baguettefr-iso_idle_down-v1.*`, plays the idle-down animation, and lets the player press E nearby to open a dialog message. The NPC dialog uses the same centered Exploration message format as hero recruitment and changes hints based on Card Reader progress.
 * Battle renders recruited Leon with `public/assets/Battle/characters/leon-idle_with_pistol_in_hand-v1.png`. Cloud's battle sprite is flipped horizontally so he faces the enemies.
+* Battle background art is selected from the current exploration area: Area 1 / The Forgotten Plains uses `public/assets/Battle/background/battlefield-green.png`, Area 2 / Ashen Mountains uses `battlefield-cave.png`, and Area 3 / Dungeon Depths uses `battlefield-lava.png`.
 * Active map enemies, NPCs, and visible recruitable hero map sprites block Cloud's exploration movement like obstacles while still allowing Cloud to stand within interaction range and press E to fight, talk, or recruit. Defeated enemies and recruited heroes are removed from both the map and movement blocking.
 * Exploration map actors and object sprites, including Cloud, enemies, NPCs, recruitable heroes, and `plant` tile objects, use y-based depth values so lower objects draw in front of higher objects.
 * When Cloud is within interaction range, Exploration shows the matching `Press E` prompt and highlights the current target. In WebGL, sprite-based interactables use a sprite-shaped yellow glow via Phaser `filters.internal.addGlow(...)`; when Phaser is running under Canvas through `AUTO`, sprite highlights fall back to a rounded bounds outline. Point-based interactions such as the Card Reader wall and the knight recruit spot use a fixed world-space outline box.
@@ -296,6 +297,7 @@ Always visible while exploring:
 * The player can move with either Arrow keys or WASD
 
 * Current location label
+  * Updates while the player moves between the center hub and each map area
 
   * Examples:
 

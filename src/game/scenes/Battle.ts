@@ -1,6 +1,6 @@
 import { Math as PhaserMath, Scene } from 'phaser';
 import { installDebugDialog } from '../debugDialog.ts';
-import type { BattleResult, Encounter, GameSession, Hero } from '../gameTypes.ts';
+import type { AreaKey, BattleResult, Encounter, GameSession, Hero } from '../gameTypes.ts';
 
 type BattleState = 'choosing-action' | 'choosing-target' | 'done';
 type ActionChoice = 'attack' | 'skip' | 'flee';
@@ -21,6 +21,11 @@ const ENEMY_X = 760;
 const ENEMY_Y_START = 320;
 const ENEMY_Y_STEP = 130;
 const SPRITE_SCALE = 0.45;
+const BATTLE_BACKGROUND_BY_AREA: Record<AreaKey, string> = {
+    plains: 'battle-bg-green',
+    mountains: 'battle-bg-cave',
+    dungeon: 'battle-bg-lava',
+};
 
 export class Battle extends Scene
 {
@@ -96,7 +101,11 @@ export class Battle extends Scene
 
     private createBackground()
     {
-        this.add.image(CANVAS_W / 2, CANVAS_H / 2, 'battle-bg')
+        const textureKey = this.session.currentArea
+            ? BATTLE_BACKGROUND_BY_AREA[this.session.currentArea.key]
+            : BATTLE_BACKGROUND_BY_AREA.plains;
+
+        this.add.image(CANVAS_W / 2, CANVAS_H / 2, textureKey)
             .setDisplaySize(CANVAS_W, CANVAS_H)
             .setDepth(0);
     }

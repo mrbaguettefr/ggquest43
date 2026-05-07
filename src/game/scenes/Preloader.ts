@@ -121,7 +121,9 @@ export class Preloader extends Scene {
       "king-slime-boss-exploration-idle-json",
       "Exploration/world/monsters/king-slime-boss-iso_idle_right-v1.json",
     );
-    this.load.image("battle-bg", "Battle/background/battlefield-cave.png");
+    this.load.image("battle-bg-green", "Battle/background/battlefield-green.png");
+    this.load.image("battle-bg-cave", "Battle/background/battlefield-cave.png");
+    this.load.image("battle-bg-lava", "Battle/background/battlefield-lava.png");
     this.load.spritesheet("cloud-battle-idle", "Battle/characters/cloud-idle-v1.png", {
       frameWidth: 256,
       frameHeight: 256,
