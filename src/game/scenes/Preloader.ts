@@ -2,7 +2,7 @@ import { Scene } from "phaser";
 import { getDebugSceneLaunch } from "../debugStart.ts";
 
 const CLOUD_DIRECTIONS = ["down", "right", "up"] as const;
-const CLOUD_ANIMATION_STATES = ["idle", "walk"] as const;
+const CLOUD_ANIMATION_STATES = ["idle", "run"] as const;
 
 type CloudDirection = (typeof CLOUD_DIRECTIONS)[number];
 type CloudAnimationState = (typeof CLOUD_ANIMATION_STATES)[number];
@@ -96,15 +96,23 @@ export class Preloader extends Scene {
       "leon-exploration-idle-down-json",
       "Exploration/world/characters/leon3-iso_idle_down-v1.json",
     );
+    this.load.image(
+      "mistress-exploration-idle-down-img",
+      "Exploration/world/characters/mistress2-iso_idle_down-v1.png",
+    );
+    this.load.json(
+      "mistress-exploration-idle-down-json",
+      "Exploration/world/characters/mistress2-iso_idle_down-v1.json",
+    );
     for (const state of CLOUD_ANIMATION_STATES) {
       for (const dir of CLOUD_DIRECTIONS) {
         this.load.image(
           this.getCloudAssetKey(state, dir, "img"),
-          `Exploration/world/characters/cloud-iso_${state}_${dir}-v1.png`,
+          `Exploration/world/characters/cloud2-iso_${state}_${dir}-v1.png`,
         );
         this.load.json(
           this.getCloudAssetKey(state, dir, "json"),
-          `Exploration/world/characters/cloud-iso_${state}_${dir}-v1.json`,
+          `Exploration/world/characters/cloud2-iso_${state}_${dir}-v1.json`,
         );
       }
     }
@@ -141,6 +149,14 @@ export class Preloader extends Scene {
       "Battle/characters/leon3-idle-v1.json",
     );
     this.load.image(
+      "mistress-battle-idle-img",
+      "Battle/characters/mistress2-idle-v1.png",
+    );
+    this.load.json(
+      "mistress-battle-idle-json",
+      "Battle/characters/mistress2-idle-v1.json",
+    );
+    this.load.image(
       "king-slime-boss-battle-idle-img",
       "Battle/monsters/king-slime-boss-idle-v1.png",
     );
@@ -163,6 +179,11 @@ export class Preloader extends Scene {
       "leon-exploration-idle-down-json",
     );
     this.registerAtlas(
+      "mistress-exploration-idle-down",
+      "mistress-exploration-idle-down-img",
+      "mistress-exploration-idle-down-json",
+    );
+    this.registerAtlas(
       "king-slime-boss-exploration-idle",
       "king-slime-boss-exploration-idle-img",
       "king-slime-boss-exploration-idle-json",
@@ -182,9 +203,15 @@ export class Preloader extends Scene {
       "leon-battle-idle-img",
       "leon-battle-idle-json",
     );
+    this.registerAtlas(
+      "mistress-battle-idle",
+      "mistress-battle-idle-img",
+      "mistress-battle-idle-json",
+    );
 
     this.createAtlasAnimation("battle-idle", "cloud-battle-idle", 8);
     this.createAtlasAnimation("leon-battle-idle", "leon-battle-idle", 8);
+    this.createAtlasAnimation("mistress-battle-idle", "mistress-battle-idle", 8);
     this.createAtlasAnimation(
       "baguettefr-idle-down",
       "baguettefr-idle-down",
@@ -193,6 +220,11 @@ export class Preloader extends Scene {
     this.createAtlasAnimation(
       "leon-exploration-idle-down",
       "leon-exploration-idle-down",
+      8,
+    );
+    this.createAtlasAnimation(
+      "mistress-exploration-idle-down",
+      "mistress-exploration-idle-down",
       8,
     );
     this.createAtlasAnimation(

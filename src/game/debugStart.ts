@@ -123,7 +123,7 @@ const createDebugWallSession = (params: URLSearchParams): GameSession => {
 };
 
 const createDebugSession = (
-  recruitedHeroes: HeroKey[] = ["cloud", "leon", "knight"],
+  recruitedHeroes: HeroKey[] = ["cloud", "leon", "mistress"],
 ): GameSession => {
   const secretGift = "DEBUG-SECRET-GIFTX";
   const session = createGameSession();

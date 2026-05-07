@@ -83,7 +83,7 @@ const CREDIT_SECTIONS: CreditSection[] = [
             'Wall Text Author',
             'Boss Name Poet',
             'Cloud Regret Specialist',
-            'Knight Apology Supervisor',
+            'Mistress Apology Supervisor',
             'baguettefr Quote Archivist'
         ]
     },

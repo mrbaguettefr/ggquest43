@@ -140,6 +140,16 @@ export class Battle extends Scene
             };
         }
 
+        if (hero.key === 'mistress')
+        {
+            return {
+                texture: 'mistress-battle-idle',
+                animation: 'mistress-battle-idle',
+                scale: SPRITE_SCALE,
+                flipX: false
+            };
+        }
+
         return {
             texture: 'cloud-battle-idle',
             animation: 'battle-idle',

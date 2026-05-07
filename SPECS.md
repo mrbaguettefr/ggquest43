@@ -91,7 +91,7 @@ The map is divided into 3 areas with increasing difficulty:
 * Reward:
 
   * Blue Card
-  * Unlock Hero: Knight (appears next to the wall in the hub)
+  * Unlock Hero: Mistress (appears next to the wall in the hub)
 
 ### Area 3: The Molten Underdeep
 
@@ -147,19 +147,19 @@ The player gradually understands what the gift is through hints from NPC "baguet
   * `src/game/scenes/Seed.ts` owns seed game code entry, secret gift decryption, initial session creation, and then starts MainMenu immediately when a seed is present
   * `src/game/scenes/MainMenu.ts` shows a black-background opening menu with the `main-menu-logo` asset, a Start Game item that starts PlayerName with the decrypted session, and a Credits item that starts Credits
   * `src/game/scenes/PlayerName.ts` owns the forced "GGLeBoss" name-entry gag
-  * `src/game/scenes/Exploration.ts` owns world rendering, movement, map interactions, routing into Card Reader wall interactions, hero recruitment, battle entry, resurrection handling, post-battle rewards, and an Exploration-only debug dialog action that unlocks Leon on the map for manual recruitment
+  * `src/game/scenes/Exploration.ts` owns world rendering, movement, map interactions, routing into Card Reader wall interactions, hero recruitment, battle entry, resurrection handling, post-battle rewards, and Exploration-only debug dialog actions that unlock Leon or Mistress on the map for manual recruitment
   * `src/game/scenes/Wall.ts` shows the Card Reader wall close-up using `public/assets/Wall/wall-0.png`; when no card has been inserted, Cloud says "There is an weird wall with 3 holes", pending cards are inserted from this close-up view, inserted access cards are drawn over the wall from the three-frame row spritesheet `public/assets/Wall/inserted-cards.png`, and revealed fragment codes are written in the top panel in blue-green-red slot order with blank unrevealed fragments separated by dashes. Pressing any key returns to the same exploration map position unless the final card starts Credits.
   * `src/game/scenes/Battle.ts` owns fullscreen combat rendering, target selection, turn resolution, victory, defeat, and returning battle results to Exploration
   * `src/game/scenes/GameOver.ts` remains available as a standalone Game Over scene
 
-* Cloud's exploration sprite uses the `public/assets/Exploration/world/characters/cloud-iso_{idle,walk}_{down,right,up}-v1.*` image and atlas JSON files. The custom atlas JSON is adapted into Phaser atlas textures during Preloader setup, then Exploration uses directional idle animations while standing and directional walk animations while moving. Left-facing movement reuses the right-facing walk/idle atlases and flips the player sprite horizontally with Phaser's flip API.
-* After King Slime is defeated, Leon unlocks and appears at the exploration map object named `leon` until recruited. Exploration renders Leon with `public/assets/Exploration/world/characters/leon3-iso_idle_down-v1.*`, plays the idle-down animation, and lets the player press E nearby to recruit him.
+* Cloud's exploration sprite uses the `public/assets/Exploration/world/characters/cloud2-iso_{idle,run}_{down,right,up}-v1.*` image and atlas JSON files. The custom atlas JSON is adapted into Phaser atlas textures during Preloader setup, then Exploration uses directional idle animations while standing and directional run animations while moving. Left-facing movement reuses the right-facing run/idle atlases and flips the player sprite horizontally with Phaser's flip API.
+* After King Slime is defeated, Leon unlocks and appears at the exploration map object named `leon` until recruited. Exploration renders Leon with `public/assets/Exploration/world/characters/leon3-iso_idle_down-v1.*`, plays the idle-down animation, and lets the player press E nearby to recruit him. After the blue card unlock, Mistress appears at the exploration map object named `mistress`; Exploration renders her with `public/assets/Exploration/world/characters/mistress2-iso_idle_down-v1.*`, plays the idle-down animation, and lets the player press E nearby to recruit her.
 * The `baguettefr` NPC is placed from the exploration map object named `baguettefr`. Exploration renders the NPC with `public/assets/Exploration/world/characters/baguettefr-iso_idle_down-v1.*`, plays the idle-down animation, and lets the player press E nearby to open a dialog message. The NPC dialog uses the same centered Exploration message format as hero recruitment and changes hints based on Card Reader progress.
-* Battle renders Cloud with `public/assets/Battle/characters/cloud-idle-v1.*` and recruited Leon with `public/assets/Battle/characters/leon3-idle-v1.*`. When a matching JSON file exists beside a battle character or monster PNG, Preloader adapts that JSON into a Phaser atlas texture instead of slicing frames by guessed dimensions. Cloud's battle sprite is flipped horizontally so he faces the enemies.
+* Battle renders Cloud with `public/assets/Battle/characters/cloud-idle-v1.*`, recruited Leon with `public/assets/Battle/characters/leon3-idle-v1.*`, and recruited Mistress with `public/assets/Battle/characters/mistress2-idle-v1.*`. When a matching JSON file exists beside a battle character or monster PNG, Preloader adapts that JSON into a Phaser atlas texture instead of slicing frames by guessed dimensions. Cloud's battle sprite is flipped horizontally so he faces the enemies.
 * Battle background art is selected from the current exploration area: Area 1 / The Verdant Plains uses `public/assets/Battle/background/battlefield-plains.png`, Area 2 / The Hollow Dungeon uses `battlefield-dungeon.png`, and Area 3 / The Molten Underdeep uses `battlefield-lava-underground.png`.
 * Active map enemies, NPCs, and visible recruitable hero map sprites block Cloud's exploration movement like obstacles while still allowing Cloud to stand within interaction range and press E to fight, talk, or recruit. Defeated enemies and recruited heroes are removed from both the map and movement blocking.
 * Exploration map actors and object sprites, including Cloud, enemies, NPCs, recruitable heroes, and `plant` tile objects, use y-based depth values so lower objects draw in front of higher objects.
-* When Cloud is within interaction range, Exploration shows the matching `Press E` prompt and highlights the current target. In WebGL, sprite-based interactables use a sprite-shaped yellow glow via Phaser `filters.internal.addGlow(...)`; when Phaser is running under Canvas through `AUTO`, sprite highlights fall back to a rounded bounds outline. Point-based interactions such as the Card Reader wall and the knight recruit spot use a fixed world-space outline box.
+* When Cloud is within interaction range, Exploration shows the matching `Press E` prompt and highlights the current target. In WebGL, sprite-based interactables use a sprite-shaped yellow glow via Phaser `filters.internal.addGlow(...)`; when Phaser is running under Canvas through `AUTO`, sprite highlights fall back to a rounded bounds outline. Point-based interactions such as the Card Reader wall use a fixed world-space outline box.
 * Exploration map objects named `boss` with a `king-slime` custom property start the King Slime boss encounter when the player stands nearby and presses E. The boss uses `public/assets/Exploration/world/monsters/king-slime-boss-iso_idle_right-v1.*` on the map, uses `public/assets/Battle/monsters/king-slime-boss-idle-v1.*` in battle, has high HP with weak attack damage, awards the Blue Card, and unlocks Leon when defeated.
 * Scene-owned assets are grouped under `public/assets/<SceneName>/` when they are only used by that scene. `MainMenu` owns its logo, `Exploration` owns world characters, monsters, and tilemap assets, `Wall` owns the Card Reader wall background, and `Battle` owns combat background and battle character sprites. The shared assets root is reserved for runtime assets used across scenes; currently only `public/assets/bg.png` is intentionally kept there.
 * The editable Tiled exploration map is `public/assets/Exploration/tileset/map.tmj`, with external tilesets stored as `.tsj` files in the same folder. The current map uses the `walls`, `stone-ground`, `props`, `skeleton`, `grass-ground`, `TX Plant`, `lava-ground`, `lava-walls`, and `structs` tilesets, and its tile layers render in this order: `p-ground-1`, `ground-1`, `ground-1-deco`, `walls-1`, `ground-1-deco-blocking`, and `ground-1-deco-2`. Player movement is allowed on any non-empty `ground-1` tile except positions with a tile on `ground-1-deco-blocking`; `walls-1` is visual and does not block movement by itself. Exploration reads gameplay objects from the `bg-objects` and `objects` object layers, including area polygons, start position, wall interaction point, enemies, NPCs, recruitable heroes, and tile objects named `plant`. Plant tile objects are drawn from the `TX Plant` tileset at their Tiled object positions. The Vite `tiledMapPlugin` inlines those tilesets into `public/assets/Exploration/tileset/map-tiled.json` before dev and production builds; Phaser loads the generated `map-tiled.json`.
@@ -220,12 +220,12 @@ Inspired by Resident Evil
 * Skill: "Headshot" (critical chance)
 * Funny trait: overly serious in ridiculous situations
 
-#### Knight
+#### Mistress
 
 From Dungeon Keeper 2
 
 * High damage
-* Skill: "Brutal Strike" (heavy damage, small recoil)
+* Skill: "Whip Crack" (heavy damage, small recoil)
 * Funny trait: always inappropriate / pervy comments
 
 ---
@@ -264,21 +264,21 @@ Consequence:
 
 * At the beginning of each enemy turn:
 
-  * If the Knight is NOT in the player's team
+  * If Mistress is NOT in the player's team
     → Enemies cast "Fear"
     → Player's entire team immediately flees combat
 
 Consequence:
 
-* Player cannot win any fight without the Knight
-* Area cannot be completed without recruiting the Knight
+* Player cannot win any fight without Mistress
+* Area cannot be completed without recruiting Mistress
 
 ---
 
 ### Progression Flow
 
 * Area 1 → unlock Leon → strongly recommended for Area 2
-* Area 2 → unlock Knight → strongly recommended for Area 3
+* Area 2 → unlock Mistress → strongly recommended for Area 3
 
 Entering a new area is never blocked by hero requirements. The area data does not use a `requiredHero` field. Instead of blocking messages, heroes give short battle-start hints when the team lacks what is needed. The hints describe the immediate threat without naming the missing hero, so the solution remains a surprise. For example in Area 2, Cloud comments that flying enemies are out of his reach.
 
@@ -322,7 +322,7 @@ Location: Center of the World
 Party:
 Cloud   HP 120 / 120
 Leon    HP 100 / 100
-Knight  HP 150 / 150
+Mistress HP 150 / 150
 ```
 
 ### Battle UI

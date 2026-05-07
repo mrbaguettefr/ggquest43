@@ -135,7 +135,7 @@ export class Wall extends Scene {
     if (card === "green") {
       this.session.heroes.leon.unlocked = true;
     } else if (card === "blue") {
-      this.session.heroes.knight.unlocked = true;
+      this.session.heroes.mistress.unlocked = true;
     }
 
     if (this.session.revealedCards.size === CARD_ORDER.length) {

@@ -69,7 +69,7 @@ export const AREAS: Area[] = [
             {
                 name: 'Fallen Archangel',
                 card: 'blue',
-                unlockHero: 'knight',
+                unlockHero: 'mistress',
                 enemies: [
                     createEnemy('Fallen Archangel', 96, 12, true, true)
                 ]

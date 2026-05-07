@@ -24,14 +24,14 @@ export const createInitialHeroes = (): Record<HeroKey, Hero> => {
             recruited: false,
             unlocked: false
         },
-        knight: {
-            key: 'knight',
-            name: 'Knight',
+        mistress: {
+            key: 'mistress',
+            name: 'Mistress',
             maxHp: 150,
             hp: 150,
             damage: 28,
             range: 'melee',
-            special: 'Brutal Strike',
+            special: 'Whip Crack',
             recruited: false,
             unlocked: false
         }

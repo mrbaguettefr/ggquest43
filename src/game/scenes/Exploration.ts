@@ -45,10 +45,10 @@ type TiledObjectProperty = {
 };
 
 type PlayerDirection = "down" | "right" | "up";
-type PlayerAnimationState = "idle" | "walk";
+type PlayerAnimationState = "idle" | "run";
 
 const PLAYER_ANIMATION_DIRECTIONS: PlayerDirection[] = ["down", "right", "up"];
-const PLAYER_ANIMATION_STATES: PlayerAnimationState[] = ["idle", "walk"];
+const PLAYER_ANIMATION_STATES: PlayerAnimationState[] = ["idle", "run"];
 const CLOUD_FRAME_COUNT = 25;
 const PLAYER_COLLISION_RADIUS = 14;
 const MAP_CHARACTER_COLLISION_DISTANCE = INTERACT_DISTANCE - 2;
@@ -57,9 +57,7 @@ const SPRITE_HIGHLIGHT_OUTER_STRENGTH = 10;
 const SPRITE_HIGHLIGHT_INNER_STRENGTH = 0;
 const SPRITE_HIGHLIGHT_QUALITY = 10;
 const SPRITE_HIGHLIGHT_DISTANCE = 8;
-const KNIGHT_RECRUIT_POINT = { x: 575, y: 620 };
 const WALL_HIGHLIGHT_SIZE = { width: 52, height: 52 };
-const POINT_HIGHLIGHT_SIZE = { width: 36, height: 36 };
 const BAGUETTEFR_DIALOG_LINES = [
   "I have seen many walls with holes. Usually they want cards. Sometimes they want emotional support.",
   "One color is a whisper. Three colors become a secret. I recommend whispering back in the correct order.",
@@ -147,7 +145,7 @@ export class Exploration extends Scene {
     this.setupUiCamera();
     installDebugDialog(this, {
       session: this.session,
-      mapHeroUnlocks: ["leon"],
+      mapHeroUnlocks: ["leon", "mistress"],
       onSessionChanged: () => {
         this.refreshMapHeroSpawns();
         this.updateHud();
@@ -216,7 +214,7 @@ export class Exploration extends Scene {
     );
     this.player.play(
       this.getPlayerAnimationKey(
-        moving ? "walk" : "idle",
+        moving ? "run" : "idle",
         this.playerDirection,
       ),
       true,
@@ -328,7 +326,7 @@ export class Exploration extends Scene {
             start: 0,
             end: CLOUD_FRAME_COUNT - 1,
           }),
-          frameRate: state === "walk" ? 16 : 8,
+          frameRate: state === "run" ? 16 : 8,
           repeat: -1,
         });
       }
@@ -419,8 +417,12 @@ export class Exploration extends Scene {
     const wallObj = find("wall-interaction")!;
     this.wallInteractionPoint = { x: wallObj.x!, y: wallObj.y! };
     const leonObj = find("leon");
+    const mistressObj = find("mistress");
     this.mapHeroSpawnPoints = {
       ...(leonObj ? { leon: { x: leonObj.x!, y: leonObj.y! } } : {}),
+      ...(mistressObj
+        ? { mistress: { x: mistressObj.x!, y: mistressObj.y! } }
+        : {}),
     };
 
     this.areaPolygons = AREA_OBJECT_KEYS.flatMap((key, i) => {
@@ -537,6 +539,7 @@ export class Exploration extends Scene {
     });
     this.mapHeroSpawns = [];
     this.addMapHeroSpawn("leon", "leon-exploration-idle-down");
+    this.addMapHeroSpawn("mistress", "mistress-exploration-idle-down");
   }
 
   private addMapHeroSpawn(heroKey: HeroKey, textureKey: string) {
@@ -1014,16 +1017,6 @@ export class Exploration extends Scene {
   private getRecruitableHeroHighlightTarget(
     heroKey: HeroKey,
   ): InteractionHighlightTarget | undefined {
-    if (heroKey === "knight") {
-      return {
-        kind: "point",
-        x: KNIGHT_RECRUIT_POINT.x,
-        y: KNIGHT_RECRUIT_POINT.y,
-        width: POINT_HIGHLIGHT_SIZE.width,
-        height: POINT_HIGHLIGHT_SIZE.height,
-      };
-    }
-
     const spawn = this.mapHeroSpawns.find(
       (candidate) => candidate.heroKey === heroKey,
     );
@@ -1174,10 +1167,6 @@ export class Exploration extends Scene {
   }
 
   private getNearbyRecruitableHero() {
-    const knightNear = this.isWithinInteractionDistance(
-      KNIGHT_RECRUIT_POINT.x,
-      KNIGHT_RECRUIT_POINT.y,
-    );
     const heroSpawn = this.mapHeroSpawns.find((spawn) =>
       this.isWithinInteractionDistance(spawn.sprite.x, spawn.sprite.y),
     );
@@ -1188,14 +1177,6 @@ export class Exploration extends Scene {
       !this.session.heroes[heroSpawn.heroKey].recruited
     ) {
       return heroSpawn.heroKey;
-    }
-
-    if (
-      knightNear &&
-      this.session.heroes.knight.unlocked &&
-      !this.session.heroes.knight.recruited
-    ) {
-      return "knight";
     }
 
     return undefined;

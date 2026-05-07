@@ -1,7 +1,7 @@
 import { GameObjects, Scene } from "phaser";
 import type { GameSession, HeroKey } from "./gameTypes.ts";
 
-const HERO_ORDER: HeroKey[] = ["cloud", "leon", "knight"];
+const HERO_ORDER: HeroKey[] = ["cloud", "leon", "mistress"];
 const PANEL_DEPTH = 1000;
 
 type DebugDialogOptions = {
@@ -46,12 +46,21 @@ const createDebugPanel = (
   scene: Scene,
   options: DebugDialogOptions,
 ) => {
+  const unlockCount = options.mapHeroUnlocks?.length ?? 0;
+  const hasMapHeroUnlocks = unlockCount > 0;
+  const panelHeight = hasMapHeroUnlocks ? 390 : 260;
+  const titleY = hasMapHeroUnlocks ? -160 : -96;
+  const teamLabelY = hasMapHeroUnlocks ? -108 : -48;
+  const teamButtonY = hasMapHeroUnlocks ? -60 : 0;
+  const unlockStartY = 0;
+  const statusY = hasMapHeroUnlocks ? 116 : 48;
+  const hintY = hasMapHeroUnlocks ? 160 : 96;
   const panel = scene.add.container(512, 384).setDepth(PANEL_DEPTH);
   const bg = scene.add
-    .rectangle(0, 0, 440, options.mapHeroUnlocks?.length ? 340 : 260, 0x111827, 0.94)
+    .rectangle(0, 0, 440, panelHeight, 0x111827, 0.94)
     .setStrokeStyle(3, 0xf5d56a, 1);
   const title = scene.add
-    .text(0, options.mapHeroUnlocks?.length ? -136 : -96, "DEBUG", {
+    .text(0, titleY, "DEBUG", {
       fontFamily: "Arial Black",
       fontSize: 26,
       color: "#ffffff",
@@ -61,7 +70,7 @@ const createDebugPanel = (
     })
     .setOrigin(0.5);
   const hint = scene.add
-    .text(0, options.mapHeroUnlocks?.length ? 136 : 96, "Press O to close", {
+    .text(0, hintY, "Press O to close", {
       fontFamily: "Arial",
       fontSize: 15,
       color: "#d8f2ff",
@@ -91,7 +100,7 @@ const createDebugPanel = (
   }
 
   const label = scene.add
-    .text(0, options.mapHeroUnlocks?.length ? -88 : -48, "Team size", {
+    .text(0, teamLabelY, "Team size", {
       fontFamily: "Arial Black",
       fontSize: 20,
       color: "#ffffff",
@@ -101,7 +110,7 @@ const createDebugPanel = (
     })
     .setOrigin(0.5);
   const status = scene.add
-    .text(0, options.mapHeroUnlocks?.length ? 76 : 48, "", {
+    .text(0, statusY, "", {
       fontFamily: "Courier New",
       fontSize: 15,
       color: "#ffffff",
@@ -114,22 +123,35 @@ const createDebugPanel = (
   panel.add([label, status]);
 
   [1, 2, 3].forEach((size, index) => {
-    const button = createButton(scene, -116 + index * 116, options.mapHeroUnlocks?.length ? -40 : 0, `${size}`, () => {
-      setTeamSize(options.session!, size);
-      refreshStatus(options.session!, status);
-      options.onSessionChanged?.();
-    });
+    const button = createButton(
+      scene,
+      -116 + index * 116,
+      teamButtonY,
+      `${size}`,
+      () => {
+        setTeamSize(options.session!, size);
+        refreshStatus(options.session!, status);
+        options.onSessionChanged?.();
+      },
+    );
     panel.add(button);
   });
 
-  if (options.mapHeroUnlocks?.length) {
+  if (hasMapHeroUnlocks) {
     options.mapHeroUnlocks.forEach((heroKey, index) => {
       const hero = options.session!.heroes[heroKey];
-      const button = createButton(scene, 0, 22 + index * 52, `Unlock ${hero.name}`, () => {
-        unlockMapHero(options.session!, heroKey);
-        refreshStatus(options.session!, status);
-        options.onSessionChanged?.();
-      }, 184);
+      const button = createButton(
+        scene,
+        0,
+        unlockStartY + index * 52,
+        `Unlock ${hero.name}`,
+        () => {
+          unlockMapHero(options.session!, heroKey);
+          refreshStatus(options.session!, status);
+          options.onSessionChanged?.();
+        },
+        184,
+      );
       panel.add(button);
     });
   }
