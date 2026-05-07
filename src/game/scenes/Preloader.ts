@@ -138,6 +138,25 @@ const EXTRA_ATLAS_ASSETS: AtlasAsset[] = [
     animation: "cyberdemon-exploration-idle",
     frameRate: 8,
   },
+  {
+    key: "infernal-warlock-battle-idle",
+    path: "infernal warlock-idle-v1",
+    animation: "infernal-warlock-battle-idle",
+    frameRate: 8,
+  },
+  {
+    key: "infernal-warlock-battle-attack",
+    path: "infernal warlock-attack-v1",
+    animation: "infernal-warlock-battle-attack",
+    frameRate: 14,
+    repeat: 0,
+  },
+  {
+    key: "infernal-warlock-exploration-idle",
+    path: "infernal warlock-iso_idle_right-v1",
+    animation: "infernal-warlock-exploration-idle",
+    frameRate: 8,
+  },
 ];
 
 export class Preloader extends Scene {

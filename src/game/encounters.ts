@@ -136,6 +136,19 @@ const ENEMY_PRESETS = new Map<string, EnemyPreset>(
             explorationTexture: 'cyberdemon-exploration-idle',
             explorationAnimation: 'cyberdemon-exploration-idle',
             explorationScale: 0.24
+        }],
+        ['infernal_warlock', {
+            name: 'Infernal Warlock',
+            hp: 90,
+            damage: 14,
+            battleTexture: 'infernal-warlock-battle-idle',
+            battleAnimation: 'infernal-warlock-battle-idle',
+            battleAttackTexture: 'infernal-warlock-battle-attack',
+            battleAttackAnimation: 'infernal-warlock-battle-attack',
+            battleScale: 0.48,
+            explorationTexture: 'infernal-warlock-exploration-idle',
+            explorationAnimation: 'infernal-warlock-exploration-idle',
+            explorationScale: 0.22
         }]
     ].map(([key, preset]) => [normalizeEnemyKey(key), preset])
 );

@@ -2984,6 +2984,26 @@
           "y": 450.68855616846
         },
         {
+          "gid": 577,
+          "height": 36,
+          "id": 48,
+          "name": "enemy",
+          "opacity": 1,
+          "properties": [
+            {
+              "name": "1_revenant",
+              "type": "int",
+              "value": 4
+            }
+          ],
+          "rotation": 0,
+          "type": "",
+          "visible": true,
+          "width": 32,
+          "x": 1908.07608790824,
+          "y": 864.021889501793
+        },
+        {
           "height": 0,
           "id": 15,
           "name": "baguettefr",
@@ -3170,6 +3190,246 @@
           "width": 32,
           "x": 348,
           "y": 200
+        },
+        {
+          "gid": 577,
+          "height": 36,
+          "id": 42,
+          "name": "enemy",
+          "opacity": 1,
+          "properties": [
+            {
+              "name": "1_magma_golem",
+              "type": "int",
+              "value": 8
+            },
+            {
+              "name": "2_infernal_warlock",
+              "type": "string",
+              "value": "4"
+            }
+          ],
+          "rotation": 0,
+          "type": "",
+          "visible": true,
+          "width": 32,
+          "x": 501.333333333333,
+          "y": 142.666666666667
+        },
+        {
+          "gid": 577,
+          "height": 36,
+          "id": 43,
+          "name": "enemy",
+          "opacity": 1,
+          "properties": [
+            {
+              "name": "1_magma_golem",
+              "type": "int",
+              "value": 8
+            },
+            {
+              "name": "3_infernal_warlock",
+              "type": "string",
+              "value": "40"
+            },
+            {
+              "name": "5_magma_golem",
+              "type": "string",
+              "value": "12"
+            }
+          ],
+          "rotation": 0,
+          "type": "",
+          "visible": true,
+          "width": 32,
+          "x": 692.666666666667,
+          "y": 193.333333333333
+        },
+        {
+          "gid": 577,
+          "height": 36,
+          "id": 45,
+          "name": "enemy",
+          "opacity": 1,
+          "properties": [
+            {
+              "name": "1_magma_golem",
+              "type": "int",
+              "value": 12
+            },
+            {
+              "name": "2_infernal_warlock",
+              "type": "string",
+              "value": "40"
+            },
+            {
+              "name": "3_infernal_warlock",
+              "type": "string",
+              "value": "40"
+            },
+            {
+              "name": "4_infernal_warlock",
+              "type": "string",
+              "value": "40"
+            },
+            {
+              "name": "5_magma_golem",
+              "type": "string",
+              "value": "12"
+            }
+          ],
+          "rotation": 0,
+          "type": "",
+          "visible": true,
+          "width": 32,
+          "x": 1024.66666666667,
+          "y": 167.333333333333
+        },
+        {
+          "gid": 577,
+          "height": 36,
+          "id": 46,
+          "name": "enemy",
+          "opacity": 1,
+          "properties": [
+            {
+              "name": "1_magma_golem",
+              "type": "int",
+              "value": 80
+            },
+            {
+              "name": "2_magma_golem",
+              "type": "string",
+              "value": "80"
+            },
+            {
+              "name": "3_infernal_warlock",
+              "type": "string",
+              "value": "40"
+            },
+            {
+              "name": "4_magma_golem",
+              "type": "string",
+              "value": "80"
+            },
+            {
+              "name": "5_magma_golem",
+              "type": "string",
+              "value": "80"
+            }
+          ],
+          "rotation": 0,
+          "type": "",
+          "visible": true,
+          "width": 32,
+          "x": 1352,
+          "y": 336.666666666667
+        },
+        {
+          "gid": 577,
+          "height": 36,
+          "id": 49,
+          "name": "enemy",
+          "opacity": 1,
+          "properties": [
+            {
+              "name": "1_magma_golem",
+              "type": "int",
+              "value": 200
+            },
+            {
+              "name": "2_revenant",
+              "type": "string",
+              "value": "2"
+            },
+            {
+              "name": "3_infernal_warlock",
+              "type": "string",
+              "value": "80"
+            },
+            {
+              "name": "4_revenant",
+              "type": "string",
+              "value": "2"
+            },
+            {
+              "name": "5_magma_golem",
+              "type": "string",
+              "value": "200"
+            }
+          ],
+          "rotation": 0,
+          "type": "",
+          "visible": true,
+          "width": 32,
+          "x": 2431.66666666667,
+          "y": 1122.33333333333
+        },
+        {
+          "gid": 577,
+          "height": 36,
+          "id": 47,
+          "name": "enemy",
+          "opacity": 1,
+          "properties": [
+            {
+              "name": "1_magma_golem",
+              "type": "int",
+              "value": 40
+            },
+            {
+              "name": "2_magma_golem",
+              "type": "string",
+              "value": "80"
+            },
+            {
+              "name": "3_infernal_warlock",
+              "type": "string",
+              "value": "1"
+            },
+            {
+              "name": "4_magma_golem",
+              "type": "string",
+              "value": "80"
+            },
+            {
+              "name": "5_magma_golem",
+              "type": "string",
+              "value": "40"
+            }
+          ],
+          "rotation": 0,
+          "type": "",
+          "visible": true,
+          "width": 32,
+          "x": 1363.33333333333,
+          "y": 568.666666666667
+        },
+        {
+          "gid": 577,
+          "height": 36,
+          "id": 44,
+          "name": "enemy",
+          "opacity": 1,
+          "properties": [
+            {
+              "name": "1_magma_golem",
+              "type": "int",
+              "value": 80
+            },
+            {
+              "name": "2_infernal_warlock",
+              "type": "string",
+              "value": "4"
+            }
+          ],
+          "rotation": 0,
+          "type": "",
+          "visible": true,
+          "width": 32,
+          "x": 752.666666666667,
+          "y": 290.666666666667
         }
       ],
       "opacity": 1,
@@ -3180,10 +3440,10 @@
     }
   ],
   "nextlayerid": 25,
-  "nextobjectid": 42,
+  "nextobjectid": 50,
   "orientation": "orthogonal",
   "renderorder": "right-down",
-  "tiledversion": "1.12.1",
+  "tiledversion": "2026.05.04",
   "tileheight": 32,
   "tilesets": [
     {

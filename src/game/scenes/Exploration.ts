@@ -72,6 +72,18 @@ const TILED_GID_MASK = 0x1fffffff;
 const MAP_OBJECT_DEPTH_BASE = 2;
 const MAP_OBJECT_DEPTH_SCALE = 10000;
 
+const getApproximateStackLabel = (count: number): string => {
+  if (count <= 4) return 'Few';
+  if (count <= 9) return 'Several';
+  if (count <= 19) return 'Pack';
+  if (count <= 49) return 'Lots';
+  if (count <= 99) return 'Horde';
+  if (count <= 249) return 'Throng';
+  if (count <= 499) return 'Swarm';
+  if (count <= 999) return 'Zounds';
+  return 'Legion';
+};
+
 export class Exploration extends Scene {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasdKeys: Record<"w" | "a" | "s" | "d", Phaser.Input.Keyboard.Key>;
@@ -619,7 +631,10 @@ export class Exploration extends Scene {
     object: Phaser.Types.Tilemaps.TiledObject,
     encounter: Encounter,
   ) {
-    const leadEnemy = encounter.enemies[0];
+    const leadEnemy = encounter.enemies.reduce(
+      (best, enemy) => enemy.hp > best.hp ? enemy : best,
+      encounter.enemies[0],
+    );
     if (leadEnemy?.explorationTexture && leadEnemy.explorationAnimation) {
       return this.add
         .sprite(object.x!, object.y!, leadEnemy.explorationTexture)
@@ -628,6 +643,7 @@ export class Exploration extends Scene {
         .setScale(leadEnemy.explorationScale ?? 0.28);
     }
 
+    console.warn(`[Exploration] ${encounter.enemies[0]?.name ?? 'Enemy'}: missing explorationTexture, using skeleton fallback`);
     return this.add
       .sprite(object.x!, object.y!, "skeleton")
       .play("skeleton-walk")
@@ -1049,8 +1065,10 @@ export class Exploration extends Scene {
 
     const enemy = this.getNearbyMapEnemy();
     if (enemy) {
+      const totalCount = enemy.encounter.enemies.reduce((sum, e) => sum + (e.count ?? 1), 0);
+      const stackLabel = getApproximateStackLabel(totalCount);
       return {
-        text: `Press E: fight ${enemy.encounter.name}`,
+        text: `Press E: fight ${enemy.encounter.name} — ${stackLabel}`,
         target: { kind: "sprite", sprite: enemy.sprite },
       };
     }

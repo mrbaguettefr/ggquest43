@@ -192,6 +192,14 @@ export class Battle extends Scene
             if (!enemy.battleTexture)
             {
                 sprite.setTint(0xaaaaee);
+                console.warn(`[Battle] ${enemy.name}: missing battleTexture, using fallback`);
+                this.add.text(x, y - sprite.displayHeight / 2 - 6, '[missing sprite]', {
+                    fontFamily: 'Arial',
+                    fontSize: 11,
+                    color: '#ff8800',
+                    stroke: '#000000',
+                    strokeThickness: 2,
+                }).setOrigin(0.5).setDepth(7);
             }
 
             this.enemySprites.push(sprite);
@@ -528,6 +536,13 @@ export class Battle extends Scene
         attackAnimation: string | undefined,
         idleAnimation: string,
     ) {
+        if (attackAnimation && !this.anims.exists(attackAnimation)) {
+            console.warn(`[Battle] Attack animation "${attackAnimation}" not found, falling back to idle`);
+        }
+        if (attackTexture && !this.textures.exists(attackTexture)) {
+            console.warn(`[Battle] Attack texture "${attackTexture}" not found`);
+        }
+
         const animation = attackAnimation && this.anims.exists(attackAnimation)
             ? attackAnimation
             : idleAnimation;
