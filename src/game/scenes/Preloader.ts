@@ -7,7 +7,7 @@ const CLOUD_ANIMATION_STATES = ["idle", "walk"] as const;
 type CloudDirection = (typeof CLOUD_DIRECTIONS)[number];
 type CloudAnimationState = (typeof CLOUD_ANIMATION_STATES)[number];
 
-type CloudAtlasFrame = {
+type SpriteAtlasFrame = {
   x: number;
   y: number;
   w: number;
@@ -15,8 +15,8 @@ type CloudAtlasFrame = {
   duration?: number;
 };
 
-type CloudAtlasData = {
-  frames: Record<string, CloudAtlasFrame>;
+type SpriteAtlasData = {
+  frames: Record<string, SpriteAtlasFrame>;
   meta?: object;
 };
 
@@ -124,14 +124,22 @@ export class Preloader extends Scene {
     this.load.image("battle-bg-plains", "Battle/background/battlefield-plains.png");
     this.load.image("battle-bg-dungeon", "Battle/background/battlefield-dungeon.png");
     this.load.image("battle-bg-lava-underground", "Battle/background/battlefield-lava-underground.png");
-    this.load.spritesheet("cloud-battle-idle", "Battle/characters/cloud-idle-v1.png", {
-      frameWidth: 256,
-      frameHeight: 256,
-    });
-    this.load.spritesheet("leon-battle-idle", "Battle/characters/leon3-idle-v1.png", {
-      frameWidth: 256,
-      frameHeight: 256,
-    });
+    this.load.image(
+      "cloud-battle-idle-img",
+      "Battle/characters/cloud-idle-v1.png",
+    );
+    this.load.json(
+      "cloud-battle-idle-json",
+      "Battle/characters/cloud-idle-v1.json",
+    );
+    this.load.image(
+      "leon-battle-idle-img",
+      "Battle/characters/leon3-idle-v1.png",
+    );
+    this.load.json(
+      "leon-battle-idle-json",
+      "Battle/characters/leon3-idle-v1.json",
+    );
     this.load.image(
       "king-slime-boss-battle-idle-img",
       "Battle/monsters/king-slime-boss-idle-v1.png",
@@ -164,23 +172,19 @@ export class Preloader extends Scene {
       "king-slime-boss-battle-idle-img",
       "king-slime-boss-battle-idle-json",
     );
+    this.registerAtlas(
+      "cloud-battle-idle",
+      "cloud-battle-idle-img",
+      "cloud-battle-idle-json",
+    );
+    this.registerAtlas(
+      "leon-battle-idle",
+      "leon-battle-idle-img",
+      "leon-battle-idle-json",
+    );
 
-    if (!this.anims.exists("battle-idle")) {
-      this.anims.create({
-        key: "battle-idle",
-        frames: this.anims.generateFrameNumbers("cloud-battle-idle", { start: 0, end: 24 }),
-        frameRate: 8,
-        repeat: -1,
-      });
-    }
-    if (!this.anims.exists("leon-battle-idle")) {
-      this.anims.create({
-        key: "leon-battle-idle",
-        frames: this.anims.generateFrameNumbers("leon-battle-idle", { start: 0, end: 24 }),
-        frameRate: 8,
-        repeat: -1,
-      });
-    }
+    this.createAtlasAnimation("battle-idle", "cloud-battle-idle", 8);
+    this.createAtlasAnimation("leon-battle-idle", "leon-battle-idle", 8);
     this.createAtlasAnimation(
       "baguettefr-idle-down",
       "baguettefr-idle-down",
@@ -226,7 +230,7 @@ export class Preloader extends Scene {
           .getSourceImage() as HTMLImageElement;
         const atlas = this.cache.json.get(
           this.getCloudAssetKey(state, direction, "json"),
-        ) as CloudAtlasData | undefined;
+        ) as SpriteAtlasData | undefined;
 
         if (!atlas) {
           throw new Error(`Cloud ${state} atlas data is missing for ${direction}.`);
@@ -243,7 +247,7 @@ export class Preloader extends Scene {
     }
 
     const image = this.textures.get(imageKey).getSourceImage() as HTMLImageElement;
-    const atlas = this.cache.json.get(jsonKey) as CloudAtlasData | undefined;
+    const atlas = this.cache.json.get(jsonKey) as SpriteAtlasData | undefined;
 
     if (!atlas) {
       throw new Error(`${key} atlas data is missing.`);
@@ -280,7 +284,7 @@ export class Preloader extends Scene {
     return `cloud-${state}-${direction}`;
   }
 
-  private toPhaserAtlas(atlas: CloudAtlasData) {
+  private toPhaserAtlas(atlas: SpriteAtlasData) {
     const frames = Object.fromEntries(
       Object.entries(atlas.frames).map(([key, frame]) => [
         key,
