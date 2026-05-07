@@ -68,6 +68,7 @@ const BAGUETTEFR_DIALOG_LINES = [
 ];
 const REQUIRED_MAP_OBJECTS = ["start", "wall-interaction"];
 const AREA_OBJECT_KEYS = ["area-1", "area-2", "area-3"] as const;
+const MAP_OBJECT_LAYER_NAMES = ["bg-objects", "objects"] as const;
 const TILED_GID_MASK = 0x1fffffff;
 const MAP_OBJECT_DEPTH_BASE = 2;
 const MAP_OBJECT_DEPTH_SCALE = 10000;
@@ -262,17 +263,17 @@ export class Exploration extends Scene {
       .createLayer("ground-1", allTilesets)!
       .setDepth(-1) as Phaser.Tilemaps.TilemapLayer;
     this.trackWorldObject(this.groundLayer);
-    const wallsLayer = map
-      .createLayer("walls-1", allTilesets)!
-      .setDepth(0) as Phaser.Tilemaps.TilemapLayer;
-    this.trackWorldObject(wallsLayer);
     const decoGroundLayer = map
       .createLayer("ground-1-deco", allTilesets)
-      ?.setDepth(1);
+      ?.setDepth(0);
     this.trackWorldObject(decoGroundLayer);
+    const wallsLayer = map
+      .createLayer("walls-1", allTilesets)!
+      .setDepth(1) as Phaser.Tilemaps.TilemapLayer;
+    this.trackWorldObject(wallsLayer);
     this.blockingLayer = map
       .createLayer("ground-1-deco-blocking", allTilesets)!
-      .setDepth(1) as Phaser.Tilemaps.TilemapLayer;
+      .setDepth(1.5) as Phaser.Tilemaps.TilemapLayer;
     this.trackWorldObject(this.blockingLayer);
 
     this.camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
@@ -399,12 +400,12 @@ export class Exploration extends Scene {
   }
 
   private extractMapObjects(map: Phaser.Tilemaps.Tilemap) {
-    const layer = map.getObjectLayer("objects");
-    if (!layer) {
-      throw new Error('Map is missing required object layer "objects"');
+    const objects = this.getMapObjects(map);
+    if (objects.length === 0) {
+      throw new Error('Map is missing required object layers "bg-objects" or "objects"');
     }
 
-    const find = (name: string) => layer.objects.find((o) => o.name === name);
+    const find = (name: string) => objects.find((o) => o.name === name);
 
     const missing = REQUIRED_MAP_OBJECTS.filter((name) => !find(name));
     if (missing.length > 0) {
@@ -451,7 +452,7 @@ export class Exploration extends Scene {
       });
     }
 
-    this.mapEnemies = layer.objects
+    this.mapEnemies = objects
       .filter((object) => this.isMapEnemyObject(object))
       .flatMap((object) => {
         const objectId = object.id!;
@@ -467,7 +468,7 @@ export class Exploration extends Scene {
         return [{ objectId, encounter, area, sprite }];
       });
 
-    this.mapNpcs = layer.objects
+    this.mapNpcs = objects
       .filter((object) => object.name === "baguettefr")
       .map((object) => {
         const sprite = this.add
@@ -488,10 +489,7 @@ export class Exploration extends Scene {
     map: Phaser.Tilemaps.Tilemap,
     tileset: Phaser.Tilemaps.Tileset,
   ) {
-    const layer = map.getObjectLayer("objects");
-    if (!layer) return;
-
-    layer.objects
+    this.getMapObjects(map)
       .filter((object) => object.name === "plant" && object.visible !== false)
       .forEach((object) => {
         const gid = (object.gid ?? 0) & TILED_GID_MASK;
@@ -520,6 +518,12 @@ export class Exploration extends Scene {
           .setDepth(this.getMapObjectDepth(object.y!));
         this.trackWorldObject(plant);
       });
+  }
+
+  private getMapObjects(map: Phaser.Tilemaps.Tilemap) {
+    return MAP_OBJECT_LAYER_NAMES.flatMap(
+      (name) => map.getObjectLayer(name)?.objects ?? [],
+    );
   }
 
   private getMapObjectDepth(y: number) {
