@@ -1071,11 +1071,14 @@ export class Exploration extends Scene {
 
     const enemy = this.getNearbyMapEnemy();
     if (enemy) {
-      const totalCount = enemy.encounter.enemies.reduce((sum, e) => sum + (e.count ?? 1), 0);
-      const stackLabel = getApproximateStackLabel(totalCount);
-      const displayName = enemy.encounter.name.replace(/ ×\d+/g, '');
+      const countByName = new Map<string, number>();
+      for (const e of enemy.encounter.enemies) {
+        countByName.set(e.name, (countByName.get(e.name) ?? 0) + (e.count ?? 1));
+      }
+      const parts = Array.from(countByName.entries())
+        .map(([name, count]) => `${name} — ${getApproximateStackLabel(count)}`);
       return {
-        text: `Press E: fight ${displayName} — ${stackLabel}`,
+        text: `Press E: fight ${parts.join(', ')}`,
         target: { kind: "sprite", sprite: enemy.sprite },
       };
     }
