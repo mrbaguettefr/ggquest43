@@ -150,7 +150,7 @@ const ENEMY_PRESETS = new Map<string, EnemyPreset>(
             explorationAnimation: 'infernal-warlock-exploration-idle',
             explorationScale: 0.22
         }]
-    ].map(([key, preset]) => [normalizeEnemyKey(key), preset])
+    ].map(([key, preset]) => [normalizeEnemyKey(key as string), preset] as [string, EnemyPreset])
 );
 
 export const KING_SLIME_BOSS_ENCOUNTER: Encounter = {

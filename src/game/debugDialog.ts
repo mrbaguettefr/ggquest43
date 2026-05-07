@@ -138,7 +138,7 @@ const createDebugPanel = (
   });
 
   if (hasMapHeroUnlocks) {
-    options.mapHeroUnlocks.forEach((heroKey, index) => {
+    options.mapHeroUnlocks!.forEach((heroKey, index) => {
       const hero = options.session!.heroes[heroKey];
       const button = createButton(
         scene,
