@@ -27,8 +27,11 @@ const createPreset = (preset: EnemyPreset, count = 1, battlefieldPosition?: numb
     const safeCount = Math.max(1, Math.floor(count));
     return {
         ...preset,
-        hp: preset.hp,
-        maxHp: preset.hp,
+        hp: preset.hp * safeCount,
+        maxHp: preset.hp * safeCount,
+        unitHp: preset.hp,
+        damage: preset.damage * safeCount,
+        unitDamage: preset.damage,
         count: safeCount,
         battlefieldPosition
     };

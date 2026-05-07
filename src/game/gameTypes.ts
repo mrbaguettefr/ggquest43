@@ -19,6 +19,8 @@ export type Enemy = {
     hp: number;
     maxHp: number;
     damage: number;
+    unitHp?: number;
+    unitDamage?: number;
     count?: number;
     battlefieldPosition?: number;
     flying?: boolean;

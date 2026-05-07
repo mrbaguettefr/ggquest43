@@ -1,7 +1,7 @@
 import { Math as PhaserMath, Scene } from 'phaser';
 import { installDebugDialog } from '../debugDialog.ts';
 import { getRandomCombatMusicKey, playMusic } from '../music.ts';
-import type { AreaKey, BattleResult, Encounter, GameSession, Hero } from '../gameTypes.ts';
+import type { AreaKey, BattleResult, Enemy, Encounter, GameSession, Hero } from '../gameTypes.ts';
 
 type BattleState = 'choosing-action' | 'choosing-target' | 'animating' | 'done';
 type ActionChoice = 'attack' | 'skip' | 'flee';
@@ -446,8 +446,9 @@ export class Battle extends Scene
             }
 
             const damage = hero.key === 'cloud' && target.boss ? hero.damage + 8 : hero.damage;
-            target.hp = Math.max(0, target.hp - damage);
-            log.push(`${hero.name} uses ${hero.special} for ${damage}.`);
+            const slain = this.applyDamageToEnemy(target, damage);
+            const slainText = slain > 0 ? ` (${slain} slain)` : '';
+            log.push(`${hero.name} uses ${hero.special} for ${damage}${slainText}.`);
             this.refreshEnemyLabels();
             this.refreshEnemySprites();
             await this.wait(140);
@@ -482,7 +483,7 @@ export class Battle extends Scene
             const enemyIndex = this.encounter.enemies.indexOf(enemy);
             await this.playEnemyAttack(enemyIndex);
             target.hp = Math.max(0, target.hp - enemy.damage);
-            log.push(`${enemy.name} hits ${target.name} for ${enemy.damage}.`);
+            log.push(`${enemy.name} hits ${target.name} for ${enemy.damage}${enemy.count && enemy.count > 1 ? ` (×${enemy.count})` : ''}.`);
             this.refreshPartyHp();
             await this.wait(140);
         }
@@ -570,6 +571,22 @@ export class Battle extends Scene
                 resolve();
             });
         });
+    }
+
+    private applyDamageToEnemy(enemy: Enemy, damage: number): number
+    {
+        const countBefore = enemy.count ?? 1;
+        enemy.hp = Math.max(0, enemy.hp - damage);
+        if (enemy.unitHp && enemy.unitHp > 0)
+        {
+            const newCount = Math.max(0, Math.ceil(enemy.hp / enemy.unitHp));
+            enemy.count = newCount;
+            if (enemy.unitDamage !== undefined)
+            {
+                enemy.damage = newCount * enemy.unitDamage;
+            }
+        }
+        return countBefore - (enemy.count ?? 1);
     }
 
     private wait(duration: number)

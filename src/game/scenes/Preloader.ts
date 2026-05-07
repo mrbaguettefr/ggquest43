@@ -52,108 +52,108 @@ const EXTRA_ATLAS_ASSETS: AtlasAsset[] = [
   },
   {
     key: "skeleton-archer-battle-idle",
-    path: "skeleton archer-idle-v1",
+    path: "Battle/monsters/skeleton-archer-idle-v1",
     animation: "skeleton-archer-battle-idle",
     frameRate: 8,
   },
   {
     key: "skeleton-archer-battle-attack",
-    path: "skeleton archer-attack-v1",
+    path: "Battle/monsters/skeleton-archer-attack-v1",
     animation: "skeleton-archer-battle-attack",
     frameRate: 14,
     repeat: 0,
   },
   {
     key: "skeleton-archer-exploration-idle",
-    path: "skeleton archer-iso_idle_right-v1",
+    path: "Exploration/world/monsters/skeleton-archer-iso_idle_right-v1",
     animation: "skeleton-archer-exploration-idle",
     frameRate: 8,
   },
   {
     key: "slime-exploration-idle",
-    path: "slime-iso_idle_up-v1",
+    path: "Exploration/world/monsters/slime-iso_idle_up-v1",
     animation: "slime-exploration-idle",
     frameRate: 8,
   },
   {
     key: "magma-golem-battle-idle",
-    path: "magma golem-idle-v1",
+    path: "Battle/monsters/magma-golem-idle-v1",
     animation: "magma-golem-battle-idle",
     frameRate: 8,
   },
   {
     key: "magma-golem-battle-attack",
-    path: "magma golem-attack-v1",
+    path: "Battle/monsters/magma-golem-attack-v1",
     animation: "magma-golem-battle-attack",
     frameRate: 14,
     repeat: 0,
   },
   {
     key: "magma-golem-exploration-idle",
-    path: "magma golem-iso_idle_right-v2",
+    path: "Exploration/world/monsters/magma-golem-iso_idle_right-v2",
     animation: "magma-golem-exploration-idle",
     frameRate: 8,
   },
   {
     key: "revenant-battle-idle",
-    path: "revenant-idle-v1",
+    path: "Battle/monsters/revenant-idle-v1",
     animation: "revenant-battle-idle",
     frameRate: 8,
   },
   {
     key: "revenant-battle-attack",
-    path: "revenant-attack-v1",
+    path: "Battle/monsters/revenant-attack-v1",
     animation: "revenant-battle-attack",
     frameRate: 14,
     repeat: 0,
   },
   {
     key: "revenant-exploration-idle",
-    path: "revenant-iso_idle_right-v1",
+    path: "Exploration/world/monsters/revenant-iso_idle_right-v1",
     animation: "revenant-exploration-idle",
     frameRate: 8,
   },
   {
     key: "bile-demon-battle-idle",
-    path: "bile demon2-idle-v1",
+    path: "Battle/monsters/bile-demon-idle-v1",
     animation: "bile-demon-battle-idle",
     frameRate: 8,
   },
   {
     key: "bile-demon-battle-attack",
-    path: "bile demon2-attack_with_his_weapon_attached_to_his_head-v1",
+    path: "Battle/monsters/bile-demon-attack-v1",
     animation: "bile-demon-battle-attack",
     frameRate: 14,
     repeat: 0,
   },
   {
     key: "cyberdemon-battle-idle",
-    path: "cyber demon-idle-v1",
+    path: "Battle/monsters/cyber-demon-idle-v1",
     animation: "cyberdemon-battle-idle",
     frameRate: 8,
   },
   {
     key: "cyberdemon-exploration-idle",
-    path: "cyber demon-iso_idle_right-v1",
+    path: "Exploration/world/monsters/cyber-demon-iso_idle_right-v1",
     animation: "cyberdemon-exploration-idle",
     frameRate: 8,
   },
   {
     key: "infernal-warlock-battle-idle",
-    path: "infernal warlock-idle-v1",
+    path: "Battle/monsters/infernal-warlock-idle-v1",
     animation: "infernal-warlock-battle-idle",
     frameRate: 8,
   },
   {
     key: "infernal-warlock-battle-attack",
-    path: "infernal warlock-attack-v1",
+    path: "Battle/monsters/infernal-warlock-attack-v1",
     animation: "infernal-warlock-battle-attack",
     frameRate: 14,
     repeat: 0,
   },
   {
     key: "infernal-warlock-exploration-idle",
-    path: "infernal warlock-iso_idle_right-v1",
+    path: "Exploration/world/monsters/infernal-warlock-iso_idle_right-v1",
     animation: "infernal-warlock-exploration-idle",
     frameRate: 8,
   },
@@ -180,13 +180,13 @@ export class Preloader extends Scene {
     this.load.setPath("assets");
 
     this.load.image("main-menu-logo", "MainMenu/main-menu-logo.png");
-    this.load.audio("music-center", "center.m4a");
-    this.load.audio("music-plains", "plains.m4a");
-    this.load.audio("music-dungeon", "dungeon.m4a");
-    this.load.audio("music-lava", "lava.m4a");
-    this.load.audio("music-combat-1", "combat1.m4a");
-    this.load.audio("music-combat-2", "combat2.m4a");
-    this.load.audio("music-combat-3", "combat3.m4a");
+    this.load.audio("music-center", "audio/center.m4a");
+    this.load.audio("music-plains", "audio/plains.m4a");
+    this.load.audio("music-dungeon", "audio/dungeon.m4a");
+    this.load.audio("music-lava", "audio/lava.m4a");
+    this.load.audio("music-combat-1", "audio/combat1.m4a");
+    this.load.audio("music-combat-2", "audio/combat2.m4a");
+    this.load.audio("music-combat-3", "audio/combat3.m4a");
     this.load.image("wall-0", "Wall/wall-0.png");
     this.load.spritesheet("wall-inserted-cards", "Wall/inserted-cards.png", {
       frameWidth: 436,
@@ -334,7 +334,7 @@ export class Preloader extends Scene {
       this.load.image(`${asset.key}-img`, `${asset.path}.png`);
       this.load.json(`${asset.key}-json`, `${asset.path}.json`);
     });
-    this.load.spritesheet("cyberdemon-battle-attack", "cyber demon-attack-v1.png", {
+    this.load.spritesheet("cyberdemon-battle-attack", "Battle/monsters/cyber-demon-attack-v1.png", {
       frameWidth: 256,
       frameHeight: 256,
     });

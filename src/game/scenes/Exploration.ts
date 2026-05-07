@@ -606,9 +606,14 @@ export class Exploration extends Scene {
   ): EncounterStack[] {
     return this.getObjectProperties(object).flatMap((property) => {
       const match = /^([1-5])_(.+)$/.exec(property.name);
-      const count = typeof property.value === "number" ? property.value : undefined;
+      const raw = property.value;
+      const count = typeof raw === "number"
+        ? raw
+        : typeof raw === "string" && raw !== ""
+          ? Number(raw)
+          : undefined;
 
-      if (!match || count === undefined) {
+      if (!match || count === undefined || isNaN(count as number)) {
         return [];
       }
 
