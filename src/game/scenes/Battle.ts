@@ -3,8 +3,16 @@ import { installDebugDialog } from '../debugDialog.ts';
 import { getRandomCombatMusicKey, playMusic } from '../music.ts';
 import type { AreaKey, BattleResult, Encounter, GameSession, Hero } from '../gameTypes.ts';
 
-type BattleState = 'choosing-action' | 'choosing-target' | 'done';
+type BattleState = 'choosing-action' | 'choosing-target' | 'animating' | 'done';
 type ActionChoice = 'attack' | 'skip' | 'flee';
+type BattleSpriteConfig = {
+    texture: string;
+    animation: string;
+    attackTexture?: string;
+    attackAnimation?: string;
+    scale: number;
+    flipX: boolean;
+};
 
 const ACTIONS: ActionChoice[] = ['attack', 'skip', 'flee'];
 const ACTION_LABELS: Record<ActionChoice, string> = {
@@ -20,7 +28,7 @@ const HERO_Y_START = 430;
 const HERO_Y_STEP = 130;
 const ENEMY_X = 760;
 const ENEMY_Y_START = 320;
-const ENEMY_Y_STEP = 130;
+const ENEMY_Y_STEP = 96;
 const SPRITE_SCALE = 0.45;
 const BATTLE_BACKGROUND_BY_AREA: Record<AreaKey, string> = {
     plains: 'battle-bg-plains',
@@ -130,13 +138,15 @@ export class Battle extends Scene
         });
     }
 
-    private getHeroBattleSpriteConfig(hero: Hero)
+    private getHeroBattleSpriteConfig(hero: Hero): BattleSpriteConfig
     {
         if (hero.key === 'leon')
         {
             return {
                 texture: 'leon-battle-idle',
                 animation: 'leon-battle-idle',
+                attackTexture: 'leon-battle-attack',
+                attackAnimation: 'leon-battle-attack',
                 scale: SPRITE_SCALE,
                 flipX: false
             };
@@ -147,6 +157,8 @@ export class Battle extends Scene
             return {
                 texture: 'mistress-battle-idle',
                 animation: 'mistress-battle-idle',
+                attackTexture: 'mistress-battle-attack',
+                attackAnimation: 'mistress-battle-attack',
                 scale: SPRITE_SCALE,
                 flipX: false
             };
@@ -155,6 +167,8 @@ export class Battle extends Scene
         return {
             texture: 'cloud-battle-idle',
             animation: 'battle-idle',
+            attackTexture: 'cloud-battle-attack',
+            attackAnimation: 'cloud-battle-attack',
             scale: SPRITE_SCALE,
             flipX: hero.key === 'cloud'
         };
@@ -164,7 +178,8 @@ export class Battle extends Scene
     {
         this.encounter.enemies.forEach((enemy, index) => {
             const x = ENEMY_X;
-            const y = ENEMY_Y_START + index * ENEMY_Y_STEP;
+            const position = enemy.battlefieldPosition ?? index + 1;
+            const y = ENEMY_Y_START + (position - 1) * ENEMY_Y_STEP;
             const texture = enemy.battleTexture ?? 'enemy-battle-fallback-idle';
             const animation = enemy.battleAnimation ?? 'enemy-battle-fallback-idle';
             const scale = enemy.battleScale ?? SPRITE_SCALE;
@@ -181,7 +196,8 @@ export class Battle extends Scene
 
             this.enemySprites.push(sprite);
 
-            const label = this.add.text(x, this.getEnemyLabelY(sprite), this.enemyLabelText(enemy), {
+            const labelPosition = this.getEnemyLabelPosition(sprite);
+            const label = this.add.text(labelPosition.x, labelPosition.y, this.enemyLabelText(enemy), {
                 fontFamily: 'Arial',
                 fontSize: 15,
                 color: '#ffffff',
@@ -201,14 +217,18 @@ export class Battle extends Scene
         });
     }
 
-    private getEnemyLabelY(sprite: Phaser.GameObjects.Sprite)
+    private getEnemyLabelPosition(sprite: Phaser.GameObjects.Sprite)
     {
-        return sprite.y + Math.max(68, sprite.displayHeight / 2 + 12);
+        return {
+            x: Math.min(CANVAS_W - 94, sprite.x + Math.max(96, sprite.displayWidth / 2 + 42)),
+            y: sprite.y
+        };
     }
 
-    private enemyLabelText(enemy: { name: string; hp: number; maxHp: number })
+    private enemyLabelText(enemy: { name: string; hp: number; maxHp: number; count?: number })
     {
-        return `${enemy.name}\nHP ${enemy.hp}/${enemy.maxHp}`;
+        const count = enemy.count && enemy.count > 1 ? ` ×${enemy.count}` : '';
+        return `${enemy.name}${count}\nHP ${enemy.hp}/${enemy.maxHp}`;
     }
 
     private createCommandWindow()
@@ -391,16 +411,25 @@ export class Battle extends Scene
         }
     }
 
-    private resolveAttack()
+    private async resolveAttack()
     {
+        if (this.state === 'animating' || this.state === 'done') return;
+
         const liveEnemies = this.encounter.enemies.filter((e) => e.hp > 0);
         if (liveEnemies.length === 0) return;
 
+        this.state = 'animating';
+        this.refreshCommandWindow();
+        this.refreshFinger();
+
         const log: string[] = [];
-        for (const hero of this.getParty())
+        const party = this.getParty();
+        for (const hero of party.filter((partyHero) => partyHero.hp > 0))
         {
             const target = this.getSelectedLiveEnemy();
             if (!target) break;
+            const heroIndex = party.findIndex((partyHero) => partyHero.key === hero.key);
+            await this.playHeroAttack(hero, heroIndex);
 
             if (target.flying && hero.range !== 'ranged')
             {
@@ -411,6 +440,9 @@ export class Battle extends Scene
             const damage = hero.key === 'cloud' && target.boss ? hero.damage + 8 : hero.damage;
             target.hp = Math.max(0, target.hp - damage);
             log.push(`${hero.name} uses ${hero.special} for ${damage}.`);
+            this.refreshEnemyLabels();
+            this.refreshEnemySprites();
+            await this.wait(140);
         }
 
         this.refreshEnemyLabels();
@@ -423,19 +455,28 @@ export class Battle extends Scene
             return;
         }
 
-        this.doEnemyTurn(log);
+        await this.doEnemyTurn(log);
     }
 
-    private doEnemyTurn(log: string[])
+    private async doEnemyTurn(log: string[])
     {
-        for (const enemy of this.encounter.enemies.filter((e) => e.hp > 0))
+        this.state = 'animating';
+        this.refreshCommandWindow();
+        this.refreshFinger();
+
+        const liveEnemies = this.encounter.enemies.filter((e) => e.hp > 0);
+        for (const enemy of liveEnemies)
         {
             const liveHeroes = this.getParty().filter((h) => h.hp > 0);
             if (liveHeroes.length === 0) break;
 
             const target = liveHeroes[Math.floor(Math.random() * liveHeroes.length)];
+            const enemyIndex = this.encounter.enemies.indexOf(enemy);
+            await this.playEnemyAttack(enemyIndex);
             target.hp = Math.max(0, target.hp - enemy.damage);
             log.push(`${enemy.name} hits ${target.name} for ${enemy.damage}.`);
+            this.refreshPartyHp();
+            await this.wait(140);
         }
 
         this.refreshPartyHp();
@@ -451,6 +492,76 @@ export class Battle extends Scene
         this.logText.setText(log.join('\n'));
         this.refreshCommandWindow();
         this.refreshFinger();
+    }
+
+    private async playHeroAttack(hero: Hero, heroIndex: number)
+    {
+        const sprite = this.heroSprites[heroIndex];
+        if (!sprite) return;
+
+        const config = this.getHeroBattleSpriteConfig(hero);
+        await this.playAttackThenIdle(
+            sprite,
+            config.attackTexture,
+            config.attackAnimation,
+            config.animation,
+        );
+    }
+
+    private async playEnemyAttack(enemyIndex: number)
+    {
+        const enemy = this.encounter.enemies[enemyIndex];
+        const sprite = this.enemySprites[enemyIndex];
+        if (!enemy || !sprite) return;
+
+        await this.playAttackThenIdle(
+            sprite,
+            enemy.battleAttackTexture,
+            enemy.battleAttackAnimation,
+            enemy.battleAnimation ?? 'enemy-battle-fallback-idle',
+        );
+    }
+
+    private playAttackThenIdle(
+        sprite: Phaser.GameObjects.Sprite,
+        attackTexture: string | undefined,
+        attackAnimation: string | undefined,
+        idleAnimation: string,
+    ) {
+        const animation = attackAnimation && this.anims.exists(attackAnimation)
+            ? attackAnimation
+            : idleAnimation;
+
+        if (attackTexture && this.textures.exists(attackTexture)) {
+            sprite.setTexture(attackTexture);
+        }
+
+        if (!this.anims.exists(animation)) {
+            return this.wait(160);
+        }
+
+        const repeat = this.anims.get(animation)?.repeat ?? -1;
+        sprite.play(animation, true);
+
+        if (repeat === -1) {
+            return this.wait(240);
+        }
+
+        return new Promise<void>((resolve) => {
+            sprite.once('animationcomplete', () => {
+                if (this.anims.exists(idleAnimation)) {
+                    sprite.play(idleAnimation, true);
+                }
+                resolve();
+            });
+        });
+    }
+
+    private wait(duration: number)
+    {
+        return new Promise<void>((resolve) => {
+            this.time.delayedCall(duration, () => resolve());
+        });
     }
 
     private finishBattle(battleResult: BattleResult)

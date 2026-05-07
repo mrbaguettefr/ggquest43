@@ -20,6 +20,126 @@ type SpriteAtlasData = {
   meta?: object;
 };
 
+type AtlasAsset = {
+  key: string;
+  path: string;
+  animation: string;
+  frameRate: number;
+  repeat?: number;
+};
+
+const EXTRA_ATLAS_ASSETS: AtlasAsset[] = [
+  {
+    key: "cloud-battle-attack",
+    path: "Battle/characters/cloud2-attack-v1",
+    animation: "cloud-battle-attack",
+    frameRate: 14,
+    repeat: 0,
+  },
+  {
+    key: "leon-battle-attack",
+    path: "Battle/characters/leon3-attack-v1",
+    animation: "leon-battle-attack",
+    frameRate: 14,
+    repeat: 0,
+  },
+  {
+    key: "mistress-battle-attack",
+    path: "Battle/characters/mistress2-attack-v1",
+    animation: "mistress-battle-attack",
+    frameRate: 14,
+    repeat: 0,
+  },
+  {
+    key: "skeleton-archer-battle-idle",
+    path: "skeleton archer-idle-v1",
+    animation: "skeleton-archer-battle-idle",
+    frameRate: 8,
+  },
+  {
+    key: "skeleton-archer-battle-attack",
+    path: "skeleton archer-attack-v1",
+    animation: "skeleton-archer-battle-attack",
+    frameRate: 14,
+    repeat: 0,
+  },
+  {
+    key: "skeleton-archer-exploration-idle",
+    path: "skeleton archer-iso_idle_right-v1",
+    animation: "skeleton-archer-exploration-idle",
+    frameRate: 8,
+  },
+  {
+    key: "slime-exploration-idle",
+    path: "slime-iso_idle_up-v1",
+    animation: "slime-exploration-idle",
+    frameRate: 8,
+  },
+  {
+    key: "magma-golem-battle-idle",
+    path: "magma golem-idle-v1",
+    animation: "magma-golem-battle-idle",
+    frameRate: 8,
+  },
+  {
+    key: "magma-golem-battle-attack",
+    path: "magma golem-attack-v1",
+    animation: "magma-golem-battle-attack",
+    frameRate: 14,
+    repeat: 0,
+  },
+  {
+    key: "magma-golem-exploration-idle",
+    path: "magma golem-iso_idle_right-v2",
+    animation: "magma-golem-exploration-idle",
+    frameRate: 8,
+  },
+  {
+    key: "revenant-battle-idle",
+    path: "revenant-idle-v1",
+    animation: "revenant-battle-idle",
+    frameRate: 8,
+  },
+  {
+    key: "revenant-battle-attack",
+    path: "revenant-attack-v1",
+    animation: "revenant-battle-attack",
+    frameRate: 14,
+    repeat: 0,
+  },
+  {
+    key: "revenant-exploration-idle",
+    path: "revenant-iso_idle_right-v1",
+    animation: "revenant-exploration-idle",
+    frameRate: 8,
+  },
+  {
+    key: "bile-demon-battle-idle",
+    path: "bile demon2-idle-v1",
+    animation: "bile-demon-battle-idle",
+    frameRate: 8,
+  },
+  {
+    key: "bile-demon-battle-attack",
+    path: "bile demon2-attack_with_his_weapon_attached_to_his_head-v1",
+    animation: "bile-demon-battle-attack",
+    frameRate: 14,
+    repeat: 0,
+  },
+  {
+    key: "cyberdemon-battle-idle",
+    path: "cyber demon-idle-v1",
+    animation: "cyberdemon-battle-idle",
+    frameRate: 8,
+  },
+  {
+    key: "cyberdemon-exploration-idle",
+    path: "cyber demon-iso_idle_right-v1",
+    animation: "cyberdemon-exploration-idle",
+    frameRate: 8,
+  },
+];
+
 export class Preloader extends Scene {
   constructor() {
     super("Preloader");
@@ -126,14 +246,9 @@ export class Preloader extends Scene {
         );
       }
     }
-    this.load.spritesheet(
-      "skeleton",
+    this.load.image(
+      "skeleton-img",
       "Exploration/world/monsters/skeleton.png",
-      {
-        frameWidth: 211,
-        frameHeight: 225,
-        spacing: 4,
-      },
     );
     this.load.image(
       "king-slime-boss-exploration-idle-img",
@@ -195,6 +310,15 @@ export class Preloader extends Scene {
       "king-slime-boss-battle-idle-json",
       "Battle/monsters/king-slime-boss-idle-v1.json",
     );
+
+    EXTRA_ATLAS_ASSETS.forEach((asset) => {
+      this.load.image(`${asset.key}-img`, `${asset.path}.png`);
+      this.load.json(`${asset.key}-json`, `${asset.path}.json`);
+    });
+    this.load.spritesheet("cyberdemon-battle-attack", "cyber demon-attack-v1.png", {
+      frameWidth: 256,
+      frameHeight: 256,
+    });
   }
 
   create() {
@@ -224,6 +348,7 @@ export class Preloader extends Scene {
       "king-slime-boss-battle-idle-img",
       "king-slime-boss-battle-idle-json",
     );
+    this.registerGridAtlas("skeleton", "skeleton-img", 211, 225, 8, 4);
     this.registerAtlas(
       "cloud-battle-idle",
       "cloud-battle-idle-img",
@@ -282,6 +407,23 @@ export class Preloader extends Scene {
       "king-slime-boss-battle-idle",
       8,
     );
+    EXTRA_ATLAS_ASSETS.forEach((asset) => {
+      this.registerAtlas(asset.key, `${asset.key}-img`, `${asset.key}-json`);
+      this.createAtlasAnimation(
+        asset.animation,
+        asset.key,
+        asset.frameRate,
+        asset.repeat ?? -1,
+      );
+    });
+    this.createSpriteSheetAnimation(
+      "cyberdemon-battle-attack",
+      "cyberdemon-battle-attack",
+      14,
+      0,
+      24,
+    );
+    this.createAtlasAnimation("skeleton-walk", "skeleton", 8, -1, 7);
 
     const debugLaunch = getDebugSceneLaunch();
 
@@ -341,6 +483,8 @@ export class Preloader extends Scene {
     key: string,
     textureKey: string,
     frameRate: number,
+    repeat = -1,
+    end = 24,
   ) {
     if (this.anims.exists(key)) {
       return;
@@ -350,10 +494,77 @@ export class Preloader extends Scene {
       key,
       frames: this.anims.generateFrameNames(textureKey, {
         start: 0,
-        end: 24,
+        end,
       }),
       frameRate,
-      repeat: -1,
+      repeat,
+    });
+  }
+
+  private registerGridAtlas(
+    key: string,
+    imageKey: string,
+    frameWidth: number,
+    frameHeight: number,
+    frameCount: number,
+    spacing = 0,
+  ) {
+    if (this.textures.exists(key)) {
+      return;
+    }
+
+    const image = this.textures.get(imageKey).getSourceImage() as HTMLImageElement;
+    const frames = Object.fromEntries(
+      Array.from({ length: frameCount }, (_, index) => {
+        const x = index * (frameWidth + spacing);
+        return [
+          String(index),
+          {
+            frame: {
+              x,
+              y: 0,
+              w: frameWidth,
+              h: frameHeight,
+            },
+            rotated: false,
+            trimmed: false,
+            spriteSourceSize: {
+              x: 0,
+              y: 0,
+              w: frameWidth,
+              h: frameHeight,
+            },
+            sourceSize: {
+              w: frameWidth,
+              h: frameHeight,
+            },
+          },
+        ];
+      }),
+    );
+
+    this.textures.addAtlas(key, image, { frames });
+  }
+
+  private createSpriteSheetAnimation(
+    key: string,
+    textureKey: string,
+    frameRate: number,
+    repeat = -1,
+    end = 24,
+  ) {
+    if (this.anims.exists(key)) {
+      return;
+    }
+
+    this.anims.create({
+      key,
+      frames: this.anims.generateFrameNumbers(textureKey, {
+        start: 0,
+        end,
+      }),
+      frameRate,
+      repeat,
     });
   }
 

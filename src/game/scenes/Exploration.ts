@@ -1,9 +1,9 @@
 import { Input, Math as PhaserMath, Scene, WEBGL } from "phaser";
 import {
   AREAS,
-  KING_SLIME_BOSS_ENCOUNTER,
   resolveEncounter,
 } from "../encounters.ts";
+import type { EncounterStack } from "../encounters.ts";
 import {
   CARD_LABELS,
   INTERACT_DISTANCE,
@@ -448,7 +448,7 @@ export class Exploration extends Scene {
     if (!this.anims.exists("skeleton-walk")) {
       this.anims.create({
         key: "skeleton-walk",
-        frames: this.anims.generateFrameNumbers("skeleton", {
+        frames: this.anims.generateFrameNames("skeleton", {
           start: 0,
           end: 7,
         }),
@@ -579,19 +579,53 @@ export class Exploration extends Scene {
       encounterName: object.name ?? undefined,
       skeletonCount: this.getNumberObjectProperty(object, "skeleton"),
       isKingSlimeBoss: this.hasObjectProperty(object, "king-slime"),
+      stacks: this.getEncounterStacks(object),
+      bossKey: this.getBossEnemyKey(object),
     });
+  }
+
+  private getEncounterStacks(
+    object: Phaser.Types.Tilemaps.TiledObject,
+  ): EncounterStack[] {
+    return this.getObjectProperties(object).flatMap((property) => {
+      const match = /^([1-5])_(.+)$/.exec(property.name);
+      const count = typeof property.value === "number" ? property.value : undefined;
+
+      if (!match || count === undefined) {
+        return [];
+      }
+
+      return [{
+        position: Number(match[1]),
+        enemyKey: match[2],
+        count,
+      }];
+    });
+  }
+
+  private getBossEnemyKey(object: Phaser.Types.Tilemaps.TiledObject) {
+    if (object.name !== "boss") {
+      return undefined;
+    }
+
+    const bossProperty = this.getObjectProperties(object).find((property) => {
+      return property.name !== "king-slime" && typeof property.value === "number";
+    });
+
+    return bossProperty?.name;
   }
 
   private createMapEnemySprite(
     object: Phaser.Types.Tilemaps.TiledObject,
     encounter: Encounter,
   ) {
-    if (encounter === KING_SLIME_BOSS_ENCOUNTER) {
+    const leadEnemy = encounter.enemies[0];
+    if (leadEnemy?.explorationTexture && leadEnemy.explorationAnimation) {
       return this.add
-        .sprite(object.x!, object.y!, "king-slime-boss-exploration-idle")
-        .play("king-slime-boss-exploration-idle")
+        .sprite(object.x!, object.y!, leadEnemy.explorationTexture)
+        .play(leadEnemy.explorationAnimation)
         .setDepth(this.getMapObjectDepth(object.y!))
-        .setScale(0.28);
+        .setScale(leadEnemy.explorationScale ?? 0.28);
     }
 
     return this.add
@@ -630,6 +664,22 @@ export class Exploration extends Scene {
     }
 
     return properties?.[name];
+  }
+
+  private getObjectProperties(object: Phaser.Types.Tilemaps.TiledObject) {
+    const properties = object.properties as
+      | TiledObjectProperty[]
+      | Record<string, unknown>
+      | undefined;
+
+    if (Array.isArray(properties)) {
+      return properties;
+    }
+
+    return Object.entries(properties ?? {}).map(([name, value]) => ({
+      name,
+      value,
+    }));
   }
 
   private isWalkable(x: number, y: number): boolean {

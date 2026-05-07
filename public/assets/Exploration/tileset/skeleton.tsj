@@ -10,11 +10,11 @@
  "imagewidth":1716,
  "margin":0,
  "name":"skeleton",
- "spacing":16,
+ "spacing":4,
  "tilecount":8,
  "tiledversion":"1.12.1",
  "tileheight":225,
- "tilewidth":200,
+ "tilewidth":211,
  "transparentcolor":"#333233",
  "type":"tileset",
  "version":"1.10"

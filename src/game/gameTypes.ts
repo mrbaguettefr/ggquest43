@@ -19,11 +19,18 @@ export type Enemy = {
     hp: number;
     maxHp: number;
     damage: number;
+    count?: number;
+    battlefieldPosition?: number;
     flying?: boolean;
     boss?: boolean;
     battleTexture?: string;
     battleAnimation?: string;
+    battleAttackTexture?: string;
+    battleAttackAnimation?: string;
     battleScale?: number;
+    explorationTexture?: string;
+    explorationAnimation?: string;
+    explorationScale?: number;
 };
 
 export type Encounter = {
