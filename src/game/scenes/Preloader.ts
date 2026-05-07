@@ -56,6 +56,10 @@ export class Preloader extends Scene {
       "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Tileset Stone Ground.png",
     );
     this.load.image(
+      "tileset-grass",
+      "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Tileset Grass.png",
+    );
+    this.load.image(
       "tileset-props",
       "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Props.png",
     );

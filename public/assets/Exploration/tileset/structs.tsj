@@ -1,0 +1,15 @@
+{ "columns":16,
+ "image":"Pixel Art Top Down - Basic v1.2.3\/Texture\/TX Struct.png",
+ "imageheight":512,
+ "imagewidth":512,
+ "margin":0,
+ "name":"structs",
+ "spacing":0,
+ "tilecount":256,
+ "tiledversion":"1.12.1",
+ "tileheight":32,
+ "tilewidth":32,
+ "transparentcolor":"#333233",
+ "type":"tileset",
+ "version":"1.10"
+}

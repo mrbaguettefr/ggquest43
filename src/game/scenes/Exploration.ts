@@ -89,7 +89,6 @@ export class Exploration extends Scene {
 
   private groundLayer: Phaser.Tilemaps.TilemapLayer;
   private blockingLayer: Phaser.Tilemaps.TilemapLayer;
-  private walkableGid: number;
   private startPoint: { x: number; y: number };
   private wallInteractionPoint: { x: number; y: number };
   private mapEnemies: MapEnemy[];
@@ -228,24 +227,28 @@ export class Exploration extends Scene {
     const wallsTs = map.addTilesetImage("walls", "tileset-wall");
     const stoneTs = map.addTilesetImage("stone-ground", "tileset-stone");
     const propsTs = map.addTilesetImage("props", "tileset-props");
-    const allTilesets = [wallsTs!, stoneTs!, propsTs!];
-
-    this.walkableGid = stoneTs!.firstgid + 9;
+    const skeletonTs = map.addTilesetImage("skeleton", "skeleton");
+    const grassTs = map.addTilesetImage("grass-ground", "tileset-grass");
+    const allTilesets = [wallsTs!, stoneTs!, propsTs!, skeletonTs!, grassTs!];
 
     const prototypeLayer = map
-      .createLayer("prototype", allTilesets)
+      .createLayer("p-ground-1", allTilesets)
       ?.setDepth(-2);
     this.trackWorldObject(prototypeLayer);
     this.groundLayer = map
-      .createLayer("ground", allTilesets)!
+      .createLayer("ground-1", allTilesets)!
       .setDepth(-1) as Phaser.Tilemaps.TilemapLayer;
     this.trackWorldObject(this.groundLayer);
+    const wallsLayer = map
+      .createLayer("walls-1", allTilesets)!
+      .setDepth(0) as Phaser.Tilemaps.TilemapLayer;
+    this.trackWorldObject(wallsLayer);
     const decoGroundLayer = map
-      .createLayer("deco-ground", allTilesets)
-      ?.setDepth(0);
+      .createLayer("ground-1-deco", allTilesets)
+      ?.setDepth(1);
     this.trackWorldObject(decoGroundLayer);
     this.blockingLayer = map
-      .createLayer("deco-1-blocking", allTilesets)!
+      .createLayer("ground-1-deco-blocking", allTilesets)!
       .setDepth(1) as Phaser.Tilemaps.TilemapLayer;
     this.trackWorldObject(this.blockingLayer);
 
@@ -275,7 +278,7 @@ export class Exploration extends Scene {
     this.interactionHighlight = this.add.graphics().setDepth(3.5);
     this.trackWorldObject(this.interactionHighlight);
 
-    const decoTopLayer = map.createLayer("deco-2", allTilesets)?.setDepth(3);
+    const decoTopLayer = map.createLayer("ground-1-deco-2", allTilesets)?.setDepth(3);
     this.trackWorldObject(decoTopLayer);
 
     this.createFog(map);
@@ -552,7 +555,7 @@ export class Exploration extends Scene {
 
   private isWalkable(x: number, y: number): boolean {
     const ground = this.groundLayer.getTileAtWorldXY(x, y);
-    if (!ground || ground.index !== this.walkableGid) return false;
+    if (!ground || ground.index <= 0) return false;
     const blocking = this.blockingLayer.getTileAtWorldXY(x, y);
     return !blocking || blocking.index <= 0;
   }

@@ -3,10 +3,10 @@
  <properties>
   <property name="DeleteTiles" type="bool" value="true"/>
  </properties>
- <tileset firstgid="1" source="walls.tsx"/>
+ <tileset firstgid="1" source="walls.tsj"/>
  <tileset firstgid="257" source="ground.tsx"/>
  <tileset firstgid="321" source=":/automap-tiles.tsx"/>
- <tileset firstgid="326" source="stone-ground.tsx"/>
+ <tileset firstgid="326" source="stone-ground.tsj"/>
  <layer id="3" name="output2_ground" width="100" height="100">
   <properties>
    <property name="Probability" type="float" value="0.2"/>
