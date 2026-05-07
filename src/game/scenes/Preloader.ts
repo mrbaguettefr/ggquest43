@@ -63,6 +63,22 @@ export class Preloader extends Scene {
       "tileset-props",
       "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Props.png",
     );
+    this.load.image(
+      "tileset-plants",
+      "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Plant.png",
+    );
+    this.load.image(
+      "tileset-lava-ground",
+      "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/lava-ground.png",
+    );
+    this.load.image(
+      "tileset-lava-walls",
+      "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/lava-walls.png",
+    );
+    this.load.image(
+      "tileset-structs",
+      "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Struct.png",
+    );
     this.load.tilemapTiledJSON("worldmap", "Exploration/tileset/map-tiled.json");
     this.load.image(
       "baguettefr-idle-down-img",

@@ -66,6 +66,9 @@ const BAGUETTEFR_DIALOG_LINES = [
 ];
 const REQUIRED_MAP_OBJECTS = ["start", "wall-interaction"];
 const AREA_OBJECT_KEYS = ["area-1", "area-2", "area-3"] as const;
+const TILED_GID_MASK = 0x1fffffff;
+const MAP_OBJECT_DEPTH_BASE = 2;
+const MAP_OBJECT_DEPTH_SCALE = 10000;
 
 export class Exploration extends Scene {
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -214,6 +217,7 @@ export class Exploration extends Scene {
       ),
       true,
     );
+    this.player.setDepth(this.getMapObjectDepth(this.player.y));
 
     this.updateInteractionState();
     this.updateFog();
@@ -229,7 +233,27 @@ export class Exploration extends Scene {
     const propsTs = map.addTilesetImage("props", "tileset-props");
     const skeletonTs = map.addTilesetImage("skeleton", "skeleton");
     const grassTs = map.addTilesetImage("grass-ground", "tileset-grass");
-    const allTilesets = [wallsTs!, stoneTs!, propsTs!, skeletonTs!, grassTs!];
+    const plantsTs = map.addTilesetImage("TX Plant", "tileset-plants");
+    const lavaGroundTs = map.addTilesetImage(
+      "lava-ground",
+      "tileset-lava-ground",
+    );
+    const lavaWallsTs = map.addTilesetImage(
+      "lava-walls",
+      "tileset-lava-walls",
+    );
+    const structsTs = map.addTilesetImage("structs", "tileset-structs");
+    const allTilesets = [
+      wallsTs!,
+      stoneTs!,
+      propsTs!,
+      skeletonTs!,
+      grassTs!,
+      plantsTs!,
+      lavaGroundTs!,
+      lavaWallsTs!,
+      structsTs!,
+    ];
 
     const prototypeLayer = map
       .createLayer("p-ground-1", allTilesets)
@@ -272,8 +296,9 @@ export class Exploration extends Scene {
     this.player
       .setOrigin(0.5, 0.7)
       .setScale(64 / this.player.width)
-      .setDepth(2);
+      .setDepth(this.getMapObjectDepth(this.player.y));
     this.trackWorldObject(this.player);
+    this.createMapPlantObjects(map, plantsTs!);
 
     this.interactionHighlight = this.add.graphics().setDepth(3.5);
     this.trackWorldObject(this.interactionHighlight);
@@ -447,7 +472,7 @@ export class Exploration extends Scene {
           .sprite(object.x!, object.y!, "baguettefr-idle-down", "0")
           .play("baguettefr-idle-down")
           .setOrigin(0.5, 0.75)
-          .setDepth(2)
+          .setDepth(this.getMapObjectDepth(object.y!))
           .setScale(64 / 256);
         this.trackWorldObject(sprite);
         return { name: "baguettefr", sprite };
@@ -455,6 +480,46 @@ export class Exploration extends Scene {
 
     this.mapHeroSpawns = [];
     this.refreshMapHeroSpawns();
+  }
+
+  private createMapPlantObjects(
+    map: Phaser.Tilemaps.Tilemap,
+    tileset: Phaser.Tilemaps.Tileset,
+  ) {
+    const layer = map.getObjectLayer("objects");
+    if (!layer) return;
+
+    layer.objects
+      .filter((object) => object.name === "plant" && object.visible !== false)
+      .forEach((object) => {
+        const gid = (object.gid ?? 0) & TILED_GID_MASK;
+        const tileIndex = gid - tileset.firstgid;
+        if (tileIndex < 0) return;
+
+        const frameName = `plant-object-${tileIndex}`;
+        if (!this.textures.get("tileset-plants").has(frameName)) {
+          const column = tileIndex % tileset.columns;
+          const row = Math.floor(tileIndex / tileset.columns);
+          this.textures.get("tileset-plants").add(
+            frameName,
+            0,
+            column * tileset.tileWidth,
+            row * tileset.tileHeight,
+            tileset.tileWidth,
+            tileset.tileHeight,
+          );
+        }
+
+        const plant = this.add
+          .image(object.x!, object.y!, "tileset-plants", frameName)
+          .setOrigin(0, 1)
+          .setDepth(this.getMapObjectDepth(object.y!));
+        this.trackWorldObject(plant);
+      });
+  }
+
+  private getMapObjectDepth(y: number) {
+    return MAP_OBJECT_DEPTH_BASE + y / MAP_OBJECT_DEPTH_SCALE;
   }
 
   private refreshMapHeroSpawns() {
@@ -480,7 +545,7 @@ export class Exploration extends Scene {
       .sprite(point.x, point.y, textureKey, "0")
       .play(textureKey)
       .setOrigin(0.5, 0.75)
-      .setDepth(2)
+      .setDepth(this.getMapObjectDepth(point.y))
       .setScale(64 / 256);
     this.trackWorldObject(sprite);
     this.mapHeroSpawns.push({ heroKey, sprite });
@@ -511,14 +576,14 @@ export class Exploration extends Scene {
       return this.add
         .sprite(object.x!, object.y!, "king-slime-boss-exploration-idle")
         .play("king-slime-boss-exploration-idle")
-        .setDepth(2)
+        .setDepth(this.getMapObjectDepth(object.y!))
         .setScale(0.28);
     }
 
     return this.add
       .sprite(object.x!, object.y!, "skeleton")
       .play("skeleton-walk")
-      .setDepth(2)
+      .setDepth(this.getMapObjectDepth(object.y!))
       .setScale(32 / 225);
   }
 
