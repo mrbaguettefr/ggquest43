@@ -41,6 +41,13 @@ export class Preloader extends Scene {
     this.load.setPath("assets");
 
     this.load.image("main-menu-logo", "MainMenu/main-menu-logo.png");
+    this.load.audio("music-center", "center.m4a");
+    this.load.audio("music-plains", "plains.m4a");
+    this.load.audio("music-dungeon", "dungeon.m4a");
+    this.load.audio("music-lava", "lava.m4a");
+    this.load.audio("music-combat-1", "combat1.m4a");
+    this.load.audio("music-combat-2", "combat2.m4a");
+    this.load.audio("music-combat-3", "combat3.m4a");
     this.load.image("wall-0", "Wall/wall-0.png");
     this.load.spritesheet("wall-inserted-cards", "Wall/inserted-cards.png", {
       frameWidth: 436,

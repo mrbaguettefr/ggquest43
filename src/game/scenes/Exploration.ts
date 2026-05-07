@@ -10,6 +10,7 @@ import {
   PLAYER_SPEED,
 } from "../gameConstants.ts";
 import { installDebugDialog } from "../debugDialog.ts";
+import { getExplorationMusicKey, playMusic } from "../music.ts";
 import type {
   BattleResult,
   Encounter,
@@ -154,6 +155,7 @@ export class Exploration extends Scene {
     this.registerInput();
     this.applyBattleResult(data.battleResult);
     this.camera.centerOn(this.player.x, this.player.y);
+    this.updateExplorationMusic(0);
     this.updateFog();
   }
 
@@ -849,7 +851,7 @@ export class Exploration extends Scene {
     this.session.currentLocation = enemy.encounter.name;
     this.session.preBattlePosition = { x: this.player.x, y: this.player.y };
     this.inputLocked = true;
-    this.cameras.main.fadeOut(300, 0, 0, 0);
+    this.cameras.main.fadeOut(120, 0, 0, 0);
     this.cameras.main.once("camerafadeoutcomplete", () => {
       this.scene.start("Battle", { session: this.session });
     });
@@ -1155,6 +1157,7 @@ export class Exploration extends Scene {
     this.syncCurrentAreaFromPlayer();
     const location = this.getCurrentAreaName() ?? this.session.currentLocation;
     this.infoText.setText(`Location: ${location}`);
+    this.updateExplorationMusic();
     this.partyText.setText(
       [
         "Party:",
@@ -1163,6 +1166,14 @@ export class Exploration extends Scene {
             `${hero.name.padEnd(7)} HP ${String(hero.hp).padStart(3)} / ${hero.maxHp}`,
         ),
       ].join("\n"),
+    );
+  }
+
+  private updateExplorationMusic(fadeDuration = 600) {
+    playMusic(
+      this,
+      getExplorationMusicKey(this.getCurrentArea()?.key),
+      fadeDuration,
     );
   }
 
