@@ -6,6 +6,7 @@ const PANEL_DEPTH = 1000;
 
 type DebugDialogOptions = {
   session?: GameSession;
+  mapHeroUnlocks?: HeroKey[];
   onSessionChanged?: () => void;
 };
 
@@ -47,10 +48,10 @@ const createDebugPanel = (
 ) => {
   const panel = scene.add.container(512, 384).setDepth(PANEL_DEPTH);
   const bg = scene.add
-    .rectangle(0, 0, 440, 260, 0x111827, 0.94)
+    .rectangle(0, 0, 440, options.mapHeroUnlocks?.length ? 340 : 260, 0x111827, 0.94)
     .setStrokeStyle(3, 0xf5d56a, 1);
   const title = scene.add
-    .text(0, -96, "DEBUG", {
+    .text(0, options.mapHeroUnlocks?.length ? -136 : -96, "DEBUG", {
       fontFamily: "Arial Black",
       fontSize: 26,
       color: "#ffffff",
@@ -60,7 +61,7 @@ const createDebugPanel = (
     })
     .setOrigin(0.5);
   const hint = scene.add
-    .text(0, 96, "Press O to close", {
+    .text(0, options.mapHeroUnlocks?.length ? 136 : 96, "Press O to close", {
       fontFamily: "Arial",
       fontSize: 15,
       color: "#d8f2ff",
@@ -90,7 +91,7 @@ const createDebugPanel = (
   }
 
   const label = scene.add
-    .text(0, -48, "Team size", {
+    .text(0, options.mapHeroUnlocks?.length ? -88 : -48, "Team size", {
       fontFamily: "Arial Black",
       fontSize: 20,
       color: "#ffffff",
@@ -100,7 +101,7 @@ const createDebugPanel = (
     })
     .setOrigin(0.5);
   const status = scene.add
-    .text(0, 48, "", {
+    .text(0, options.mapHeroUnlocks?.length ? 76 : 48, "", {
       fontFamily: "Courier New",
       fontSize: 15,
       color: "#ffffff",
@@ -113,13 +114,25 @@ const createDebugPanel = (
   panel.add([label, status]);
 
   [1, 2, 3].forEach((size, index) => {
-    const button = createButton(scene, -116 + index * 116, 0, `${size}`, () => {
+    const button = createButton(scene, -116 + index * 116, options.mapHeroUnlocks?.length ? -40 : 0, `${size}`, () => {
       setTeamSize(options.session!, size);
       refreshStatus(options.session!, status);
       options.onSessionChanged?.();
     });
     panel.add(button);
   });
+
+  if (options.mapHeroUnlocks?.length) {
+    options.mapHeroUnlocks.forEach((heroKey, index) => {
+      const hero = options.session!.heroes[heroKey];
+      const button = createButton(scene, 0, 22 + index * 52, `Unlock ${hero.name}`, () => {
+        unlockMapHero(options.session!, heroKey);
+        refreshStatus(options.session!, status);
+        options.onSessionChanged?.();
+      }, 184);
+      panel.add(button);
+    });
+  }
 
   refreshStatus(options.session, status);
   configureDebugPanelCamera(scene, panel);
@@ -133,15 +146,16 @@ const createButton = (
   y: number,
   label: string,
   onSelect: () => void,
+  width = 76,
 ) => {
   const button = scene.add.container(x, y);
   const bg = scene.add
-    .rectangle(0, 0, 76, 44, 0x243b6b, 0.96)
+    .rectangle(0, 0, width, 44, 0x243b6b, 0.96)
     .setStrokeStyle(2, 0x6688ff, 1);
   const text = scene.add
     .text(0, 0, label, {
       fontFamily: "Arial Black",
-      fontSize: 22,
+      fontSize: label.length > 8 ? 18 : 22,
       color: "#ffffff",
       stroke: "#000000",
       strokeThickness: 4,
@@ -150,7 +164,7 @@ const createButton = (
     .setOrigin(0.5);
 
   button.add([bg, text]);
-  button.setSize(76, 44);
+  button.setSize(width, 44);
   button.setInteractive({ useHandCursor: true });
   button.on("pointerover", () => {
     bg.setFillStyle(0x365aa0, 0.96);
@@ -172,6 +186,13 @@ const setTeamSize = (session: GameSession, size: number) => {
     hero.recruited = inParty;
     hero.hp = hero.maxHp;
   });
+};
+
+const unlockMapHero = (session: GameSession, heroKey: HeroKey) => {
+  const hero = session.heroes[heroKey];
+
+  hero.unlocked = true;
+  hero.hp = hero.maxHp;
 };
 
 const refreshStatus = (

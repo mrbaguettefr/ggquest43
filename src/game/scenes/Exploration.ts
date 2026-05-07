@@ -147,6 +147,7 @@ export class Exploration extends Scene {
     this.setupUiCamera();
     installDebugDialog(this, {
       session: this.session,
+      mapHeroUnlocks: ["leon"],
       onSessionChanged: () => {
         this.refreshMapHeroSpawns();
         this.updateHud();

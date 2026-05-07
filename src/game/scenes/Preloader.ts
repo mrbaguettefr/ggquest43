@@ -90,11 +90,11 @@ export class Preloader extends Scene {
     );
     this.load.image(
       "leon-exploration-idle-down-img",
-      "Exploration/world/characters/leon-iso_idle_down-v1.png",
+      "Exploration/world/characters/leon3-iso_idle_down-v1.png",
     );
     this.load.json(
       "leon-exploration-idle-down-json",
-      "Exploration/world/characters/leon-iso_idle_down-v1.json",
+      "Exploration/world/characters/leon3-iso_idle_down-v1.json",
     );
     for (const state of CLOUD_ANIMATION_STATES) {
       for (const dir of CLOUD_DIRECTIONS) {
@@ -128,7 +128,7 @@ export class Preloader extends Scene {
       frameWidth: 256,
       frameHeight: 256,
     });
-    this.load.spritesheet("leon-battle-idle", "Battle/characters/leon-idle_with_pistol_in_hand-v1.png", {
+    this.load.spritesheet("leon-battle-idle", "Battle/characters/leon3-idle-v1.png", {
       frameWidth: 256,
       frameHeight: 256,
     });
