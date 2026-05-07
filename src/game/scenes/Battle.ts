@@ -1,7 +1,7 @@
 import { Math as PhaserMath, Scene } from 'phaser';
 import { installDebugDialog } from '../debugDialog.ts';
 import { getRandomCombatMusicKey, playMusic } from '../music.ts';
-import type { AreaKey, BattleResult, Enemy, Encounter, GameSession, Hero } from '../gameTypes.ts';
+import type { AreaKey, BattleResult, Enemy, Encounter, GameSession, Hero, HeroKey } from '../gameTypes.ts';
 
 type BattleState = 'choosing-action' | 'choosing-target' | 'animating' | 'done';
 type ActionChoice = 'attack' | 'skip' | 'flee';
@@ -21,11 +21,13 @@ const ACTION_LABELS: Record<ActionChoice, string> = {
     flee: 'Flee',
 };
 
+const BATTLE_HERO_ORDER: HeroKey[] = ['leon', 'cloud', 'mistress'];
+
 const CANVAS_W = 1024;
 const CANVAS_H = 768;
 const HERO_X = 220;
-const HERO_Y_START = 430;
-const HERO_Y_STEP = 130;
+const HERO_Y_START = 300;
+const HERO_Y_STEP = 110;
 const ENEMY_X = 760;
 const ENEMY_Y_START = 320;
 const ENEMY_Y_STEP = 96;
@@ -43,11 +45,13 @@ export class Battle extends Scene
     private state: BattleState = 'choosing-action';
     private selectedAction = 0;
     private selectedTargetIndex = 0;
+    private currentHeroTurnIndex = 0;
 
     private heroSprites: Phaser.GameObjects.Sprite[] = [];
     private enemySprites: Phaser.GameObjects.Sprite[] = [];
     private enemyLabels: Phaser.GameObjects.Text[] = [];
     private commandWindow: Phaser.GameObjects.Container;
+    private commandHeroText: Phaser.GameObjects.Text;
     private commandTexts: Phaser.GameObjects.Text[] = [];
     private logText: Phaser.GameObjects.Text;
     private partyHpPanel: Phaser.GameObjects.Container;
@@ -73,6 +77,7 @@ export class Battle extends Scene
         this.state = 'choosing-action';
         this.selectedAction = 0;
         this.selectedTargetIndex = 0;
+        this.currentHeroTurnIndex = 0;
         this.heroSprites = [];
         this.enemySprites = [];
         this.enemyLabels = [];
@@ -97,6 +102,7 @@ export class Battle extends Scene
         });
 
         this.ensureSelectedLiveTarget();
+        this.advanceToFirstLiveHero();
 
         if (!this.input.keyboard)
         {
@@ -122,7 +128,7 @@ export class Battle extends Scene
 
     private createHeroSprites()
     {
-        const party = this.getParty();
+        const party = this.getBattleParty();
         party.forEach((hero, index) => {
             const config = this.getHeroBattleSpriteConfig(hero);
             const sprite = this.add.sprite(
@@ -170,7 +176,7 @@ export class Battle extends Scene
             attackTexture: 'cloud-battle-attack',
             attackAnimation: 'cloud-battle-attack',
             scale: SPRITE_SCALE,
-            flipX: hero.key === 'cloud'
+            flipX: false
         };
     }
 
@@ -244,7 +250,7 @@ export class Battle extends Scene
         const panelX = 36;
         const panelY = 562;
         const panelW = 200;
-        const panelH = 150;
+        const panelH = 170;
 
         this.commandWindow = this.add.container(panelX, panelY).setDepth(20);
 
@@ -252,8 +258,17 @@ export class Battle extends Scene
             .setStrokeStyle(3, 0x6688ff, 1);
         this.commandWindow.add(bg);
 
+        this.commandHeroText = this.add.text(panelW / 2, 10, '', {
+            fontFamily: 'Arial Black',
+            fontSize: 15,
+            color: '#88ccff',
+            stroke: '#000000',
+            strokeThickness: 3,
+        }).setOrigin(0.5, 0);
+        this.commandWindow.add(this.commandHeroText);
+
         ACTIONS.forEach((action, index) => {
-            const text = this.add.text(28, 22 + index * 40, ACTION_LABELS[action], {
+            const text = this.add.text(28, 38 + index * 40, ACTION_LABELS[action], {
                 fontFamily: 'Arial Black',
                 fontSize: 22,
                 color: '#ffffff',
@@ -269,6 +284,13 @@ export class Battle extends Scene
 
     private refreshCommandWindow()
     {
+        const party = this.getBattleParty();
+        const currentHero = party[this.currentHeroTurnIndex];
+        if (this.commandHeroText)
+        {
+            this.commandHeroText.setText(currentHero ? `${currentHero.name}'s Turn` : '');
+        }
+
         this.commandTexts.forEach((text, index) => {
             const active = this.state === 'choosing-action' && index === this.selectedAction;
             text.setText((active ? '▶ ' : '  ') + ACTION_LABELS[ACTIONS[index]]);
@@ -284,7 +306,7 @@ export class Battle extends Scene
         const panelW = 380;
         const lineH = 28;
 
-        const party = this.getParty();
+        const party = this.getBattleParty();
         const panelH = 28 + party.length * lineH + 12;
 
         this.partyHpPanel = this.add.container(panelX, panelY).setDepth(20);
@@ -354,7 +376,7 @@ export class Battle extends Scene
         }
     }
 
-    private confirmAction()
+    private async confirmAction()
     {
         const action = ACTIONS[this.selectedAction];
 
@@ -366,7 +388,10 @@ export class Battle extends Scene
 
         if (action === 'skip')
         {
-            this.doEnemyTurn(['Hero skipped their turn.']);
+            const party = this.getBattleParty();
+            const hero = party[this.currentHeroTurnIndex];
+            const msg = hero ? `${hero.name} skipped their turn.` : 'Hero skipped their turn.';
+            await this.advanceHeroTurn([msg]);
             return;
         }
 
@@ -431,27 +456,31 @@ export class Battle extends Scene
         this.refreshFinger();
 
         const log: string[] = [];
-        const party = this.getParty();
-        for (const hero of party.filter((partyHero) => partyHero.hp > 0))
+        const party = this.getBattleParty();
+        const hero = party[this.currentHeroTurnIndex];
+
+        if (hero && hero.hp > 0)
         {
             const target = this.getSelectedLiveEnemy();
-            if (!target) break;
-            const heroIndex = party.findIndex((partyHero) => partyHero.key === hero.key);
-            await this.playHeroAttack(hero, heroIndex);
-
-            if (target.flying && hero.range !== 'ranged')
+            if (target)
             {
-                log.push(`${hero.name} swings under ${target.name}.`);
-                continue;
-            }
+                await this.playHeroAttack(hero, this.currentHeroTurnIndex);
 
-            const damage = hero.key === 'cloud' && target.boss ? hero.damage + 8 : hero.damage;
-            const slain = this.applyDamageToEnemy(target, damage);
-            const slainText = slain > 0 ? ` (${slain} slain)` : '';
-            log.push(`${hero.name} uses ${hero.special} for ${damage}${slainText}.`);
-            this.refreshEnemyLabels();
-            this.refreshEnemySprites();
-            await this.wait(140);
+                if (target.flying && hero.range !== 'ranged')
+                {
+                    log.push(`${hero.name} swings under ${target.name}.`);
+                }
+                else
+                {
+                    const damage = hero.key === 'cloud' && target.boss ? hero.damage + 8 : hero.damage;
+                    const slain = this.applyDamageToEnemy(target, damage);
+                    const slainText = slain > 0 ? ` (${slain} slain)` : '';
+                    log.push(`${hero.name} uses ${hero.special} for ${damage}${slainText}.`);
+                    this.refreshEnemyLabels();
+                    this.refreshEnemySprites();
+                    await this.wait(140);
+                }
+            }
         }
 
         this.refreshEnemyLabels();
@@ -464,7 +493,32 @@ export class Battle extends Scene
             return;
         }
 
-        await this.doEnemyTurn(log);
+        await this.advanceHeroTurn(log);
+    }
+
+    private async advanceHeroTurn(log: string[])
+    {
+        const party = this.getBattleParty();
+        let next = this.currentHeroTurnIndex + 1;
+        while (next < party.length && party[next].hp <= 0)
+        {
+            next++;
+        }
+
+        if (next >= party.length)
+        {
+            await this.doEnemyTurn(log);
+        }
+        else
+        {
+            this.currentHeroTurnIndex = next;
+            this.logText.setText(log.join('\n'));
+            this.state = 'choosing-action';
+            this.selectedAction = 0;
+            this.refreshCommandWindow();
+            this.refreshPartyHp();
+            this.refreshFinger();
+        }
     }
 
     private async doEnemyTurn(log: string[])
@@ -476,7 +530,7 @@ export class Battle extends Scene
         const liveEnemies = this.encounter.enemies.filter((e) => e.hp > 0);
         for (const enemy of liveEnemies)
         {
-            const liveHeroes = this.getParty().filter((h) => h.hp > 0);
+            const liveHeroes = this.getBattleParty().filter((h) => h.hp > 0);
             if (liveHeroes.length === 0) break;
 
             const target = liveHeroes[Math.floor(Math.random() * liveHeroes.length)];
@@ -490,17 +544,29 @@ export class Battle extends Scene
 
         this.refreshPartyHp();
 
-        if (this.getParty().every((h) => h.hp <= 0))
+        if (this.getBattleParty().every((h) => h.hp <= 0))
         {
             this.finishBattle({ won: false, encounter: this.encounter, log });
             return;
         }
 
+        this.advanceToFirstLiveHero();
         this.state = 'choosing-action';
         this.selectedAction = 0;
         this.logText.setText(log.join('\n'));
         this.refreshCommandWindow();
+        this.refreshPartyHp();
         this.refreshFinger();
+    }
+
+    private advanceToFirstLiveHero()
+    {
+        const party = this.getBattleParty();
+        this.currentHeroTurnIndex = 0;
+        while (this.currentHeroTurnIndex < party.length && party[this.currentHeroTurnIndex].hp <= 0)
+        {
+            this.currentHeroTurnIndex++;
+        }
     }
 
     private async playHeroAttack(hero: Hero, heroIndex: number)
@@ -626,8 +692,23 @@ export class Battle extends Scene
 
     private refreshPartyHp()
     {
-        this.getParty().forEach((hero, index) => {
-            this.partyHpLines[index]?.setText(this.heroHpText(hero));
+        this.getBattleParty().forEach((hero, index) => {
+            const line = this.partyHpLines[index];
+            if (!line) return;
+            line.setText(this.heroHpText(hero));
+            const isActive = this.state === 'choosing-action' && index === this.currentHeroTurnIndex;
+            if (hero.hp <= 0)
+            {
+                line.setColor('#888888');
+            }
+            else if (isActive)
+            {
+                line.setColor('#fff100');
+            }
+            else
+            {
+                line.setColor('#ffffff');
+            }
         });
     }
 
@@ -639,8 +720,11 @@ export class Battle extends Scene
         this.heroSprites = [];
         this.partyHpPanel.destroy();
         this.partyHpLines = [];
+        this.currentHeroTurnIndex = 0;
         this.createHeroSprites();
         this.createPartyHpPanel();
+        this.refreshCommandWindow();
+        this.refreshPartyHp();
     }
 
     private refreshFinger()
@@ -696,6 +780,14 @@ export class Battle extends Scene
 
         const next = this.encounter.enemies.findIndex((e) => e.hp > 0);
         if (next >= 0) this.selectedTargetIndex = next;
+    }
+
+    private getBattleParty(): Hero[]
+    {
+        const party = this.getParty();
+        return BATTLE_HERO_ORDER
+            .map((key) => party.find((h) => h.key === key))
+            .filter((h): h is Hero => h !== undefined);
     }
 
     private getParty()

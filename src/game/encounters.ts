@@ -1,7 +1,8 @@
-import type { Area, Enemy, Encounter } from './gameTypes.ts';
+import type { Area, Enemy, Encounter, HeroKey } from './gameTypes.ts';
 
 type EnemyPreset = Omit<Enemy, 'hp' | 'maxHp' | 'count' | 'battlefieldPosition'> & {
     hp: number;
+    unlockHero?: HeroKey;
 };
 
 export type EncounterStack = {
@@ -117,6 +118,7 @@ const ENEMY_PRESETS = new Map<string, EnemyPreset>(
             hp: 150,
             damage: 15,
             boss: true,
+            unlockHero: 'mistress' as HeroKey,
             battleTexture: 'bile-demon-battle-idle',
             battleAnimation: 'bile-demon-battle-idle',
             battleAttackTexture: 'bile-demon-battle-attack',
@@ -265,23 +267,29 @@ export const buildSkeletonEncounter = (count: number): Encounter => ({
 export const DEFAULT_SKELETON_ENCOUNTER = buildSkeletonEncounter(1);
 
 export const buildStackEncounter = (stacks: EncounterStack[]): Encounter => {
-    const enemies = stacks
+    const validStacks = stacks
         .filter((stack) => stack.position >= 1 && stack.position <= 5 && stack.count > 0)
         .sort((a, b) => a.position - b.position)
-        .slice(0, 5)
-        .map((stack) => {
-            const key = normalizeEnemyKey(stack.enemyKey);
-            const preset = ENEMY_PRESETS.get(key) ?? ENEMY_PRESETS.get('skeleton')!;
-            return createPreset(preset, stack.count, stack.position);
-        });
+        .slice(0, 5);
+
+    const enemies = validStacks.map((stack) => {
+        const key = normalizeEnemyKey(stack.enemyKey);
+        const preset = ENEMY_PRESETS.get(key) ?? ENEMY_PRESETS.get('skeleton')!;
+        return createPreset(preset, stack.count, stack.position);
+    });
 
     if (enemies.length === 0) {
         return DEFAULT_SKELETON_ENCOUNTER;
     }
 
+    const unlockHero = validStacks
+        .map((stack) => ENEMY_PRESETS.get(normalizeEnemyKey(stack.enemyKey))?.unlockHero)
+        .find((h): h is HeroKey => h !== undefined);
+
     return {
         name: enemies.map((enemy) => `${enemy.name} ×${enemy.count ?? 1}`).join(', '),
-        enemies
+        enemies,
+        ...(unlockHero ? { unlockHero } : {})
     };
 };
 
