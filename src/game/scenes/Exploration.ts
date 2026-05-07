@@ -240,10 +240,7 @@ export class Exploration extends Scene {
       "lava-ground",
       "tileset-lava-ground",
     );
-    const lavaWallsTs = map.addTilesetImage(
-      "lava-walls",
-      "tileset-lava-walls",
-    );
+    const lavaWallsTs = map.addTilesetImage("lava-walls", "tileset-lava-walls");
     const structsTs = map.addTilesetImage("structs", "tileset-structs");
     const allTilesets = [
       wallsTs!,
@@ -296,7 +293,7 @@ export class Exploration extends Scene {
       .sprite(this.startPoint.x, this.startPoint.y, "cloud-idle-down", "0")
       .play(this.getPlayerAnimationKey("idle", this.playerDirection));
     this.player
-      .setOrigin(0.5, 0.7)
+      .setOrigin(0.5, 0.65)
       .setScale(64 / this.player.width)
       .setDepth(this.getMapObjectDepth(this.player.y));
     this.trackWorldObject(this.player);
@@ -305,7 +302,9 @@ export class Exploration extends Scene {
     this.interactionHighlight = this.add.graphics().setDepth(3.5);
     this.trackWorldObject(this.interactionHighlight);
 
-    const decoTopLayer = map.createLayer("ground-1-deco-2", allTilesets)?.setDepth(3);
+    const decoTopLayer = map
+      .createLayer("ground-1-deco-2", allTilesets)
+      ?.setDepth(3);
     this.trackWorldObject(decoTopLayer);
 
     this.createFog(map);
@@ -503,14 +502,16 @@ export class Exploration extends Scene {
         if (!this.textures.get("tileset-plants").has(frameName)) {
           const column = tileIndex % tileset.columns;
           const row = Math.floor(tileIndex / tileset.columns);
-          this.textures.get("tileset-plants").add(
-            frameName,
-            0,
-            column * tileset.tileWidth,
-            row * tileset.tileHeight,
-            tileset.tileWidth,
-            tileset.tileHeight,
-          );
+          this.textures
+            .get("tileset-plants")
+            .add(
+              frameName,
+              0,
+              column * tileset.tileWidth,
+              row * tileset.tileHeight,
+              tileset.tileWidth,
+              tileset.tileHeight,
+            );
         }
 
         const plant = this.add
@@ -834,7 +835,9 @@ export class Exploration extends Scene {
     this.session.currentEncounter = this.cloneEncounter(enemy.encounter);
     this.session.currentEnemyObjectId = enemy.objectId;
     this.session.currentArea =
-      enemy.area ?? this.getAreaAtPosition(enemy.sprite.x, enemy.sprite.y) ?? this.session.currentArea;
+      enemy.area ??
+      this.getAreaAtPosition(enemy.sprite.x, enemy.sprite.y) ??
+      this.session.currentArea;
     this.session.currentLocation = enemy.encounter.name;
     this.session.preBattlePosition = { x: this.player.x, y: this.player.y };
     this.inputLocked = true;
@@ -1170,9 +1173,8 @@ export class Exploration extends Scene {
       KNIGHT_RECRUIT_POINT.x,
       KNIGHT_RECRUIT_POINT.y,
     );
-    const heroSpawn = this.mapHeroSpawns.find(
-      (spawn) =>
-        this.isWithinInteractionDistance(spawn.sprite.x, spawn.sprite.y),
+    const heroSpawn = this.mapHeroSpawns.find((spawn) =>
+      this.isWithinInteractionDistance(spawn.sprite.x, spawn.sprite.y),
     );
 
     if (
@@ -1195,8 +1197,8 @@ export class Exploration extends Scene {
   }
 
   private getNearbyNpc(): MapNpc | undefined {
-    return this.mapNpcs.find(
-      (npc) => this.isWithinInteractionDistance(npc.sprite.x, npc.sprite.y),
+    return this.mapNpcs.find((npc) =>
+      this.isWithinInteractionDistance(npc.sprite.x, npc.sprite.y),
     );
   }
 

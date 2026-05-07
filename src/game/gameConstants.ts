@@ -2,7 +2,7 @@ import type { CardColor } from "./gameTypes.ts";
 
 export const WORLD_WIDTH = 2100;
 export const WORLD_HEIGHT = 920;
-export const PLAYER_SPEED = 200;
+export const PLAYER_SPEED = 160;
 export const INTERACT_DISTANCE = 20;
 export const FORCED_NAME = "GGLeBoss";
 export const CARD_ORDER: CardColor[] = ["green", "blue", "red"];

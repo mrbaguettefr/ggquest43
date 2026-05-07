@@ -1,5 +1,5 @@
 export type CardColor = 'green' | 'blue' | 'red';
-export type AreaKey = 'plains' | 'mountains' | 'dungeon';
+export type AreaKey = 'plains' | 'dungeon' | 'lava-underground';
 export type HeroKey = 'cloud' | 'leon' | 'knight';
 
 export type Hero = {

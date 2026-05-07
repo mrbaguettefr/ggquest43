@@ -28,7 +28,7 @@ export const KING_SLIME_BOSS_ENCOUNTER: Encounter = {
 export const AREAS: Area[] = [
     {
         key: 'plains',
-        name: 'The Forgotten Plains',
+        name: 'The Verdant Plains',
         gateX: 860,
         gateY: 355,
         color: 0x68b36d,
@@ -52,8 +52,8 @@ export const AREAS: Area[] = [
         ]
     },
     {
-        key: 'mountains',
-        name: 'Ashen Mountains',
+        key: 'dungeon',
+        name: 'The Hollow Dungeon',
         gateX: 1360,
         gateY: 355,
         color: 0xb86a44,
@@ -77,8 +77,8 @@ export const AREAS: Area[] = [
         ]
     },
     {
-        key: 'dungeon',
-        name: 'Dungeon Depths',
+        key: 'lava-underground',
+        name: 'The Molten Underdeep',
         gateX: 1840,
         gateY: 355,
         color: 0x65507a,

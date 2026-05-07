@@ -22,9 +22,9 @@ const ENEMY_Y_START = 320;
 const ENEMY_Y_STEP = 130;
 const SPRITE_SCALE = 0.45;
 const BATTLE_BACKGROUND_BY_AREA: Record<AreaKey, string> = {
-    plains: 'battle-bg-green',
-    mountains: 'battle-bg-cave',
-    dungeon: 'battle-bg-lava',
+    plains: 'battle-bg-plains',
+    dungeon: 'battle-bg-dungeon',
+    'lava-underground': 'battle-bg-lava-underground',
 };
 
 export class Battle extends Scene

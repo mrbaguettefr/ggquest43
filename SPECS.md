@@ -73,7 +73,7 @@ Tone: playful, slightly absurd, full of references.
 
 The map is divided into 3 areas with increasing difficulty:
 
-### Area 1: The Forgotten Plains
+### Area 1: The Verdant Plains
 
 * Weak enemies
 * Tutorial zone
@@ -83,7 +83,7 @@ The map is divided into 3 areas with increasing difficulty:
   * Green Card
   * Unlock Hero: Leon (appears next to the wall in the hub)
 
-### Area 2: Ashen Mountains
+### Area 2: The Hollow Dungeon
 
 * Mid difficulty
 * Enemies with abilities
@@ -93,7 +93,7 @@ The map is divided into 3 areas with increasing difficulty:
   * Blue Card
   * Unlock Hero: Knight (appears next to the wall in the hub)
 
-### Area 3: Dungeon Depths
+### Area 3: The Molten Underdeep
 
 * Hard difficulty
 * Status effects
@@ -156,7 +156,7 @@ The player gradually understands what the gift is through hints from NPC "baguet
 * After King Slime is defeated, Leon unlocks and appears at the exploration map object named `leon` until recruited. Exploration renders Leon with `public/assets/Exploration/world/characters/leon-iso_idle_down-v1.*`, plays the idle-down animation, and lets the player press E nearby to recruit him.
 * The `baguettefr` NPC is placed from the exploration map object named `baguettefr`. Exploration renders the NPC with `public/assets/Exploration/world/characters/baguettefr-iso_idle_down-v1.*`, plays the idle-down animation, and lets the player press E nearby to open a dialog message. The NPC dialog uses the same centered Exploration message format as hero recruitment and changes hints based on Card Reader progress.
 * Battle renders recruited Leon with `public/assets/Battle/characters/leon-idle_with_pistol_in_hand-v1.png`. Cloud's battle sprite is flipped horizontally so he faces the enemies.
-* Battle background art is selected from the current exploration area: Area 1 / The Forgotten Plains uses `public/assets/Battle/background/battlefield-green.png`, Area 2 / Ashen Mountains uses `battlefield-cave.png`, and Area 3 / Dungeon Depths uses `battlefield-lava.png`.
+* Battle background art is selected from the current exploration area: Area 1 / The Verdant Plains uses `public/assets/Battle/background/battlefield-plains.png`, Area 2 / The Hollow Dungeon uses `battlefield-dungeon.png`, and Area 3 / The Molten Underdeep uses `battlefield-lava-underground.png`.
 * Active map enemies, NPCs, and visible recruitable hero map sprites block Cloud's exploration movement like obstacles while still allowing Cloud to stand within interaction range and press E to fight, talk, or recruit. Defeated enemies and recruited heroes are removed from both the map and movement blocking.
 * Exploration map actors and object sprites, including Cloud, enemies, NPCs, recruitable heroes, and `plant` tile objects, use y-based depth values so lower objects draw in front of higher objects.
 * When Cloud is within interaction range, Exploration shows the matching `Press E` prompt and highlights the current target. In WebGL, sprite-based interactables use a sprite-shaped yellow glow via Phaser `filters.internal.addGlow(...)`; when Phaser is running under Canvas through `AUTO`, sprite highlights fall back to a rounded bounds outline. Point-based interactions such as the Card Reader wall and the knight recruit spot use a fixed world-space outline box.
@@ -181,8 +181,8 @@ The player gradually understands what the gift is through hints from NPC "baguet
 * `PlayerName`, `Wall`, and `Battle` receive a dummy `GameSession` that simulates accepted seed entry, completed player naming, decoded secret fragments, and recruited heroes
 * `Exploration` debug starts receive a dummy `GameSession` with only Cloud in the recruited party
 * Wall debug starts can set inserted cards with `cards=<mask>`, where the three mask positions are blue, green, and red. `000` means no cards, `X00` means blue, `0X0` means green, `00X` means red, and `XX0` means blue and green.
-* `Battle` also receives `currentArea` and `currentEncounter`; by default this starts `The Forgotten Plains` encounter `0`
-* Battle debug starts can select another fight with `area` and `encounter`, for example `?debugScene=Battle&area=mountains&encounter=1`
+* `Battle` also receives `currentArea` and `currentEncounter`; by default this starts `The Verdant Plains` encounter `0`
+* Battle debug starts can select another fight with `area` and `encounter`, for example `?debugScene=Battle&area=dungeon&encounter=1` or `?debugScene=Battle&area=lava-underground&encounter=1`
 
 ---
 
@@ -302,9 +302,9 @@ Always visible while exploring:
   * Examples:
 
     * "Center of the World"
-    * "The Forgotten Plains"
-    * "Ashen Mountains"
-    * "Dungeon Depths"
+    * "The Verdant Plains"
+    * "The Hollow Dungeon"
+    * "The Molten Underdeep"
 
 * Party status panel
 
@@ -371,7 +371,7 @@ Enemies:
 
 * Fixed camera (no scrolling during battle)
 
-* Background: themed per area (plains, mountains, dungeon)
+* Background: themed per area (plains, dungeon, lava underground)
 
 * Grid-based battlefield (implicit or visible hex/square grid)
 
