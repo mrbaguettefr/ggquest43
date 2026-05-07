@@ -79,7 +79,10 @@ export class Preloader extends Scene {
       "tileset-structs",
       "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Struct.png",
     );
-    this.load.tilemapTiledJSON("worldmap", "Exploration/tileset/map-tiled.json");
+    this.load.tilemapTiledJSON(
+      "worldmap",
+      "Exploration/tileset/map-tiled.json",
+    );
     this.load.image(
       "baguettefr-idle-down-img",
       "Exploration/world/characters/baguettefr-iso_idle_down-v1.png",
@@ -116,11 +119,15 @@ export class Preloader extends Scene {
         );
       }
     }
-    this.load.spritesheet("skeleton", "Exploration/world/monsters/skeleton.png", {
-      frameWidth: 211,
-      frameHeight: 225,
-      spacing: 4,
-    });
+    this.load.spritesheet(
+      "skeleton",
+      "Exploration/world/monsters/skeleton.png",
+      {
+        frameWidth: 211,
+        frameHeight: 225,
+        spacing: 4,
+      },
+    );
     this.load.image(
       "king-slime-boss-exploration-idle-img",
       "Exploration/world/monsters/king-slime-boss-iso_idle_right-v1.png",
@@ -129,15 +136,32 @@ export class Preloader extends Scene {
       "king-slime-boss-exploration-idle-json",
       "Exploration/world/monsters/king-slime-boss-iso_idle_right-v1.json",
     );
-    this.load.image("battle-bg-plains", "Battle/background/battlefield-plains.png");
-    this.load.image("battle-bg-dungeon", "Battle/background/battlefield-dungeon.png");
-    this.load.image("battle-bg-lava-underground", "Battle/background/battlefield-lava-underground.png");
+    this.load.image(
+      "battle-bg-plains",
+      "Battle/background/battlefield-plains.png",
+    );
+    this.load.image(
+      "battle-bg-dungeon",
+      "Battle/background/battlefield-dungeon.png",
+    );
+    this.load.image(
+      "battle-bg-lava-underground",
+      "Battle/background/battlefield-lava-underground.png",
+    );
     this.load.image(
       "cloud-battle-idle-img",
-      "Battle/characters/cloud-idle-v1.png",
+      "Battle/characters/cloud2-idle-v2.png",
     );
     this.load.json(
       "cloud-battle-idle-json",
+      "Battle/characters/cloud2-idle-v2.json",
+    );
+    this.load.image(
+      "enemy-battle-fallback-idle-img",
+      "Battle/characters/cloud-idle-v1.png",
+    );
+    this.load.json(
+      "enemy-battle-fallback-idle-json",
       "Battle/characters/cloud-idle-v1.json",
     );
     this.load.image(
@@ -199,6 +223,11 @@ export class Preloader extends Scene {
       "cloud-battle-idle-json",
     );
     this.registerAtlas(
+      "enemy-battle-fallback-idle",
+      "enemy-battle-fallback-idle-img",
+      "enemy-battle-fallback-idle-json",
+    );
+    this.registerAtlas(
       "leon-battle-idle",
       "leon-battle-idle-img",
       "leon-battle-idle-json",
@@ -210,8 +239,17 @@ export class Preloader extends Scene {
     );
 
     this.createAtlasAnimation("battle-idle", "cloud-battle-idle", 8);
+    this.createAtlasAnimation(
+      "enemy-battle-fallback-idle",
+      "enemy-battle-fallback-idle",
+      8,
+    );
     this.createAtlasAnimation("leon-battle-idle", "leon-battle-idle", 8);
-    this.createAtlasAnimation("mistress-battle-idle", "mistress-battle-idle", 8);
+    this.createAtlasAnimation(
+      "mistress-battle-idle",
+      "mistress-battle-idle",
+      8,
+    );
     this.createAtlasAnimation(
       "baguettefr-idle-down",
       "baguettefr-idle-down",
@@ -265,7 +303,9 @@ export class Preloader extends Scene {
         ) as SpriteAtlasData | undefined;
 
         if (!atlas) {
-          throw new Error(`Cloud ${state} atlas data is missing for ${direction}.`);
+          throw new Error(
+            `Cloud ${state} atlas data is missing for ${direction}.`,
+          );
         }
 
         this.textures.addAtlas(key, image, this.toPhaserAtlas(atlas));
@@ -278,7 +318,9 @@ export class Preloader extends Scene {
       return;
     }
 
-    const image = this.textures.get(imageKey).getSourceImage() as HTMLImageElement;
+    const image = this.textures
+      .get(imageKey)
+      .getSourceImage() as HTMLImageElement;
     const atlas = this.cache.json.get(jsonKey) as SpriteAtlasData | undefined;
 
     if (!atlas) {
@@ -288,7 +330,11 @@ export class Preloader extends Scene {
     this.textures.addAtlas(key, image, this.toPhaserAtlas(atlas));
   }
 
-  private createAtlasAnimation(key: string, textureKey: string, frameRate: number) {
+  private createAtlasAnimation(
+    key: string,
+    textureKey: string,
+    frameRate: number,
+  ) {
     if (this.anims.exists(key)) {
       return;
     }
@@ -312,7 +358,10 @@ export class Preloader extends Scene {
     return `cloud-${state}-${kind}-${direction}`;
   }
 
-  private getCloudAtlasKey(state: CloudAnimationState, direction: CloudDirection) {
+  private getCloudAtlasKey(
+    state: CloudAnimationState,
+    direction: CloudDirection,
+  ) {
     return `cloud-${state}-${direction}`;
   }
 

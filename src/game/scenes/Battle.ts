@@ -163,8 +163,8 @@ export class Battle extends Scene
         this.encounter.enemies.forEach((enemy, index) => {
             const x = ENEMY_X;
             const y = ENEMY_Y_START + index * ENEMY_Y_STEP;
-            const texture = enemy.battleTexture ?? 'cloud-battle-idle';
-            const animation = enemy.battleAnimation ?? 'battle-idle';
+            const texture = enemy.battleTexture ?? 'enemy-battle-fallback-idle';
+            const animation = enemy.battleAnimation ?? 'enemy-battle-fallback-idle';
             const scale = enemy.battleScale ?? SPRITE_SCALE;
 
             const sprite = this.add.sprite(x, y, texture)
