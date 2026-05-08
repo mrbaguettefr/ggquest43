@@ -187,6 +187,7 @@ export class Preloader extends Scene {
     this.load.audio("music-battle-1", "battle/audio/battle1.m4a");
     this.load.audio("music-battle-2", "battle/audio/battle2.m4a");
     this.load.audio("music-battle-3", "battle/audio/battle3.m4a");
+    this.load.image("battle-finger", "battle/finger.png");
     this.load.image("wall-0", "wall/wall-0.png");
     this.load.spritesheet("wall-inserted-cards", "wall/inserted-cards.png", {
       frameWidth: 436,

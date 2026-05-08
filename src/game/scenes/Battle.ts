@@ -56,7 +56,7 @@ export class Battle extends Scene
     private logText: Phaser.GameObjects.Text;
     private partyHpPanel: Phaser.GameObjects.Container;
     private partyHpLines: Phaser.GameObjects.Text[] = [];
-    private finger: Phaser.GameObjects.Container | null = null;
+    private finger: Phaser.GameObjects.Image | null = null;
 
     constructor()
     {
@@ -741,29 +741,15 @@ export class Battle extends Scene
         const targetSprite = this.enemySprites[this.selectedTargetIndex];
         if (!targetSprite || this.encounter.enemies[this.selectedTargetIndex]?.hp <= 0) return;
 
-        this.finger = this.buildFinger(targetSprite.x - 76, targetSprite.y - 8);
+        this.finger = this.buildFinger(targetSprite.x - 38, targetSprite.y - 8);
     }
 
-    private buildFinger(x: number, y: number): Phaser.GameObjects.Container
+    private buildFinger(x: number, y: number): Phaser.GameObjects.Image
     {
-        const finger = this.add.container(x, y).setDepth(30);
-        const stroke = 0x111111;
-        const fill = 0xfff1d4;
-        const cuff = this.add.rectangle(-24, 14, 18, 18, 0x3d7df2);
-        const palm = this.add.rectangle(-10, 6, 28, 26, fill);
-        const pointer = this.add.rectangle(16, -4, 42, 14, fill);
-        const fingertip = this.add.circle(38, -4, 7, fill);
-        const thumb = this.add.rectangle(3, 18, 24, 12, fill);
-
-        cuff.setStrokeStyle(2, stroke);
-        palm.setStrokeStyle(2, stroke);
-        pointer.setStrokeStyle(2, stroke);
-        fingertip.setStrokeStyle(2, stroke);
-        thumb.setStrokeStyle(2, stroke);
-        thumb.setRotation(PhaserMath.DegToRad(-24));
-
-        finger.add([cuff, palm, pointer, fingertip, thumb]);
-        return finger;
+        return this.add.image(x, y, 'battle-finger')
+            .setOrigin(1, 0.5)
+            .setScale(0.16)
+            .setDepth(30);
     }
 
     private getSelectedLiveEnemy()

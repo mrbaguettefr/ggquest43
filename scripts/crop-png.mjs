@@ -6,6 +6,7 @@ import sharp from 'sharp';
 
 const DEFAULT_WHITE_TOLERANCE = 8;
 const DEFAULT_ALPHA_THRESHOLD = 0;
+const DEFAULT_FLOOD_THRESHOLD = 18;
 
 function printUsage() {
     console.log(`Usage: node scripts/crop-png.mjs <input.png> [options]
@@ -14,6 +15,8 @@ Options:
   --output <path>       Write the cropped PNG to a custom path
   --tolerance <0-255>   Treat near-white pixels as empty (default: ${DEFAULT_WHITE_TOLERANCE})
   --alpha <0-255>       Treat pixels at or below this alpha as transparent (default: ${DEFAULT_ALPHA_THRESHOLD})
+  --flood-background    Make the connected background from the image edges transparent before cropping
+  --flood-threshold <n> Maximum RGB neighbor distance for flood background removal (default: ${DEFAULT_FLOOD_THRESHOLD})
   --help                Show this help message`);
 }
 
@@ -33,6 +36,8 @@ function parseArgs(argv) {
         output: '',
         tolerance: DEFAULT_WHITE_TOLERANCE,
         alphaThreshold: DEFAULT_ALPHA_THRESHOLD,
+        floodBackground: false,
+        floodThreshold: DEFAULT_FLOOD_THRESHOLD,
         help: false
     };
 
@@ -67,6 +72,17 @@ function parseArgs(argv) {
             }
 
             options.alphaThreshold = parseByteOption(value, arg);
+            i += 1;
+        } else if (arg === '--flood-background') {
+            options.floodBackground = true;
+        } else if (arg === '--flood-threshold') {
+            const value = argv[i + 1];
+
+            if (!value) {
+                throw new Error(`${arg} requires a value.`);
+            }
+
+            options.floodThreshold = parseByteOption(value, arg);
             i += 1;
         } else if (arg.startsWith('-')) {
             throw new Error(`Unknown option: ${arg}`);
@@ -131,6 +147,75 @@ function findCropBounds(data, width, height, tolerance, alphaThreshold) {
     };
 }
 
+function colorDistance(data, indexA, indexB) {
+    const red = data[indexA] - data[indexB];
+    const green = data[indexA + 1] - data[indexB + 1];
+    const blue = data[indexA + 2] - data[indexB + 2];
+
+    return Math.sqrt(red * red + green * green + blue * blue);
+}
+
+function removeFloodBackground(data, width, height, threshold, alphaThreshold) {
+    const visited = new Uint8Array(width * height);
+    const queue = [];
+    let removed = 0;
+
+    const enqueue = (x, y) => {
+        if (x < 0 || x >= width || y < 0 || y >= height) return;
+
+        const pixelIndex = y * width + x;
+        if (visited[pixelIndex]) return;
+
+        visited[pixelIndex] = 1;
+        queue.push(pixelIndex);
+    };
+
+    for (let x = 0; x < width; x += 1) {
+        enqueue(x, 0);
+        enqueue(x, height - 1);
+    }
+
+    for (let y = 1; y < height - 1; y += 1) {
+        enqueue(0, y);
+        enqueue(width - 1, y);
+    }
+
+    for (let index = 0; index < queue.length; index += 1) {
+        const pixelIndex = queue[index];
+        const x = pixelIndex % width;
+        const y = Math.floor(pixelIndex / width);
+        const dataIndex = pixelIndex * 4;
+
+        data[dataIndex + 3] = 0;
+        removed += 1;
+
+        const neighbors = [
+            pixelIndex - 1,
+            pixelIndex + 1,
+            pixelIndex - width,
+            pixelIndex + width
+        ];
+
+        for (const neighborIndex of neighbors) {
+            if (neighborIndex < 0 || neighborIndex >= width * height) continue;
+
+            const neighborX = neighborIndex % width;
+            const neighborY = Math.floor(neighborIndex / width);
+            if (Math.abs(neighborX - x) + Math.abs(neighborY - y) !== 1) continue;
+            if (visited[neighborIndex]) continue;
+
+            const neighborDataIndex = neighborIndex * 4;
+            const neighborAlpha = data[neighborDataIndex + 3];
+            if (neighborAlpha <= alphaThreshold || colorDistance(data, dataIndex, neighborDataIndex) <= threshold) {
+                visited[neighborIndex] = 1;
+                queue.push(neighborIndex);
+            }
+        }
+    }
+
+    return removed;
+}
+
 async function cropPng(options) {
     const inputPath = resolve(options.input);
 
@@ -147,6 +232,19 @@ async function cropPng(options) {
     const outputPath = resolve(options.output || getDefaultOutputPath(inputPath));
     const source = sharp(inputPath).ensureAlpha();
     const { data, info } = await source.raw().toBuffer({ resolveWithObject: true });
+
+    if (options.floodBackground) {
+        const removed = removeFloodBackground(
+            data,
+            info.width,
+            info.height,
+            options.floodThreshold,
+            options.alphaThreshold
+        );
+
+        console.log(`Flood background pixels made transparent: ${removed}`);
+    }
+
     const bounds = findCropBounds(
         data,
         info.width,
@@ -159,7 +257,13 @@ async function cropPng(options) {
         throw new Error('Image contains only transparent or white pixels; nothing to crop.');
     }
 
-    await sharp(inputPath)
+    await sharp(data, {
+        raw: {
+            width: info.width,
+            height: info.height,
+            channels: 4
+        }
+    })
         .extract(bounds)
         .png()
         .toFile(outputPath);
