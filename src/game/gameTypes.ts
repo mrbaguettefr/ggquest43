@@ -33,6 +33,7 @@ export type Enemy = {
     explorationTexture?: string;
     explorationAnimation?: string;
     explorationScale?: number;
+    explorationOrigin?: { x: number; y: number };
 };
 
 export type Encounter = {

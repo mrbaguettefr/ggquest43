@@ -161,6 +161,7 @@ const ENEMY_PRESETS = new Map<string, EnemyPreset>(
         explorationTexture: "bile-demon-battle-idle",
         explorationAnimation: "bile-demon-battle-idle",
         explorationScale: 0.7,
+        explorationOrigin: { x: 0.6, y: 0.65 },
       },
     ],
     [

@@ -24,6 +24,8 @@ type MapEnemy = {
   encounter: Encounter;
   area?: Area;
   sprite: Phaser.GameObjects.Sprite;
+  interactDistance: number;
+  collisionDistance: number;
 };
 
 type MapNpc = {
@@ -484,10 +486,19 @@ export class Exploration extends Scene {
         }
 
         const encounter = this.getMapEncounter(object);
-        const area = this.getAreaAtPosition(object.x!, object.y!);
-        const sprite = this.createMapEnemySprite(object, encounter);
+        const cx = object.x! + (object.width ?? 0) / 2;
+        const cy = object.y! + (object.height ?? 0) / 2;
+        const area = this.getAreaAtPosition(cx, cy);
+        const sprite = this.createMapEnemySprite(encounter, cx, cy);
+        const leadEnemy = encounter.enemies.reduce(
+          (best, e) => e.hp > best.hp ? e : best,
+          encounter.enemies[0],
+        );
+        const renderedHalf = (256 * (leadEnemy?.explorationScale ?? 0.28)) / 2;
+        const interactDistance = Math.max(INTERACT_DISTANCE, renderedHalf);
+        const collisionDistance = Math.max(MAP_CHARACTER_COLLISION_DISTANCE, renderedHalf * 0.6);
         this.trackWorldObject(sprite);
-        return [{ objectId, encounter, area, sprite }];
+        return [{ objectId, encounter, area, sprite, interactDistance, collisionDistance }];
       });
 
     this.mapNpcs = objects
@@ -638,26 +649,29 @@ export class Exploration extends Scene {
   }
 
   private createMapEnemySprite(
-    object: Phaser.Types.Tilemaps.TiledObject,
     encounter: Encounter,
+    cx: number,
+    cy: number,
   ) {
     const leadEnemy = encounter.enemies.reduce(
       (best, enemy) => enemy.hp > best.hp ? enemy : best,
       encounter.enemies[0],
     );
     if (leadEnemy?.explorationTexture && leadEnemy.explorationAnimation) {
+      const origin = leadEnemy.explorationOrigin ?? { x: 0.5, y: 0.5 };
       return this.add
-        .sprite(object.x!, object.y!, leadEnemy.explorationTexture)
+        .sprite(cx, cy, leadEnemy.explorationTexture)
+        .setOrigin(origin.x, origin.y)
         .play(leadEnemy.explorationAnimation)
-        .setDepth(this.getMapObjectDepth(object.y!))
+        .setDepth(this.getMapObjectDepth(cy))
         .setScale(leadEnemy.explorationScale ?? 0.28);
     }
 
     console.warn(`[Exploration] ${encounter.enemies[0]?.name ?? 'Enemy'}: missing explorationTexture, using skeleton fallback`);
     return this.add
-      .sprite(object.x!, object.y!, "skeleton")
+      .sprite(cx, cy, "skeleton")
       .play("skeleton-walk")
-      .setDepth(this.getMapObjectDepth(object.y!))
+      .setDepth(this.getMapObjectDepth(cy))
       .setScale(32 / 225);
   }
 
@@ -739,19 +753,20 @@ export class Exploration extends Scene {
   }
 
   private isBlockedByMapCharacter(x: number, y: number): boolean {
-    return this.getBlockingMapCharacters().some(
+    const enemyBlocked = this.mapEnemies.some(
+      (e) =>
+        PhaserMath.Distance.Between(x, y, e.sprite.x, e.sprite.y) <
+        e.collisionDistance,
+    );
+    if (enemyBlocked) return true;
+    return [
+      ...this.mapNpcs.map((npc) => npc.sprite),
+      ...this.mapHeroSpawns.map((spawn) => spawn.sprite),
+    ].some(
       (sprite) =>
         PhaserMath.Distance.Between(x, y, sprite.x, sprite.y) <
         MAP_CHARACTER_COLLISION_DISTANCE,
     );
-  }
-
-  private getBlockingMapCharacters(): Phaser.GameObjects.Sprite[] {
-    return [
-      ...this.mapEnemies.map((enemy) => enemy.sprite),
-      ...this.mapNpcs.map((npc) => npc.sprite),
-      ...this.mapHeroSpawns.map((spawn) => spawn.sprite),
-    ];
   }
 
   private createHud() {
@@ -913,7 +928,7 @@ export class Exploration extends Scene {
           this.player.y,
           e.sprite.x,
           e.sprite.y,
-        ) <= INTERACT_DISTANCE,
+        ) <= e.interactDistance,
     );
   }
 
