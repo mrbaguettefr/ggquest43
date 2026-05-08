@@ -64,21 +64,15 @@ const EXTRA_ATLAS_ASSETS: AtlasAsset[] = [
     repeat: 0,
   },
   {
-    key: "skeleton-archer-exploration-idle",
-    path: "characters/monsters/skeleton-archer/exploration/skeleton-archer-iso_idle_right-v1",
-    animation: "skeleton-archer-exploration-idle",
-    frameRate: 8,
-  },
-  {
     key: "slime-exploration-idle",
     path: "characters/monsters/slime/exploration/slime-iso_idle_up-v1",
     animation: "slime-exploration-idle",
     frameRate: 8,
   },
   {
-    key: "wolf-rider2-battle-idle",
-    path: "characters/monsters/wolf-rider2/battle/wolf-rider2-idle-v1",
-    animation: "wolf-rider2-battle-idle",
+    key: "wolf-rider2-idle",
+    path: "characters/monsters/wolf-rider2/exploration/wolf-rider2-iso_idle_down-v1",
+    animation: "wolf-rider2-idle",
     frameRate: 8,
   },
   {
@@ -96,12 +90,6 @@ const EXTRA_ATLAS_ASSETS: AtlasAsset[] = [
     repeat: 0,
   },
   {
-    key: "wolf-rider2-exploration-idle",
-    path: "characters/monsters/wolf-rider2/exploration/wolf-rider2-iso_idle_down-v1",
-    animation: "wolf-rider2-exploration-idle",
-    frameRate: 8,
-  },
-  {
     key: "magma-golem-battle-idle",
     path: "characters/monsters/magma-golem/battle/magma-golem-idle-v1",
     animation: "magma-golem-battle-idle",
@@ -115,12 +103,6 @@ const EXTRA_ATLAS_ASSETS: AtlasAsset[] = [
     repeat: 0,
   },
   {
-    key: "magma-golem-exploration-idle",
-    path: "characters/monsters/magma-golem/exploration/magma-golem-iso_idle_right-v2",
-    animation: "magma-golem-exploration-idle",
-    frameRate: 8,
-  },
-  {
     key: "revenant-battle-idle",
     path: "characters/monsters/revenant/battle/revenant-idle-v1",
     animation: "revenant-battle-idle",
@@ -132,12 +114,6 @@ const EXTRA_ATLAS_ASSETS: AtlasAsset[] = [
     animation: "revenant-battle-attack",
     frameRate: 14,
     repeat: 0,
-  },
-  {
-    key: "revenant-exploration-idle",
-    path: "characters/monsters/revenant/exploration/revenant-iso_idle_right-v1",
-    animation: "revenant-exploration-idle",
-    frameRate: 8,
   },
   {
     key: "bile-demon-battle-idle",
@@ -159,12 +135,6 @@ const EXTRA_ATLAS_ASSETS: AtlasAsset[] = [
     frameRate: 8,
   },
   {
-    key: "cyberdemon-exploration-idle",
-    path: "characters/bosses/cyber-demon/exploration/cyber-demon-iso_idle_right-v1",
-    animation: "cyberdemon-exploration-idle",
-    frameRate: 8,
-  },
-  {
     key: "infernal-warlock-battle-idle",
     path: "characters/monsters/infernal-warlock/battle/infernal-warlock-idle-v1",
     animation: "infernal-warlock-battle-idle",
@@ -176,12 +146,6 @@ const EXTRA_ATLAS_ASSETS: AtlasAsset[] = [
     animation: "infernal-warlock-battle-attack",
     frameRate: 14,
     repeat: 0,
-  },
-  {
-    key: "infernal-warlock-exploration-idle",
-    path: "characters/monsters/infernal-warlock/exploration/infernal-warlock-iso_idle_right-v1",
-    animation: "infernal-warlock-exploration-idle",
-    frameRate: 8,
   },
 ];
 
@@ -297,14 +261,6 @@ export class Preloader extends Scene {
       "characters/monsters/skeleton/exploration/skeleton.png",
     );
     this.load.image(
-      "king-slime-boss-exploration-idle-img",
-      "characters/bosses/king-slime/exploration/king-slime-boss-iso_idle_right-v1.png",
-    );
-    this.load.json(
-      "king-slime-boss-exploration-idle-json",
-      "characters/bosses/king-slime/exploration/king-slime-boss-iso_idle_right-v1.json",
-    );
-    this.load.image(
       "battle-bg-plains",
       "battle/areas/plains/graphics/battlefield-plains.png",
     );
@@ -389,11 +345,6 @@ export class Preloader extends Scene {
       "mistress-exploration-idle-down-json",
     );
     this.registerAtlas(
-      "king-slime-boss-exploration-idle",
-      "king-slime-boss-exploration-idle-img",
-      "king-slime-boss-exploration-idle-json",
-    );
-    this.registerAtlas(
       "king-slime-boss-battle-idle",
       "king-slime-boss-battle-idle-img",
       "king-slime-boss-battle-idle-json",
@@ -446,11 +397,6 @@ export class Preloader extends Scene {
       "mistress-exploration-idle-down",
       "mistress-exploration-idle-down",
       8,
-    );
-    this.createAtlasAnimation(
-      "king-slime-boss-exploration-idle",
-      "king-slime-boss-exploration-idle",
-      6,
     );
     this.createAtlasAnimation(
       "king-slime-boss-battle-idle",

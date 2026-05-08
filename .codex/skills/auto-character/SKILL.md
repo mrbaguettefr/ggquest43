@@ -46,7 +46,6 @@ Use these defaults unless the user asks otherwise:
 
 Use AutoSprite built-in kinds where they match. Use `custom` when a requested animation has no exact built-in kind or needs behavior that the built-in kind cannot express.
 
-- Isometric idle: `kind: "idle"`, `name: "Iso Idle"`, `prompt: "isometric idle stance, subtle breathing loop"`, `loop: true`.
 - Battle side-scrolling idle: `kind: "idle"`, `name: "Battle Idle"`, `prompt: "side-scrolling battle idle stance, profile view, subtle breathing loop"`, `loop: true`.
 - Battle side-scrolling attack: `kind: "attack"`, `name: "Battle Attack"`, `prompt: "side-scrolling battle attack animation, profile view"`.
 - Battle side-scrolling die: `kind: "custom"`, `name: "Battle Die"`, `prompt: "side-scrolling battle death animation, profile view, collapse and become still"`, `loop: false`.
