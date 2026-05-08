@@ -1,0 +1,4 @@
+interface:
+  display_name: "Auto Character"
+  short_description: "Generate AutoSprite character spritesheets from local images."
+  default_prompt: "Create AutoSprite character spritesheets from this local image."
