@@ -835,11 +835,11 @@
                  "y":625.333333333333
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":11,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_skeleton",
@@ -854,16 +854,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":1131.41666666667,
-                 "y":885.833333332667
+                 "width":0,
+                 "x":1142.41666666667,
+                 "y":878.833333332667
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":12,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_skeleton",
@@ -873,16 +873,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":1140.08333333333,
-                 "y":1023.83333333267
+                 "width":0,
+                 "x":1150.08333333333,
+                 "y":1026.83333333267
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":33,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_skeleton",
@@ -902,16 +902,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":972.083333333333,
-                 "y":1198.49999999933
+                 "width":0,
+                 "x":992.083333333333,
+                 "y":1183.49999999933
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":34,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_skeleton",
@@ -931,16 +931,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":1104.75,
-                 "y":1235.83333333267
+                 "width":0,
+                 "x":1123.75,
+                 "y":1218.83333333267
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":31,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_wolf_rider",
@@ -955,16 +955,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":146.083333333333,
-                 "y":919.166666666
+                 "width":0,
+                 "x":161.083333333333,
+                 "y":920.166666666
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":13,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_skeleton",
@@ -974,16 +974,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":898.711146134314,
-                 "y":903.81963050521
+                 "width":0,
+                 "x":909.711146134314,
+                 "y":884.81963050521
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":14,
                  "name":"boss",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"king-slime",
@@ -993,16 +993,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
+                 "width":0,
                  "x":161.742754574906,
                  "y":1398.68855616846
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":35,
                  "name":"boss",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"bile-demon",
@@ -1012,16 +1012,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":1442.40942124157,
-                 "y":1234.68855616846
+                 "width":0,
+                 "x":1470.40942124157,
+                 "y":1218.68855616846
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":41,
                  "name":"boss",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"cyberdemon",
@@ -1031,16 +1031,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
+                 "width":0,
                  "x":2859.40942124157,
                  "y":374.68855616846
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":40,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_revenant",
@@ -1050,16 +1050,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":1683.40942124157,
-                 "y":450.68855616846
+                 "width":0,
+                 "x":1695.40942124157,
+                 "y":435.68855616846
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":48,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_revenant",
@@ -1069,9 +1069,9 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":1908.07608790824,
-                 "y":864.021889501793
+                 "width":0,
+                 "x":1920.07608790824,
+                 "y":868.021889501793
                 }, 
                 {
                  "height":0,
@@ -1152,11 +1152,11 @@
                  "y":635
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":32,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_wolf_rider",
@@ -1176,16 +1176,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":172.666666666667,
-                 "y":1164
+                 "width":0,
+                 "x":188.666666666667,
+                 "y":1152
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":36,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"3_slime",
@@ -1195,16 +1195,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":274.666666666667,
-                 "y":791
+                 "width":0,
+                 "x":298.666666666667,
+                 "y":790
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":38,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_magma_golem",
@@ -1214,16 +1214,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":260.666666666667,
-                 "y":387
+                 "width":0,
+                 "x":275.666666666667,
+                 "y":376
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":37,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"3_slime",
@@ -1233,16 +1233,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":319.666666666667,
-                 "y":847
+                 "width":0,
+                 "x":335.666666666667,
+                 "y":831
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":39,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_magma_golem",
@@ -1252,16 +1252,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":348,
-                 "y":200
+                 "width":0,
+                 "x":349,
+                 "y":194
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":42,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_magma_golem",
@@ -1276,16 +1276,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
+                 "width":0,
                  "x":501.333333333333,
                  "y":142.666666666667
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":43,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_magma_golem",
@@ -1305,16 +1305,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":692.666666666667,
-                 "y":193.333333333333
+                 "width":0,
+                 "x":703.666666666667,
+                 "y":185.333333333333
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":45,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_magma_golem",
@@ -1344,16 +1344,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":1024.66666666667,
-                 "y":167.333333333333
+                 "width":0,
+                 "x":1026.66666666667,
+                 "y":149.333333333333
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":46,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_magma_golem",
@@ -1383,16 +1383,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":1352,
-                 "y":336.666666666667
+                 "width":0,
+                 "x":1375,
+                 "y":325.666666666667
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":49,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_magma_golem",
@@ -1422,16 +1422,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
+                 "width":0,
                  "x":2431.66666666667,
                  "y":1122.33333333333
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":47,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_magma_golem",
@@ -1461,16 +1461,16 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":1363.33333333333,
-                 "y":568.666666666667
+                 "width":0,
+                 "x":1375.33333333333,
+                 "y":552.666666666667
                 }, 
                 {
-                 "gid":577,
-                 "height":36,
+                 "height":0,
                  "id":44,
                  "name":"enemy",
                  "opacity":1,
+                 "point":true,
                  "properties":[
                         {
                          "name":"1_magma_golem",
@@ -1485,9 +1485,9 @@
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":32,
-                 "x":752.666666666667,
-                 "y":290.666666666667
+                 "width":0,
+                 "x":769.666666666667,
+                 "y":292.666666666667
                 }],
          "opacity":1,
          "type":"objectgroup",

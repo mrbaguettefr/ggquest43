@@ -1,8 +1,5 @@
 import { Input, Math as PhaserMath, Scene, WEBGL } from "phaser";
-import {
-  AREAS,
-  resolveEncounter,
-} from "../encounters.ts";
+import { AREAS, resolveEncounter } from "../encounters.ts";
 import type { EncounterStack } from "../encounters.ts";
 import {
   CARD_LABELS,
@@ -24,6 +21,8 @@ type MapEnemy = {
   encounter: Encounter;
   area?: Area;
   sprite: Phaser.GameObjects.Sprite;
+  x: number;
+  y: number;
   interactDistance: number;
   collisionDistance: number;
 };
@@ -75,15 +74,15 @@ const MAP_OBJECT_DEPTH_BASE = 2;
 const MAP_OBJECT_DEPTH_SCALE = 10000;
 
 const getApproximateStackLabel = (count: number): string => {
-  if (count <= 4) return 'Few';
-  if (count <= 9) return 'Several';
-  if (count <= 19) return 'Pack';
-  if (count <= 49) return 'Lots';
-  if (count <= 99) return 'Horde';
-  if (count <= 249) return 'Throng';
-  if (count <= 499) return 'Swarm';
-  if (count <= 999) return 'Zounds';
-  return 'Legion';
+  if (count <= 4) return "Few";
+  if (count <= 9) return "Several";
+  if (count <= 19) return "Pack";
+  if (count <= 49) return "Lots";
+  if (count <= 99) return "Horde";
+  if (count <= 249) return "Throng";
+  if (count <= 499) return "Swarm";
+  if (count <= 999) return "Zounds";
+  return "Legion";
 };
 
 export class Exploration extends Scene {
@@ -234,10 +233,7 @@ export class Exploration extends Scene {
       this.playerDirection === "right" && this.playerFacingLeft,
     );
     this.player.play(
-      this.getPlayerAnimationKey(
-        moving ? "run" : "idle",
-        this.playerDirection,
-      ),
+      this.getPlayerAnimationKey(moving ? "run" : "idle", this.playerDirection),
       true,
     );
     this.player.setDepth(this.getMapObjectDepth(this.player.y));
@@ -422,7 +418,9 @@ export class Exploration extends Scene {
   private extractMapObjects(map: Phaser.Tilemaps.Tilemap) {
     const objects = this.getMapObjects(map);
     if (objects.length === 0) {
-      throw new Error('Map is missing required object layers "bg-objects" or "objects"');
+      throw new Error(
+        'Map is missing required object layers "bg-objects" or "objects"',
+      );
     }
 
     const find = (name: string) => objects.find((o) => o.name === name);
@@ -486,19 +484,33 @@ export class Exploration extends Scene {
         }
 
         const encounter = this.getMapEncounter(object);
-        const cx = object.x! + (object.width ?? 0) / 2;
-        const cy = object.y! + (object.height ?? 0) / 2;
+        const cx = object.x!;
+        const cy = object.y!;
         const area = this.getAreaAtPosition(cx, cy);
         const sprite = this.createMapEnemySprite(encounter, cx, cy);
         const leadEnemy = encounter.enemies.reduce(
-          (best, e) => e.hp > best.hp ? e : best,
+          (best, e) => (e.hp > best.hp ? e : best),
           encounter.enemies[0],
         );
         const renderedHalf = (256 * (leadEnemy?.explorationScale ?? 0.28)) / 2;
         const interactDistance = Math.max(INTERACT_DISTANCE, renderedHalf);
-        const collisionDistance = Math.max(MAP_CHARACTER_COLLISION_DISTANCE, renderedHalf * 0.6);
+        const collisionDistance = Math.max(
+          MAP_CHARACTER_COLLISION_DISTANCE,
+          renderedHalf * 0.6,
+        );
         this.trackWorldObject(sprite);
-        return [{ objectId, encounter, area, sprite, interactDistance, collisionDistance }];
+        return [
+          {
+            objectId,
+            encounter,
+            area,
+            sprite,
+            x: cx,
+            y: cy,
+            interactDistance,
+            collisionDistance,
+          },
+        ];
       });
 
     this.mapNpcs = objects
@@ -618,21 +630,24 @@ export class Exploration extends Scene {
     return this.getObjectProperties(object).flatMap((property) => {
       const match = /^([1-5])_(.+)$/.exec(property.name);
       const raw = property.value;
-      const count = typeof raw === "number"
-        ? raw
-        : typeof raw === "string" && raw !== ""
-          ? Number(raw)
-          : undefined;
+      const count =
+        typeof raw === "number"
+          ? raw
+          : typeof raw === "string" && raw !== ""
+            ? Number(raw)
+            : undefined;
 
       if (!match || count === undefined || isNaN(count as number)) {
         return [];
       }
 
-      return [{
-        position: Number(match[1]),
-        enemyKey: match[2],
-        count,
-      }];
+      return [
+        {
+          position: Number(match[1]),
+          enemyKey: match[2],
+          count,
+        },
+      ];
     });
   }
 
@@ -642,19 +657,17 @@ export class Exploration extends Scene {
     }
 
     const bossProperty = this.getObjectProperties(object).find((property) => {
-      return property.name !== "king-slime" && typeof property.value === "number";
+      return (
+        property.name !== "king-slime" && typeof property.value === "number"
+      );
     });
 
     return bossProperty?.name;
   }
 
-  private createMapEnemySprite(
-    encounter: Encounter,
-    cx: number,
-    cy: number,
-  ) {
+  private createMapEnemySprite(encounter: Encounter, cx: number, cy: number) {
     const leadEnemy = encounter.enemies.reduce(
-      (best, enemy) => enemy.hp > best.hp ? enemy : best,
+      (best, enemy) => (enemy.hp > best.hp ? enemy : best),
       encounter.enemies[0],
     );
     if (leadEnemy?.explorationTexture && leadEnemy.explorationAnimation) {
@@ -667,7 +680,9 @@ export class Exploration extends Scene {
         .setScale(leadEnemy.explorationScale ?? 0.28);
     }
 
-    console.warn(`[Exploration] ${encounter.enemies[0]?.name ?? 'Enemy'}: missing explorationTexture, using skeleton fallback`);
+    console.warn(
+      `[Exploration] ${encounter.enemies[0]?.name ?? "Enemy"}: missing explorationTexture, using skeleton fallback`,
+    );
     return this.add
       .sprite(cx, cy, "skeleton")
       .play("skeleton-walk")
@@ -754,9 +769,7 @@ export class Exploration extends Scene {
 
   private isBlockedByMapCharacter(x: number, y: number): boolean {
     const enemyBlocked = this.mapEnemies.some(
-      (e) =>
-        PhaserMath.Distance.Between(x, y, e.sprite.x, e.sprite.y) <
-        e.collisionDistance,
+      (e) => PhaserMath.Distance.Between(x, y, e.x, e.y) < e.collisionDistance,
     );
     if (enemyBlocked) return true;
     return [
@@ -923,12 +936,8 @@ export class Exploration extends Scene {
   private getNearbyMapEnemy(): MapEnemy | undefined {
     return this.mapEnemies.find(
       (e) =>
-        PhaserMath.Distance.Between(
-          this.player.x,
-          this.player.y,
-          e.sprite.x,
-          e.sprite.y,
-        ) <= e.interactDistance,
+        PhaserMath.Distance.Between(this.player.x, this.player.y, e.x, e.y) <=
+        e.interactDistance,
     );
   }
 
@@ -938,7 +947,7 @@ export class Exploration extends Scene {
     this.session.currentEnemyObjectId = enemy.objectId;
     this.session.currentArea =
       enemy.area ??
-      this.getAreaAtPosition(enemy.sprite.x, enemy.sprite.y) ??
+      this.getAreaAtPosition(enemy.x, enemy.y) ??
       this.session.currentArea;
     this.session.currentLocation = enemy.encounter.name;
     this.session.preBattlePosition = { x: this.player.x, y: this.player.y };
@@ -1093,12 +1102,16 @@ export class Exploration extends Scene {
     if (enemy) {
       const countByName = new Map<string, number>();
       for (const e of enemy.encounter.enemies) {
-        countByName.set(e.name, (countByName.get(e.name) ?? 0) + (e.count ?? 1));
+        countByName.set(
+          e.name,
+          (countByName.get(e.name) ?? 0) + (e.count ?? 1),
+        );
       }
-      const parts = Array.from(countByName.entries())
-        .map(([name, count]) => `${name} — ${getApproximateStackLabel(count)}`);
+      const parts = Array.from(countByName.entries()).map(
+        ([name, count]) => `${name} — ${getApproximateStackLabel(count)}`,
+      );
       return {
-        text: `Press E: fight ${parts.join(', ')}`,
+        text: `Press E: fight ${parts.join(", ")}`,
         target: { kind: "sprite", sprite: enemy.sprite },
       };
     }

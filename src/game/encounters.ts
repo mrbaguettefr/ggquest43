@@ -97,6 +97,7 @@ const ENEMY_PRESETS = new Map<string, EnemyPreset>(
         explorationTexture: "slime-exploration-idle",
         explorationAnimation: "slime-exploration-idle",
         explorationScale: 0.22,
+        //        explorationOrigin: { x: 0.5, y: 1 },
       },
     ],
     [
