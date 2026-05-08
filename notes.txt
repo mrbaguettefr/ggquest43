@@ -1,11 +1,9 @@
 
-- recruting heroes
-- flying enemy
-- fear spell enemy
-
+- xp and level up to win against area 2 and 3*
+- harder boss
 medium:
-
-battle:
+ - gfx
+ - battle:
     - finger graphic in battle
     - heroes and enemy graphics
     - hp under heroes
@@ -13,12 +11,17 @@ battle:
 low:
 - Bosses
     -> drop chest
+- heroes limits / big special attack
+    - leon => duke nukem win nuclear missile
+    - cloud => big attack in cosmos
+    - mistress/knight => electro shock multiple enemy
 - permanent local storage
 
 minor bugs:
-- location UI is not updated after battle
 
 === DONE ===
+- recruting heroes
+- flying enemy
 
 
 - baguettefr NPC

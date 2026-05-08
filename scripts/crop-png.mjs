@@ -138,7 +138,11 @@ async function cropPng(options) {
         throw new Error('Input file must be a PNG.');
     }
 
-    await access(inputPath, constants.R_OK);
+    try {
+        await access(inputPath, constants.R_OK);
+    } catch {
+        throw new Error(`Input file does not exist or is not readable: ${inputPath}`);
+    }
 
     const outputPath = resolve(options.output || getDefaultOutputPath(inputPath));
     const source = sharp(inputPath).ensureAlpha();
