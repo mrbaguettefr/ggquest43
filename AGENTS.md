@@ -1,6 +1,6 @@
 # Project Instructions
 
-- Always keep `SPECS.md` aligned with the source code. When behavior, naming, game flow and configuration, update `SPECS.md` in the same change.
+- When behavior, naming, game flow and configuration, update `SPECS.md` in the same change.
 
 # Repository Guidelines
 
@@ -10,6 +10,16 @@
 - Gameplay logic is under `src/game/`, with scenes in `src/game/scenes/` (Boot, Preloader, MainMenu, Game, GameOver), shared values in `src/game/constants.ts`, and a legacy helper in `src/game/genetics.js`.
 - Static assets and styles are in `public/` (images under `public/assets/`, base CSS in `public/style.css`). Vite configs live in `vite/config.dev.mjs` and `vite/config.prod.mjs`.
 - Type declarations are surfaced via `types.d.ts` and `src/vite-env.d.ts`; add new globals there.
+
+## Asset Intake & Cropping
+
+- Keep raw/source art that is not meant to be served by Vite outside `public/`, usually under `asset_sources/`.
+- Before adding a new PNG from outside `public/` into `public/assets/`, crop it with the project script instead of copying it directly.
+- Use `node scripts/crop-png.mjs <input.png> --output public/assets/<feature>/<asset-name>.png` for images with transparent, white, or near-white borders.
+- For generated images with a solid or gradient background connected to the image edges, use `--flood-background` so the connected edge background is made transparent before cropping. Adjust with `--flood-threshold <0-255>` when needed, for example:
+  `node scripts/crop-png.mjs "asset_sources/source.png" --flood-background --flood-threshold 50 --output public/assets/battle/finger.png`.
+- After cropping, inspect the generated PNG visually and verify transparent edges before wiring it into Phaser loaders or scenes.
+- Use lowercase, descriptive asset names in `public/assets/` that match Phaser loader keys and existing folder conventions.
 
 ## Build, Test, and Development Commands
 
