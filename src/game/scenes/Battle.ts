@@ -191,6 +191,7 @@ export class Battle extends Scene
             const scale = enemy.battleScale ?? SPRITE_SCALE;
 
             const sprite = this.add.sprite(x, y, texture)
+                .setFlipX(true)
                 .setScale(scale)
                 .setDepth(5)
                 .play(animation);
