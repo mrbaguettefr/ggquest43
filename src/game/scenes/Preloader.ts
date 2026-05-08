@@ -76,6 +76,32 @@ const EXTRA_ATLAS_ASSETS: AtlasAsset[] = [
     frameRate: 8,
   },
   {
+    key: "wolf-rider2-battle-idle",
+    path: "characters/monsters/wolf-rider2/battle/wolf-rider2-idle-v1",
+    animation: "wolf-rider2-battle-idle",
+    frameRate: 8,
+  },
+  {
+    key: "wolf-rider2-battle-attack",
+    path: "characters/monsters/wolf-rider2/battle/wolf-rider2-attack-v1",
+    animation: "wolf-rider2-battle-attack",
+    frameRate: 14,
+    repeat: 0,
+  },
+  {
+    key: "wolf-rider2-battle-die",
+    path: "characters/monsters/wolf-rider2/battle/wolf-rider2-die-v1",
+    animation: "wolf-rider2-battle-die",
+    frameRate: 12,
+    repeat: 0,
+  },
+  {
+    key: "wolf-rider2-exploration-idle",
+    path: "characters/monsters/wolf-rider2/exploration/wolf-rider2-iso_idle_down-v1",
+    animation: "wolf-rider2-exploration-idle",
+    frameRate: 8,
+  },
+  {
     key: "magma-golem-battle-idle",
     path: "characters/monsters/magma-golem/battle/magma-golem-idle-v1",
     animation: "magma-golem-battle-idle",

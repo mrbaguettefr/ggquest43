@@ -50,6 +50,7 @@ export class Battle extends Scene
     private heroSprites: Phaser.GameObjects.Sprite[] = [];
     private enemySprites: Phaser.GameObjects.Sprite[] = [];
     private enemyLabels: Phaser.GameObjects.Text[] = [];
+    private deadEnemyAnimationsPlayed = new Set<number>();
     private commandWindow: Phaser.GameObjects.Container;
     private commandHeroText: Phaser.GameObjects.Text;
     private commandTexts: Phaser.GameObjects.Text[] = [];
@@ -81,6 +82,7 @@ export class Battle extends Scene
         this.heroSprites = [];
         this.enemySprites = [];
         this.enemyLabels = [];
+        this.deadEnemyAnimationsPlayed.clear();
         this.commandTexts = [];
         this.partyHpLines = [];
         this.finger = null;
@@ -478,14 +480,14 @@ export class Battle extends Scene
                     const slainText = slain > 0 ? ` (${slain} slain)` : '';
                     log.push(`${hero.name} uses ${hero.special} for ${damage}${slainText}.`);
                     this.refreshEnemyLabels();
-                    this.refreshEnemySprites();
+                    await this.refreshEnemySprites();
                     await this.wait(140);
                 }
             }
         }
 
         this.refreshEnemyLabels();
-        this.refreshEnemySprites();
+        await this.refreshEnemySprites();
 
         if (this.encounter.enemies.every((e) => e.hp <= 0))
         {
@@ -684,10 +686,49 @@ export class Battle extends Scene
         });
     }
 
-    private refreshEnemySprites()
+    private async refreshEnemySprites()
     {
-        this.encounter.enemies.forEach((enemy, index) => {
-            this.enemySprites[index]?.setAlpha(enemy.hp <= 0 ? 0.2 : 1);
+        await Promise.all(
+            this.encounter.enemies.map(async (enemy, index) => {
+                const sprite = this.enemySprites[index];
+                if (!sprite) return;
+
+                if (enemy.hp > 0)
+                {
+                    sprite.setAlpha(1);
+                    return;
+                }
+
+                if (!this.deadEnemyAnimationsPlayed.has(index))
+                {
+                    this.deadEnemyAnimationsPlayed.add(index);
+                    await this.playDeathAnimation(sprite, enemy);
+                }
+
+                sprite.setAlpha(0.2);
+            }),
+        );
+    }
+
+    private playDeathAnimation(sprite: Phaser.GameObjects.Sprite, enemy: Enemy)
+    {
+        const deathAnimation = enemy.battleDeathAnimation;
+        const deathTexture = enemy.battleDeathTexture;
+
+        if (!deathAnimation || !this.anims.exists(deathAnimation))
+        {
+            return this.wait(0);
+        }
+
+        if (deathTexture && this.textures.exists(deathTexture))
+        {
+            sprite.setTexture(deathTexture);
+        }
+
+        sprite.play(deathAnimation, true);
+
+        return new Promise<void>((resolve) => {
+            sprite.once('animationcomplete', () => resolve());
         });
     }
 

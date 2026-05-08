@@ -29,6 +29,8 @@ export type Enemy = {
     battleAnimation?: string;
     battleAttackTexture?: string;
     battleAttackAnimation?: string;
+    battleDeathTexture?: string;
+    battleDeathAnimation?: string;
     battleScale?: number;
     explorationTexture?: string;
     explorationAnimation?: string;
