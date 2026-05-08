@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const MAP_SOURCE = "public/assets/Exploration/tileset/map.tmj";
-const MAP_OUTPUT = "public/assets/Exploration/tileset/map-tiled.json";
+const MAP_SOURCE = "public/assets/exploration/tilemaps/map.tmj";
+const MAP_OUTPUT = "public/assets/exploration/tilemaps/map-tiled.json";
 
 function toPosixPath(filePath) {
     return filePath.split(path.sep).join(path.posix.sep);

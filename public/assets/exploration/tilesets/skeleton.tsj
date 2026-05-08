@@ -1,0 +1,21 @@
+{ "columns":8,
+ "grid":
+    {
+     "height":32,
+     "orientation":"orthogonal",
+     "width":32
+    },
+ "image":"..\/..\/characters\/monsters\/skeleton\/exploration\/skeleton.png",
+ "imageheight":225,
+ "imagewidth":1716,
+ "margin":0,
+ "name":"skeleton",
+ "spacing":4,
+ "tilecount":8,
+ "tiledversion":"1.12.1",
+ "tileheight":225,
+ "tilewidth":211,
+ "transparentcolor":"#333233",
+ "type":"tileset",
+ "version":"1.10"
+}

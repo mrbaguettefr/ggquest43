@@ -11,7 +11,7 @@ const EXPLORATION_MUSIC_BY_AREA: Record<AreaKey, string> = {
   "lava-underground": "music-lava",
 };
 
-const COMBAT_MUSIC_KEYS = ["music-combat-1", "music-combat-2", "music-combat-3"];
+const BATTLE_MUSIC_KEYS = ["music-battle-1", "music-battle-2", "music-battle-3"];
 const MUSIC_VOLUME = 0.72;
 
 let currentMusic: MusicSound | undefined;
@@ -20,8 +20,8 @@ let currentMusicKey: string | undefined;
 export const getExplorationMusicKey = (areaKey: AreaKey | undefined) =>
   areaKey ? EXPLORATION_MUSIC_BY_AREA[areaKey] : "music-center";
 
-export const getRandomCombatMusicKey = (): string =>
-  PhaserMath.RND.pick(COMBAT_MUSIC_KEYS);
+export const getRandomBattleMusicKey = (): string =>
+  PhaserMath.RND.pick(BATTLE_MUSIC_KEYS);
 
 export const playMusic = (
   scene: Scene,

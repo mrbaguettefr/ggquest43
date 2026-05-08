@@ -31,129 +31,129 @@ type AtlasAsset = {
 const EXTRA_ATLAS_ASSETS: AtlasAsset[] = [
   {
     key: "cloud-battle-attack",
-    path: "Battle/characters/cloud2-attack-v1",
+    path: "characters/heroes/cloud/battle/cloud2-attack-v1",
     animation: "cloud-battle-attack",
     frameRate: 14,
     repeat: 0,
   },
   {
     key: "leon-battle-attack",
-    path: "Battle/characters/leon3-attack-v1",
+    path: "characters/heroes/leon/battle/leon3-attack-v1",
     animation: "leon-battle-attack",
     frameRate: 14,
     repeat: 0,
   },
   {
     key: "mistress-battle-attack",
-    path: "Battle/characters/mistress2-attack-v1",
+    path: "characters/heroes/mistress/battle/mistress2-attack-v1",
     animation: "mistress-battle-attack",
     frameRate: 14,
     repeat: 0,
   },
   {
     key: "skeleton-archer-battle-idle",
-    path: "Battle/monsters/skeleton-archer-idle-v1",
+    path: "characters/monsters/skeleton-archer/battle/skeleton-archer-idle-v1",
     animation: "skeleton-archer-battle-idle",
     frameRate: 8,
   },
   {
     key: "skeleton-archer-battle-attack",
-    path: "Battle/monsters/skeleton-archer-attack-v1",
+    path: "characters/monsters/skeleton-archer/battle/skeleton-archer-attack-v1",
     animation: "skeleton-archer-battle-attack",
     frameRate: 14,
     repeat: 0,
   },
   {
     key: "skeleton-archer-exploration-idle",
-    path: "Exploration/world/monsters/skeleton-archer-iso_idle_right-v1",
+    path: "characters/monsters/skeleton-archer/exploration/skeleton-archer-iso_idle_right-v1",
     animation: "skeleton-archer-exploration-idle",
     frameRate: 8,
   },
   {
     key: "slime-exploration-idle",
-    path: "Exploration/world/monsters/slime-iso_idle_up-v1",
+    path: "characters/monsters/slime/exploration/slime-iso_idle_up-v1",
     animation: "slime-exploration-idle",
     frameRate: 8,
   },
   {
     key: "magma-golem-battle-idle",
-    path: "Battle/monsters/magma-golem-idle-v1",
+    path: "characters/monsters/magma-golem/battle/magma-golem-idle-v1",
     animation: "magma-golem-battle-idle",
     frameRate: 8,
   },
   {
     key: "magma-golem-battle-attack",
-    path: "Battle/monsters/magma-golem-attack-v1",
+    path: "characters/monsters/magma-golem/battle/magma-golem-attack-v1",
     animation: "magma-golem-battle-attack",
     frameRate: 14,
     repeat: 0,
   },
   {
     key: "magma-golem-exploration-idle",
-    path: "Exploration/world/monsters/magma-golem-iso_idle_right-v2",
+    path: "characters/monsters/magma-golem/exploration/magma-golem-iso_idle_right-v2",
     animation: "magma-golem-exploration-idle",
     frameRate: 8,
   },
   {
     key: "revenant-battle-idle",
-    path: "Battle/monsters/revenant-idle-v1",
+    path: "characters/monsters/revenant/battle/revenant-idle-v1",
     animation: "revenant-battle-idle",
     frameRate: 8,
   },
   {
     key: "revenant-battle-attack",
-    path: "Battle/monsters/revenant-attack-v1",
+    path: "characters/monsters/revenant/battle/revenant-attack-v1",
     animation: "revenant-battle-attack",
     frameRate: 14,
     repeat: 0,
   },
   {
     key: "revenant-exploration-idle",
-    path: "Exploration/world/monsters/revenant-iso_idle_right-v1",
+    path: "characters/monsters/revenant/exploration/revenant-iso_idle_right-v1",
     animation: "revenant-exploration-idle",
     frameRate: 8,
   },
   {
     key: "bile-demon-battle-idle",
-    path: "Battle/monsters/bile-demon-idle-v1",
+    path: "characters/bosses/bile-demon/battle/bile-demon-idle-v1",
     animation: "bile-demon-battle-idle",
     frameRate: 8,
   },
   {
     key: "bile-demon-battle-attack",
-    path: "Battle/monsters/bile-demon-attack-v1",
+    path: "characters/bosses/bile-demon/battle/bile-demon-attack-v1",
     animation: "bile-demon-battle-attack",
     frameRate: 14,
     repeat: 0,
   },
   {
     key: "cyberdemon-battle-idle",
-    path: "Battle/monsters/cyber-demon-idle-v1",
+    path: "characters/bosses/cyber-demon/battle/cyber-demon-idle-v1",
     animation: "cyberdemon-battle-idle",
     frameRate: 8,
   },
   {
     key: "cyberdemon-exploration-idle",
-    path: "Exploration/world/monsters/cyber-demon-iso_idle_right-v1",
+    path: "characters/bosses/cyber-demon/exploration/cyber-demon-iso_idle_right-v1",
     animation: "cyberdemon-exploration-idle",
     frameRate: 8,
   },
   {
     key: "infernal-warlock-battle-idle",
-    path: "Battle/monsters/infernal-warlock-idle-v1",
+    path: "characters/monsters/infernal-warlock/battle/infernal-warlock-idle-v1",
     animation: "infernal-warlock-battle-idle",
     frameRate: 8,
   },
   {
     key: "infernal-warlock-battle-attack",
-    path: "Battle/monsters/infernal-warlock-attack-v1",
+    path: "characters/monsters/infernal-warlock/battle/infernal-warlock-attack-v1",
     animation: "infernal-warlock-battle-attack",
     frameRate: 14,
     repeat: 0,
   },
   {
     key: "infernal-warlock-exploration-idle",
-    path: "Exploration/world/monsters/infernal-warlock-iso_idle_right-v1",
+    path: "characters/monsters/infernal-warlock/exploration/infernal-warlock-iso_idle_right-v1",
     animation: "infernal-warlock-exploration-idle",
     frameRate: 8,
   },
@@ -179,165 +179,169 @@ export class Preloader extends Scene {
   preload() {
     this.load.setPath("assets");
 
-    this.load.image("main-menu-logo", "MainMenu/main-menu-logo.png");
-    this.load.audio("music-center", "audio/center.m4a");
-    this.load.audio("music-plains", "audio/plains.m4a");
-    this.load.audio("music-dungeon", "audio/dungeon.m4a");
-    this.load.audio("music-lava", "audio/lava.m4a");
-    this.load.audio("music-combat-1", "audio/combat1.m4a");
-    this.load.audio("music-combat-2", "audio/combat2.m4a");
-    this.load.audio("music-combat-3", "audio/combat3.m4a");
-    this.load.image("wall-0", "Wall/wall-0.png");
-    this.load.spritesheet("wall-inserted-cards", "Wall/inserted-cards.png", {
+    this.load.image("main-menu-logo", "main-menu/main-menu-logo.png");
+    this.load.audio("music-center", "exploration/audio/center.m4a");
+    this.load.audio("music-plains", "exploration/areas/plains/audio/plains.m4a");
+    this.load.audio("music-dungeon", "exploration/areas/dungeon/audio/dungeon.m4a");
+    this.load.audio("music-lava", "exploration/areas/lava/audio/lava.m4a");
+    this.load.audio("music-battle-1", "battle/audio/battle1.m4a");
+    this.load.audio("music-battle-2", "battle/audio/battle2.m4a");
+    this.load.audio("music-battle-3", "battle/audio/battle3.m4a");
+    this.load.image("wall-0", "wall/wall-0.png");
+    this.load.spritesheet("wall-inserted-cards", "wall/inserted-cards.png", {
       frameWidth: 436,
       frameHeight: 459,
       spacing: 1,
     });
     this.load.image(
       "tileset-wall",
-      "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Tileset Wall.png",
+      "exploration/tilesets/textures/TX Tileset Wall.png",
     );
     this.load.image(
       "tileset-stone",
-      "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Tileset Stone Ground.png",
+      "exploration/tilesets/textures/TX Tileset Stone Ground.png",
     );
     this.load.image(
       "tileset-grass",
-      "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Tileset Grass.png",
+      "exploration/tilesets/textures/TX Tileset Grass.png",
     );
     this.load.image(
       "tileset-props",
-      "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Props.png",
+      "exploration/tilesets/textures/TX Props.png",
     );
     this.load.image(
       "tileset-plants",
-      "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Plant.png",
+      "exploration/tilesets/textures/TX Plant.png",
     );
     this.load.image(
       "tileset-lava-ground",
-      "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/lava-ground.png",
+      "exploration/tilesets/textures/lava-ground.png",
     );
     this.load.image(
       "tileset-lava-walls",
-      "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/lava-walls.png",
+      "exploration/tilesets/textures/lava-walls.png",
     );
     this.load.image(
       "tileset-structs",
-      "Exploration/tileset/Pixel Art Top Down - Basic v1.2.3/Texture/TX Struct.png",
+      "exploration/tilesets/textures/TX Struct.png",
     );
     this.load.tilemapTiledJSON(
       "worldmap",
-      "Exploration/tileset/map-tiled.json",
+      "exploration/tilemaps/map-tiled.json",
     );
     this.load.image(
       "baguettefr-idle-down-img",
-      "Exploration/world/characters/baguettefr-iso_idle_down-v1.png",
+      "characters/npcs/baguettefr/exploration/baguettefr-iso_idle_down-v1.png",
     );
     this.load.json(
       "baguettefr-idle-down-json",
-      "Exploration/world/characters/baguettefr-iso_idle_down-v1.json",
+      "characters/npcs/baguettefr/exploration/baguettefr-iso_idle_down-v1.json",
     );
     this.load.image(
       "leon-exploration-idle-down-img",
-      "Exploration/world/characters/leon3-iso_idle_down-v1.png",
+      "characters/heroes/leon/exploration/leon3-iso_idle_down-v1.png",
     );
     this.load.json(
       "leon-exploration-idle-down-json",
-      "Exploration/world/characters/leon3-iso_idle_down-v1.json",
+      "characters/heroes/leon/exploration/leon3-iso_idle_down-v1.json",
     );
     this.load.image(
       "mistress-exploration-idle-down-img",
-      "Exploration/world/characters/mistress2-iso_idle_down-v1.png",
+      "characters/heroes/mistress/exploration/mistress2-iso_idle_down-v1.png",
     );
     this.load.json(
       "mistress-exploration-idle-down-json",
-      "Exploration/world/characters/mistress2-iso_idle_down-v1.json",
+      "characters/heroes/mistress/exploration/mistress2-iso_idle_down-v1.json",
     );
     for (const state of CLOUD_ANIMATION_STATES) {
       for (const dir of CLOUD_DIRECTIONS) {
         this.load.image(
           this.getCloudAssetKey(state, dir, "img"),
-          `Exploration/world/characters/cloud2-iso_${state}_${dir}-v1.png`,
+          `characters/heroes/cloud/exploration/cloud2-iso_${state}_${dir}-v1.png`,
         );
         this.load.json(
           this.getCloudAssetKey(state, dir, "json"),
-          `Exploration/world/characters/cloud2-iso_${state}_${dir}-v1.json`,
+          `characters/heroes/cloud/exploration/cloud2-iso_${state}_${dir}-v1.json`,
         );
       }
     }
     this.load.image(
       "skeleton-img",
-      "Exploration/world/monsters/skeleton.png",
+      "characters/monsters/skeleton/exploration/skeleton.png",
     );
     this.load.image(
       "king-slime-boss-exploration-idle-img",
-      "Exploration/world/monsters/king-slime-boss-iso_idle_right-v1.png",
+      "characters/bosses/king-slime/exploration/king-slime-boss-iso_idle_right-v1.png",
     );
     this.load.json(
       "king-slime-boss-exploration-idle-json",
-      "Exploration/world/monsters/king-slime-boss-iso_idle_right-v1.json",
+      "characters/bosses/king-slime/exploration/king-slime-boss-iso_idle_right-v1.json",
     );
     this.load.image(
       "battle-bg-plains",
-      "Battle/background/battlefield-plains.png",
+      "battle/areas/plains/graphics/battlefield-plains.png",
     );
     this.load.image(
       "battle-bg-dungeon",
-      "Battle/background/battlefield-dungeon.png",
+      "battle/areas/dungeon/graphics/battlefield-dungeon.png",
     );
     this.load.image(
       "battle-bg-lava-underground",
-      "Battle/background/battlefield-lava-underground.png",
+      "battle/areas/lava/graphics/battlefield-lava-underground.png",
     );
     this.load.image(
       "cloud-battle-idle-img",
-      "Battle/characters/cloud2-idle-v2.png",
+      "characters/heroes/cloud/battle/cloud2-idle-v2.png",
     );
     this.load.json(
       "cloud-battle-idle-json",
-      "Battle/characters/cloud2-idle-v2.json",
+      "characters/heroes/cloud/battle/cloud2-idle-v2.json",
     );
     this.load.image(
       "enemy-battle-fallback-idle-img",
-      "Battle/characters/cloud-idle-v1.png",
+      "characters/heroes/cloud/battle/cloud-idle-v1.png",
     );
     this.load.json(
       "enemy-battle-fallback-idle-json",
-      "Battle/characters/cloud-idle-v1.json",
+      "characters/heroes/cloud/battle/cloud-idle-v1.json",
     );
     this.load.image(
       "leon-battle-idle-img",
-      "Battle/characters/leon3-idle-v1.png",
+      "characters/heroes/leon/battle/leon3-idle-v1.png",
     );
     this.load.json(
       "leon-battle-idle-json",
-      "Battle/characters/leon3-idle-v1.json",
+      "characters/heroes/leon/battle/leon3-idle-v1.json",
     );
     this.load.image(
       "mistress-battle-idle-img",
-      "Battle/characters/mistress2-idle-v1.png",
+      "characters/heroes/mistress/battle/mistress2-idle-v1.png",
     );
     this.load.json(
       "mistress-battle-idle-json",
-      "Battle/characters/mistress2-idle-v1.json",
+      "characters/heroes/mistress/battle/mistress2-idle-v1.json",
     );
     this.load.image(
       "king-slime-boss-battle-idle-img",
-      "Battle/monsters/king-slime-boss-idle-v1.png",
+      "characters/bosses/king-slime/battle/king-slime-boss-idle-v1.png",
     );
     this.load.json(
       "king-slime-boss-battle-idle-json",
-      "Battle/monsters/king-slime-boss-idle-v1.json",
+      "characters/bosses/king-slime/battle/king-slime-boss-idle-v1.json",
     );
 
     EXTRA_ATLAS_ASSETS.forEach((asset) => {
       this.load.image(`${asset.key}-img`, `${asset.path}.png`);
       this.load.json(`${asset.key}-json`, `${asset.path}.json`);
     });
-    this.load.spritesheet("cyberdemon-battle-attack", "Battle/monsters/cyber-demon-attack-v1.png", {
-      frameWidth: 256,
-      frameHeight: 256,
-    });
+    this.load.spritesheet(
+      "cyberdemon-battle-attack",
+      "characters/bosses/cyber-demon/battle/cyber-demon-attack-v1.png",
+      {
+        frameWidth: 256,
+        frameHeight: 256,
+      },
+    );
   }
 
   create() {

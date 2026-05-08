@@ -1,6 +1,6 @@
 import { Math as PhaserMath, Scene } from 'phaser';
 import { installDebugDialog } from '../debugDialog.ts';
-import { getRandomCombatMusicKey, playMusic } from '../music.ts';
+import { getRandomBattleMusicKey, playMusic } from '../music.ts';
 import type { AreaKey, BattleResult, Enemy, Encounter, GameSession, Hero, HeroKey } from '../gameTypes.ts';
 
 type BattleState = 'choosing-action' | 'choosing-target' | 'animating' | 'done';
@@ -85,7 +85,7 @@ export class Battle extends Scene
         this.partyHpLines = [];
         this.finger = null;
 
-        playMusic(this, getRandomCombatMusicKey(), 150);
+        playMusic(this, getRandomBattleMusicKey(), 150);
         this.cameras.main.fadeIn(180);
 
         this.createBackground();
